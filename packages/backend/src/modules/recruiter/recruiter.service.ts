@@ -4,6 +4,7 @@ import {
     CreatePositionInput,
     OverrideDecisionInput,
 } from './recruiter.schema.js';
+import { coordinatorAgent } from '../../agents/coordinator.agent.js';
 
 export class RecruiterService {
     async createPosition(recruiterId: string, input: CreatePositionInput) {
@@ -130,7 +131,6 @@ export class RecruiterService {
                 'Manual override window is closed. Decisions become permanent after the position deadline passes.'
             );
         }
-        // Inside overrideDecision if newStatus === 'ELIGIBLE':
         if (input.newStatus === 'ELIGIBLE') {
             const coordination =
                 await coordinatorAgent.proposeSlotsForCandidate(
@@ -177,6 +177,24 @@ export class RecruiterService {
         return prisma.position.update({
             where: { id: positionId },
             data: { status: 'CLOSED' },
+        });
+    }
+    async configureSlot(recruiterId: string, input: ConfigureSlotInput) {
+        const position = await prisma.position.findFirst({
+            where: { id: input.positionId, recruiterId },
+        });
+
+        if (!position) {
+            throw new AppError(404, 'Position not found or unauthorized');
+        }
+
+        return prisma.recruiterSlot.create({
+            data: {
+                positionId: input.positionId,
+                dayOfWeek: input.dayOfWeek,
+                startTime: input.startTime,
+                endTime: input.endTime,
+            },
         });
     }
 }
