@@ -28,4 +28,14 @@ router.get('/applications', (req, res, next) =>
     applicantController.getMyApplications(req, res, next)
 );
 
+router.get('/calendar', (req, res, next) =>
+    applicantController.getCalendarEvents(req, res, next)
+);
+router.post('/interviews/select-range', (req, res, next) =>
+    applicantController.selectInterviewRange(req, res, next)
+);
+router.get('/insights', (req, res, next) =>
+    applicantController.getInsights(req, res, next)
+);
+
 export const applicantRoutes = router;
