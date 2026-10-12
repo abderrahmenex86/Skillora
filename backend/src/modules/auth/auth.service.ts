@@ -1,0 +1,199 @@
+import bcrypt from 'bcryptjs';
+import { prisma } from '../../db/prisma.js';
+import { AppError } from '../../middleware/errorHandler.js';
+import { RegisterInput, LoginInput } from './auth.schema.js';
+import {
+    generateAccessToken,
+    generateRefreshToken,
+    verifyRefreshToken,
+    TokenPayload,
+} from './auth.tokens.js';
+
+export class AuthService {
+    async register(input: RegisterInput) {
+        const existing = await prisma.user.findUnique({
+            where: { email: input.email.toLowerCase().trim() },
+        });
+
+        if (existing) {
+            throw new AppError(
+                409,
+                'An account with this email already exists'
+            );
+        }
+
+        const salt = await bcrypt.genSalt(12);
+        const passwordHash = await bcrypt.hash(input.password, salt);
+
+        const user = await prisma.user.create({
+            data: {
+                email: input.email.toLowerCase().trim(),
+                passwordHash,
+                role: input.role,
+                subscriptionTier: 'FREE',
+            },
+            select: {
+                id: true,
+                email: true,
+                role: true,
+                subscriptionTier: true,
+                createdAt: true,
+            },
+        });
+
+        const tokenPayload: TokenPayload = {
+            sub: user.id,
+            role: user.role,
+            tier: user.subscriptionTier,
+        };
+
+        const accessToken = generateAccessToken(tokenPayload);
+        const refreshToken = generateRefreshToken(tokenPayload);
+
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        await prisma.refreshToken.create({
+            data: {
+                token: refreshToken,
+                userId: user.id,
+                expiresAt,
+            },
+        });
+
+        return { user, accessToken, refreshToken };
+    }
+
+    async login(input: LoginInput) {
+        const user = await prisma.user.findUnique({
+            where: { email: input.email.toLowerCase().trim() },
+        });
+
+        if (!user) {
+            throw new AppError(401, 'Invalid email or password');
+        }
+
+        const isMatch = await bcrypt.compare(input.password, user.passwordHash);
+        if (!isMatch) {
+            throw new AppError(401, 'Invalid email or password');
+        }
+
+        const tokenPayload: TokenPayload = {
+            sub: user.id,
+            role: user.role,
+            tier: user.subscriptionTier,
+        };
+
+        const accessToken = generateAccessToken(tokenPayload);
+        const refreshToken = generateRefreshToken(tokenPayload);
+
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        await prisma.refreshToken.create({
+            data: {
+                token: refreshToken,
+                userId: user.id,
+                expiresAt,
+            },
+        });
+
+        return {
+            user: {
+                id: user.id,
+                email: user.email,
+                role: user.role,
+                subscriptionTier: user.subscriptionTier,
+                createdAt: user.createdAt,
+            },
+            accessToken,
+            refreshToken,
+        };
+    }
+
+    async refreshTokens(incomingRefreshToken: string) {
+        let payload: TokenPayload;
+        try {
+            payload = verifyRefreshToken(incomingRefreshToken);
+        } catch {
+            throw new AppError(401, 'Invalid or expired refresh token');
+        }
+
+        const savedToken = await prisma.refreshToken.findUnique({
+            where: { token: incomingRefreshToken },
+            include: { user: true },
+        });
+
+        if (!savedToken) {
+            await prisma.refreshToken.deleteMany({
+                where: { userId: payload.sub },
+            });
+            throw new AppError(
+                401,
+                'Refresh token reuse detected. Access revoked.'
+            );
+        }
+
+        if (savedToken.expiresAt < new Date()) {
+            await prisma.refreshToken.delete({ where: { id: savedToken.id } });
+            throw new AppError(401, 'Refresh token has expired');
+        }
+
+        await prisma.refreshToken.delete({ where: { id: savedToken.id } });
+
+        const newPayload: TokenPayload = {
+            sub: savedToken.user.id,
+            role: savedToken.user.role,
+            tier: savedToken.user.subscriptionTier,
+        };
+
+        const newAccessToken = generateAccessToken(newPayload);
+        const newRefreshToken = generateRefreshToken(newPayload);
+
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        await prisma.refreshToken.create({
+            data: {
+                token: newRefreshToken,
+                userId: savedToken.user.id,
+                expiresAt,
+            },
+        });
+
+        return {
+            user: {
+                id: savedToken.user.id,
+                email: savedToken.user.email,
+                role: savedToken.user.role,
+                subscriptionTier: savedToken.user.subscriptionTier,
+            },
+            accessToken: newAccessToken,
+            refreshToken: newRefreshToken,
+        };
+    }
+
+    async logout(refreshToken?: string) {
+        if (refreshToken) {
+            await prisma.refreshToken.deleteMany({
+                where: { token: refreshToken },
+            });
+        }
+    }
+
+    async getMe(userId: string) {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                email: true,
+                role: true,
+                subscriptionTier: true,
+                subscriptionExpiresAt: true,
+                createdAt: true,
+            },
+        });
+
+        if (!user) {
+            throw new AppError(404, 'User not found');
+        }
+
+        return user;
+    }
+}
+
+export const authService = new AuthService();
