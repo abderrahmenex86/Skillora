@@ -130,6 +130,30 @@ export class RecruiterService {
                 'Manual override window is closed. Decisions become permanent after the position deadline passes.'
             );
         }
+        // Inside overrideDecision if newStatus === 'ELIGIBLE':
+        if (input.newStatus === 'ELIGIBLE') {
+            const coordination =
+                await coordinatorAgent.proposeSlotsForCandidate(
+                    application.id,
+                    application.position.recruiterId,
+                    application.position.id
+                );
+
+            await prisma.interviewEvent.upsert({
+                where: { applicationId: application.id },
+                create: {
+                    applicationId: application.id,
+                    applicantId: application.applicantId,
+                    recruiterId: application.position.recruiterId,
+                    status: 'RANGE_PENDING',
+                    proposedRanges: coordination.proposedSlots as any,
+                },
+                update: {
+                    status: 'RANGE_PENDING',
+                    proposedRanges: coordination.proposedSlots as any,
+                },
+            });
+        }
 
         return prisma.application.update({
             where: { id: applicationId },
