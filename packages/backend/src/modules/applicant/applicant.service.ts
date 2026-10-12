@@ -5,6 +5,7 @@ import {
     UpdateProfileInput,
     SubmitApplicationInput,
 } from './applicant.schema.js';
+import { evaluationQueue } from '../../queues/queue.config.js';
 
 export class ApplicantService {
     async getProfiles(userId: string) {
@@ -190,6 +191,9 @@ export class ApplicantService {
                     },
                 },
             },
+        });
+        await evaluationQueue.add('evaluate-application', {
+            applicationId: application.id,
         });
 
         return application;
