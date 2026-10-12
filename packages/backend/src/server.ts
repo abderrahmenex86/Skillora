@@ -1,6 +1,7 @@
 import { app } from './app.js';
 import { env } from './config/env.js';
 import { prisma } from './db/prisma.js';
+import './queues/evaluation.worker.js';
 
 const start = async () => {
     try {
