@@ -16,6 +16,10 @@ const envSchema = z.object({
     JWT_REFRESH_SECRET: z
         .string()
         .min(32, 'JWT_REFRESH_SECRET must be at least 32 characters'),
+    REDIS_HOST: z.string().default('127.0.0.1'),
+    REDIS_PORT: z.string().default('6379').transform(Number),
+    REDIS_PASSWORD: z.string().optional(),
+    OPENAI_API_KEY: z.string().optional(),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
