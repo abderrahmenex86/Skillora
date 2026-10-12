@@ -6,6 +6,7 @@ import {
     SubmitApplicationInput,
 } from './applicant.schema.js';
 import { evaluationQueue } from '../../queues/queue.config.js';
+import { coordinatorAgent } from '../../agents/coordinator.agent.js';
 
 export class ApplicantService {
     async getProfiles(userId: string) {
@@ -233,5 +234,196 @@ export class ApplicantService {
         });
     }
 }
+
+export class ApplicantServiceExtensions {
+    async getCalendarEvents(userId: string) {
+        const interviews = await prisma.interviewEvent.findMany({
+            where: { applicantId: userId },
+            include: {
+                application: {
+                    select: {
+                        id: true,
+                        anonymousId: true,
+                        status: true,
+                        position: {
+                            select: {
+                                title: true,
+                                companyName: true,
+                                location: true,
+                            },
+                        },
+                    },
+                },
+            },
+            orderBy: { createdAt: 'desc' },
+        });
+
+        return interviews;
+    }
+
+    async selectInterviewRange(
+        userId: string,
+        interviewEventId: string,
+        selectedStart: string,
+        selectedEnd: string
+    ) {
+        const event = await prisma.interviewEvent.findFirst({
+            where: { id: interviewEventId, applicantId: userId },
+            include: { application: true },
+        });
+
+        if (!event) {
+            throw new AppError(404, 'Interview event not found');
+        }
+
+        if (event.status === 'SLOT_CONFIRMED') {
+            throw new AppError(400, 'Interview slot is already confirmed');
+        }
+
+        const coordination = await coordinatorAgent.confirmSlot(
+            event.applicationId,
+            selectedStart,
+            selectedEnd,
+            event.application.anonymousId
+        );
+
+        const updated = await prisma.interviewEvent.update({
+            where: { id: interviewEventId },
+            data: {
+                status: 'SLOT_CONFIRMED',
+                confirmedStart: new Date(selectedStart),
+                confirmedEnd: new Date(selectedEnd),
+                meetingLink: coordination.confirmedSlot?.meetingLocation,
+                unmaskedAt: new Date(),
+            },
+        });
+
+        await prisma.application.update({
+            where: { id: event.applicationId },
+            data: { status: 'INTERVIEW_SCHEDULED' },
+        });
+
+        return updated;
+    }
+
+    async getProInsights(userId: string) {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { subscriptionTier: true },
+        });
+
+        if (!user) {
+            throw new AppError(404, 'User not found');
+        }
+
+        if (
+            user.subscriptionTier !== 'PRO' &&
+            user.subscriptionTier !== 'ENTERPRISE'
+        ) {
+            throw new AppError(
+                403,
+                'Personalized Cross-Round Insights are exclusive to Pro subscribers. Upgrade to unlock analytics across your application history.'
+            );
+        }
+
+        const applications = await prisma.application.findMany({
+            where: { applicantId: userId },
+            include: {
+                position: {
+                    select: {
+                        department: true,
+                        title: true,
+                    },
+                },
+            },
+        });
+
+        const totalApplications = applications.length;
+        if (totalApplications === 0) {
+            return {
+                totalEvaluations: 0,
+                averageMatchScore: 0,
+                recurrentGaps: [],
+                departmentBenchmarks: {},
+                recommendations: [
+                    'Submit applications to populate personalized cohort telemetry.',
+                ],
+            };
+        }
+
+        let totalScore = 0;
+        const missingSkillsTally: Record<string, number> = {};
+        const departmentScores: Record<
+            string,
+            { total: number; count: number }
+        > = {};
+
+        applications.forEach((app) => {
+            const score = app.matchScore ?? 0;
+            totalScore += score;
+
+            const dept = app.position.department;
+            if (!departmentScores[dept]) {
+                departmentScores[dept] = { total: 0, count: 0 };
+            }
+            departmentScores[dept].total += score;
+            departmentScores[dept].count += 1;
+
+            if (app.gapAnalysis) {
+                const gap = app.gapAnalysis as any;
+                if (Array.isArray(gap.unmetMandatoryReasons)) {
+                    gap.unmetMandatoryReasons.forEach((reason: string) => {
+                        const skill = reason
+                            .replace('Missing mandatory requirement: ', '')
+                            .trim();
+                        missingSkillsTally[skill] =
+                            (missingSkillsTally[skill] || 0) + 1;
+                    });
+                }
+            }
+        });
+
+        const recurrentGaps = Object.entries(missingSkillsTally)
+            .map(([skill, frequency]) => ({
+                skill,
+                frequency,
+                impactPercentage: Math.round(
+                    (frequency / totalApplications) * 100
+                ),
+            }))
+            .sort((a, b) => b.frequency - a.frequency);
+
+        const departmentBenchmarks: Record<string, number> = {};
+        Object.entries(departmentScores).forEach(([dept, data]) => {
+            departmentBenchmarks[dept] = Math.round(data.total / data.count);
+        });
+
+        const recommendations: string[] = [];
+        if (recurrentGaps.length > 0) {
+            recommendations.push(
+                `High Priority: ${recurrentGaps[0].skill} was requested in ${recurrentGaps[0].impactPercentage}% of your cohorts.`
+            );
+        }
+
+        const bestDept = Object.entries(departmentBenchmarks).sort(
+            (a, b) => b[1] - a[1]
+        )[0];
+        if (bestDept) {
+            recommendations.push(
+                `Your highest evidence conversion rate is in ${bestDept[0]} (${bestDept[1]}% average match).`
+            );
+        }
+
+        return {
+            totalEvaluations: totalApplications,
+            averageMatchScore: Math.round(totalScore / totalApplications),
+            recurrentGaps,
+            departmentBenchmarks,
+            recommendations,
+        };
+    }
+}
+
+export const applicantServiceExtensions = new ApplicantServiceExtensions();
 
 export const applicantService = new ApplicantService();
