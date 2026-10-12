@@ -3,6 +3,7 @@ import { recruiterService } from './recruiter.service.js';
 import {
     CreatePositionSchema,
     OverrideDecisionSchema,
+    ConfigureSlotSchema,
 } from './recruiter.schema.js';
 import { AppError } from '../../middleware/errorHandler.js';
 
@@ -104,6 +105,24 @@ export class RecruiterController {
                 req.params.id
             );
             res.json({ position });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async configureSlot(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            if (!req.user) throw new AppError(401, 'Unauthorized');
+            const input = ConfigureSlotSchema.parse(req.body);
+            const slot = await recruiterService.configureSlot(
+                req.user.sub,
+                input
+            );
+            res.status(201).json({ slot });
         } catch (err) {
             next(err);
         }

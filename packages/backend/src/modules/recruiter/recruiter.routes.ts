@@ -28,4 +28,8 @@ router.post('/applications/:id/override', (req, res, next) =>
     recruiterController.overrideDecision(req, res, next)
 );
 
+router.post('/slots', (req, res, next) =>
+    recruiterController.configureSlot(req, res, next)
+);
+
 export const recruiterRoutes = router;
