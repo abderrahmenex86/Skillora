@@ -3,8 +3,10 @@ import { AppError } from '../../middleware/errorHandler.js';
 import {
     CreatePositionInput,
     OverrideDecisionInput,
+    ConfigureSlotInput,
 } from './recruiter.schema.js';
 import { coordinatorAgent } from '../../agents/coordinator.agent.js';
+import { ApplicationStatus } from '@prisma/client';
 
 export class RecruiterService {
     async createPosition(recruiterId: string, input: CreatePositionInput) {
@@ -60,6 +62,7 @@ export class RecruiterService {
                 _count: {
                     select: { applications: true },
                 },
+                slots: true,
             },
         });
 
@@ -100,6 +103,15 @@ export class RecruiterService {
                         skills: true,
                     },
                 },
+                interviewEvent: {
+                    select: {
+                        id: true,
+                        status: true,
+                        confirmedStart: true,
+                        confirmedEnd: true,
+                        meetingLink: true,
+                    },
+                },
             },
         });
     }
@@ -131,7 +143,10 @@ export class RecruiterService {
                 'Manual override window is closed. Decisions become permanent after the position deadline passes.'
             );
         }
-        if (input.newStatus === 'ELIGIBLE') {
+
+        let targetStatus: ApplicationStatus = input.newStatus;
+
+        if (input.newStatus === ApplicationStatus.ELIGIBLE) {
             const coordination =
                 await coordinatorAgent.proposeSlotsForCandidate(
                     application.id,
@@ -153,12 +168,14 @@ export class RecruiterService {
                     proposedRanges: coordination.proposedSlots as any,
                 },
             });
+
+            targetStatus = ApplicationStatus.INTERVIEW_PENDING;
         }
 
         return prisma.application.update({
             where: { id: applicationId },
             data: {
-                status: input.newStatus,
+                status: targetStatus,
                 recruiterOverride: true,
                 overrideNotes: input.notes,
             },
@@ -179,6 +196,7 @@ export class RecruiterService {
             data: { status: 'CLOSED' },
         });
     }
+
     async configureSlot(recruiterId: string, input: ConfigureSlotInput) {
         const position = await prisma.position.findFirst({
             where: { id: input.positionId, recruiterId },
