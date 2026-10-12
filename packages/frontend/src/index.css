@@ -1,0 +1,57 @@
+@import 'tailwindcss';
+
+@theme {
+    --font-grotesque:
+        'Darker Grotesque', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+    --color-forest: #0e5a36;
+    --color-forest-dark: #258c5a;
+    --color-ink: #111111;
+    --color-muted: #555555;
+    --color-chalk: #f9f9f9;
+    --color-hairline: #e5e5e5;
+    --color-amber-accent: #c26738;
+}
+
+:root {
+    --bg-canvas: #ffffff;
+    --bg-panel: #f9f9f9;
+    --border-line: #e5e5e5;
+    --text-main: #111111;
+    --text-sub: #555555;
+    --btn-main-bg: #111111;
+    --btn-main-text: #ffffff;
+}
+
+html.dark {
+    --bg-canvas: #0c0d0e;
+    --bg-panel: #141618;
+    --border-line: #22252a;
+    --text-main: #f3f4f6;
+    --text-sub: #9ca3af;
+    --btn-main-bg: #ffffff;
+    --btn-main-text: #111111;
+}
+
+body {
+    font-family: var(--font-sans);
+    background-color: var(--bg-canvas);
+    color: var(--text-main);
+    transition:
+        background-color 0.15s ease,
+        color 0.15s ease;
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: var(--bg-canvas);
+}
+::-webkit-scrollbar-thumb {
+    background: var(--border-line);
+    border-radius: 3px;
+}
