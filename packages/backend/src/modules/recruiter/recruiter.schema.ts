@@ -25,5 +25,17 @@ export const OverrideDecisionSchema = z.object({
     notes: z.string().min(3, 'Override reason notes are required'),
 });
 
+export const ConfigureSlotSchema = z.object({
+    positionId: z.string().uuid('Invalid position ID'),
+    dayOfWeek: z.number().min(0).max(6), // 0 = Sunday, 1 = Monday, etc.
+    startTime: z
+        .string()
+        .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Format HH:mm required'),
+    endTime: z
+        .string()
+        .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Format HH:mm required'),
+});
+
+export type ConfigureSlotInput = z.infer<typeof ConfigureSlotSchema>;
 export type CreatePositionInput = z.infer<typeof CreatePositionSchema>;
 export type OverrideDecisionInput = z.infer<typeof OverrideDecisionSchema>;
