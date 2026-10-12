@@ -1,0 +1,113 @@
+import { Request, Response, NextFunction } from 'express';
+import { recruiterService } from './recruiter.service.js';
+import {
+    CreatePositionSchema,
+    OverrideDecisionSchema,
+} from './recruiter.schema.js';
+import { AppError } from '../../middleware/errorHandler.js';
+
+export class RecruiterController {
+    async createPosition(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            if (!req.user) throw new AppError(401, 'Unauthorized');
+            const input = CreatePositionSchema.parse(req.body);
+            const position = await recruiterService.createPosition(
+                req.user.sub,
+                input
+            );
+            res.status(201).json({ position });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async getPositions(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            if (!req.user) throw new AppError(401, 'Unauthorized');
+            const positions = await recruiterService.getPositions(req.user.sub);
+            res.json({ positions });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async getPositionById(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            if (!req.user) throw new AppError(401, 'Unauthorized');
+            const position = await recruiterService.getPositionById(
+                req.user.sub,
+                req.params.id
+            );
+            res.json({ position });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async getPositionApplications(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            if (!req.user) throw new AppError(401, 'Unauthorized');
+            const applications = await recruiterService.getPositionApplications(
+                req.user.sub,
+                req.params.id
+            );
+            res.json({ applications });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async overrideDecision(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            if (!req.user) throw new AppError(401, 'Unauthorized');
+            const input = OverrideDecisionSchema.parse(req.body);
+            const updated = await recruiterService.overrideDecision(
+                req.user.sub,
+                req.params.id,
+                input
+            );
+            res.json({ application: updated });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async closePosition(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            if (!req.user) throw new AppError(401, 'Unauthorized');
+            const position = await recruiterService.closePosition(
+                req.user.sub,
+                req.params.id
+            );
+            res.json({ position });
+        } catch (err) {
+            next(err);
+        }
+    }
+}
+
+export const recruiterController = new RecruiterController();
