@@ -6,6 +6,8 @@ import {
     SubmitApplicationSchema,
 } from './applicant.schema.js';
 import { AppError } from '../../middleware/errorHandler.js';
+import { SelectInterviewRangeSchema } from './applicant.schema.js';
+import { applicantServiceExtensions } from './applicant.service.js';
 
 export class ApplicantController {
     async getProfiles(
@@ -105,6 +107,58 @@ export class ApplicantController {
                 req.user.sub
             );
             res.json({ applications });
+        } catch (err) {
+            next(err);
+        }
+    }
+    async getCalendarEvents(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            if (!req.user) throw new AppError(401, 'Unauthorized');
+            const events = await applicantServiceExtensions.getCalendarEvents(
+                req.user.sub
+            );
+            res.json({ events });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async selectInterviewRange(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            if (!req.user) throw new AppError(401, 'Unauthorized');
+            const input = SelectInterviewRangeSchema.parse(req.body);
+            const updated =
+                await applicantServiceExtensions.selectInterviewRange(
+                    req.user.sub,
+                    input.interviewEventId,
+                    input.selectedStart,
+                    input.selectedEnd
+                );
+            res.json({ interviewEvent: updated });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async getInsights(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            if (!req.user) throw new AppError(401, 'Unauthorized');
+            const insights = await applicantServiceExtensions.getProInsights(
+                req.user.sub
+            );
+            res.json({ insights });
         } catch (err) {
             next(err);
         }
