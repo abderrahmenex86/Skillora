@@ -206,7 +206,7 @@ export default function JobsExplorerView() {
                                                     setApplyModalOpen(true)
                                                 }
                                                 className='w-full py-3.5 bg-(--btn-main-bg) text-(--btn-main-text) font-grotesque font-bold text-xl rounded-md hover:opacity-90 transition-opacity'>
-                                                Apply with Candidate Persona
+                                                Apply with Candidate Profile
                                             </button>
                                         </div>
                                     }
@@ -221,7 +221,7 @@ export default function JobsExplorerView() {
                 <div className='fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4'>
                     <div className='bg-(--bg-canvas) border border-(--border-line) rounded-lg p-6 max-w-md w-full space-y-4'>
                         <h3 className='font-grotesque font-bold text-2xl text-(--text-main)'>
-                            Select Persona for this Role
+                            Select Profile for this Role
                         </h3>
 
                         {applyError && (
@@ -233,13 +233,13 @@ export default function JobsExplorerView() {
                         {profiles?.length === 0 ?
                             <div className='text-xs text-(--text-sub) space-y-3'>
                                 <p>
-                                    You haven't created any candidate personas
+                                    You haven't created any candidate profiles
                                     yet.
                                 </p>
                                 <Link
                                     to='/applicant/profiles'
                                     className='inline-block px-4 py-2 bg-(--btn-main-bg) text-(--btn-main-text) text-xs rounded'>
-                                    Create Persona First
+                                    Create Profile First
                                 </Link>
                             </div>
                         :   <form
