@@ -7,6 +7,7 @@ import {
     useLocation,
 } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { apiClient } from './api/apiClient';
 import Navbar from './components/Navbar';
 
 import LandingView from './views/guest/LandingView';
@@ -16,6 +17,7 @@ import CompaniesView from './views/guest/CompaniesView';
 import AboutView from './views/guest/AboutView';
 import JobsExplorerView from './views/guest/JobsExplorerView';
 import AuthView from './views/auth/AuthView';
+import PersonalInfoView from './views/settings/PersonalInfoView';
 
 import ApplicantDashboardView from './views/applicant/ApplicantDashboardView';
 import ProfilesView from './views/applicant/ProfilesView';
@@ -24,8 +26,9 @@ import InsightsView from './views/applicant/InsightsView';
 import RecruiterPositionsView from './views/recruiter/RecruiterPositionsView';
 import PositionApplicationsView from './views/recruiter/PositionApplicationsView';
 
+import { roleHome } from './data/routes';
 import { useThemeStore } from './store/useThemeStore';
-import { useAuthStore, type User } from './store/useAuthStore';
+import { useAuthStore } from './store/useAuthStore';
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -35,12 +38,6 @@ const queryClient = new QueryClient({
         },
     },
 });
-
-const roleHome: Record<User['role'], string> = {
-    APPLICANT: '/applicant/dashboard',
-    RECRUITER: '/recruiter/positions',
-    ADMIN: '/',
-};
 
 function PageTransition({ children }: { children: React.ReactNode }) {
     const location = useLocation();
@@ -60,6 +57,19 @@ function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
         return (
             <Navigate
                 to={roleHome[user.role]}
+                replace
+            />
+        );
+    }
+    return <>{children}</>;
+}
+
+function SignedInRoute({ children }: { children: React.ReactNode }) {
+    const user = useAuthStore((state) => state.user);
+    if (!user) {
+        return (
+            <Navigate
+                to='/auth?mode=login'
                 replace
             />
         );
@@ -96,10 +106,28 @@ function ProtectedRoute({
 
 export default function App() {
     const initTheme = useThemeStore((state) => state.initTheme);
+    const accessToken = useAuthStore((state) => state.accessToken);
+    const setUser = useAuthStore((state) => state.setUser);
 
     useEffect(() => {
         initTheme();
     }, [initTheme]);
+
+    useEffect(() => {
+        if (!accessToken) return;
+
+        let cancelled = false;
+        apiClient
+            .get('/auth/me')
+            .then(({ data }) => {
+                if (!cancelled) setUser(data.user);
+            })
+            .catch(() => {});
+
+        return () => {
+            cancelled = true;
+        };
+    }, [accessToken, setUser]);
 
     return (
         <QueryClientProvider client={queryClient}>
@@ -138,6 +166,15 @@ export default function App() {
                                     <PublicOnlyRoute>
                                         <AuthView />
                                     </PublicOnlyRoute>
+                                }
+                            />
+
+                            <Route
+                                path='/settings/profile'
+                                element={
+                                    <SignedInRoute>
+                                        <PersonalInfoView />
+                                    </SignedInRoute>
                                 }
                             />
 
