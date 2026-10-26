@@ -41,7 +41,7 @@ export default function PricingView() {
                 </h1>
                 <p className='text-lg text-(--text-sub) max-w-2xl leading-relaxed mb-10'>
                     Affordable subscription tiers for candidates to unlock
-                    multiple personas and cross-round insights, alongside
+                    multiple profiles and cross-round insights, alongside
                     verified pipeline plans for hiring teams.
                 </p>
 
@@ -66,12 +66,11 @@ export default function PricingView() {
                             </div>
                             <p className='text-xs text-(--text-sub) mb-6'>
                                 For candidates starting their job hunt with a
-                                single focused persona.
+                                single focused profile.
                             </p>
                             <ul className='space-y-3 text-xs text-(--text-main) font-mono mb-8'>
                                 <li className='flex items-center gap-2'>
-                                    <Check size={14} /> Exactly 1 Active Persona
-                                    Profile
+                                    <Check size={14} /> Exactly 1 Active Profile
                                 </li>
                                 <li className='flex items-center gap-2'>
                                     <Check size={14} /> Standard application
@@ -123,7 +122,7 @@ export default function PricingView() {
                             <ul className='space-y-3 text-xs text-(--text-main) font-mono mb-8'>
                                 <li className='flex items-center gap-2'>
                                     <Check size={14} /> Unlimited Active
-                                    Personas (Tech, Law, etc.)
+                                    Profiles (Tech, Law, etc.)
                                 </li>
                                 <li className='flex items-center gap-2'>
                                     <Check size={14} /> Unlimited monthly
