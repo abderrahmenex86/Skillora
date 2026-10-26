@@ -1,4 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
+import { flushSync } from 'react-dom';
 import { useThemeStore } from '../store/useThemeStore';
 import { useAuthStore } from '../store/useAuthStore';
 import { Sun, Moon, LogOut, User as UserIcon } from 'lucide-react';
@@ -11,6 +12,55 @@ export default function Navbar() {
     const handleLogout = () => {
         logout();
         navigate('/');
+    };
+
+    const handleThemeToggle = (event: React.MouseEvent<HTMLButtonElement>) => {
+        const reducedMotion = window.matchMedia(
+            '(prefers-reduced-motion: reduce)'
+        ).matches;
+
+        if (!document.startViewTransition || reducedMotion) {
+            toggleTheme();
+            return;
+        }
+
+        const rect = event.currentTarget.getBoundingClientRect();
+        const x = rect.left + rect.width / 2;
+        const y = rect.top + rect.height / 2;
+        const radius = Math.hypot(
+            Math.max(x, window.innerWidth - x),
+            Math.max(y, window.innerHeight - y)
+        );
+        const root = document.documentElement;
+
+        root.classList.add('theme-transitioning');
+
+        const transition = document.startViewTransition(() => {
+            flushSync(() => toggleTheme());
+        });
+
+        transition.ready
+            .then(() => {
+                root.animate(
+                    {
+                        clipPath: [
+                            `circle(0px at ${x}px ${y}px)`,
+                            `circle(${radius}px at ${x}px ${y}px)`,
+                        ],
+                    },
+                    {
+                        duration: 600,
+                        easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+                        pseudoElement: '::view-transition-new(root)',
+                    }
+                );
+            })
+            .catch(() => {});
+
+        transition.finished.then(
+            () => root.classList.remove('theme-transitioning'),
+            () => root.classList.remove('theme-transitioning')
+        );
     };
 
     const displayName =
@@ -119,8 +169,12 @@ export default function Navbar() {
                 <div className='flex items-center space-x-3'>
                     <button
                         type='button'
-                        onClick={toggleTheme}
-                        aria-label='Toggle dark mode'
+                        onClick={handleThemeToggle}
+                        aria-label={
+                            isDark ?
+                                'Switch to light mode'
+                            :   'Switch to dark mode'
+                        }
                         className='p-2 rounded-md border border-(--border-line) text-(--text-sub) hover:text-(--text-main) hover:bg-(--bg-panel) transition-all flex items-center justify-center cursor-pointer'>
                         {isDark ?
                             <Sun
