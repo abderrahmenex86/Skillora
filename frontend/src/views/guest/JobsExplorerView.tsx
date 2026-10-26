@@ -75,9 +75,6 @@ export default function JobsExplorerView() {
     return (
         <div className='flex-1 max-w-7xl w-full mx-auto px-6 py-8'>
             <div className='mb-8 border-b border-(--border-line) pb-6'>
-                <span className='font-mono text-xs text-(--text-sub) uppercase tracking-wider block mb-1'>
-                    [PUBLIC POSITION REGISTRY]
-                </span>
                 <h1 className='font-grotesque font-extrabold text-4xl text-(--text-main) tracking-tight'>
                     Explore Open Roles
                 </h1>
