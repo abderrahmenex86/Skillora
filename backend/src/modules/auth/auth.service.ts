@@ -1,7 +1,11 @@
 import bcrypt from 'bcryptjs';
 import { prisma } from '../../db/prisma.js';
 import { AppError } from '../../middleware/errorHandler.js';
-import { RegisterInput, LoginInput } from './auth.schema.js';
+import {
+    RegisterInput,
+    LoginInput,
+    UpdateProfileInput,
+} from './auth.schema.js';
 import {
     generateAccessToken,
     generateRefreshToken,
@@ -46,6 +50,7 @@ export class AuthService {
                 lastName: true,
                 phone: true,
                 wilaya: true,
+                companyName: true,
                 role: true,
                 subscriptionTier: true,
                 createdAt: true,
@@ -109,6 +114,12 @@ export class AuthService {
             user: {
                 id: user.id,
                 email: user.email,
+                firstName: user.firstName,
+                middleName: user.middleName,
+                lastName: user.lastName,
+                phone: user.phone,
+                wilaya: user.wilaya,
+                companyName: user.companyName,
                 role: user.role,
                 subscriptionTier: user.subscriptionTier,
                 createdAt: user.createdAt,
@@ -170,8 +181,15 @@ export class AuthService {
             user: {
                 id: savedToken.user.id,
                 email: savedToken.user.email,
+                firstName: savedToken.user.firstName,
+                middleName: savedToken.user.middleName,
+                lastName: savedToken.user.lastName,
+                phone: savedToken.user.phone,
+                wilaya: savedToken.user.wilaya,
+                companyName: savedToken.user.companyName,
                 role: savedToken.user.role,
                 subscriptionTier: savedToken.user.subscriptionTier,
+                createdAt: savedToken.user.createdAt,
             },
             accessToken: newAccessToken,
             refreshToken: newRefreshToken,
@@ -192,6 +210,12 @@ export class AuthService {
             select: {
                 id: true,
                 email: true,
+                firstName: true,
+                middleName: true,
+                lastName: true,
+                phone: true,
+                wilaya: true,
+                companyName: true,
                 role: true,
                 subscriptionTier: true,
                 subscriptionExpiresAt: true,
@@ -204,6 +228,33 @@ export class AuthService {
         }
 
         return user;
+    }
+
+    async updateProfile(userId: string, input: UpdateProfileInput) {
+        return prisma.user.update({
+            where: { id: userId },
+            data: {
+                firstName: input.firstName.trim(),
+                middleName: input.middleName?.trim() || null,
+                lastName: input.lastName.trim(),
+                phone: input.phone?.trim() || null,
+                wilaya: input.wilaya || null,
+                companyName: input.companyName?.trim() || null,
+            },
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                middleName: true,
+                lastName: true,
+                phone: true,
+                wilaya: true,
+                companyName: true,
+                role: true,
+                subscriptionTier: true,
+                createdAt: true,
+            },
+        });
     }
 }
 
