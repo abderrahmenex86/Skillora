@@ -2,9 +2,6 @@ export default function AboutView() {
     return (
         <div className='flex-1 flex flex-col justify-between'>
             <main className='max-w-4xl mx-auto px-6 py-16 w-full'>
-                <div className='font-mono text-xs text-(--text-sub) uppercase tracking-wider mb-2'>
-                    [MANIFESTO]
-                </div>
                 <h1 className='font-grotesque font-extrabold text-5xl sm:text-6xl text-(--text-main) tracking-tight mb-8'>
                     Why Skillora Exists
                 </h1>
