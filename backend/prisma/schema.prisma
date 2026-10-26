@@ -64,6 +64,9 @@ model User {
    vaultExperiences    VaultExperience[]
    vaultProjects       VaultProject[]
    vaultCertifications VaultCertification[]
+   vaultVolunteering   VaultVolunteering[]
+   vaultLanguages      VaultLanguage[]
+   vaultLinks          VaultLink[]
 
    profiles            ApplicantProfile[]
    applications        Application[]      @relation("CandidateApplications")
@@ -109,14 +112,15 @@ model VaultExperience {
 }
 
 model VaultProject {
-   id         String   @id @default(uuid())
-   userId     String
-   title      String
-   projectUrl String?
-   date       String?
-   narratives Json
-   tags       String[]
-   createdAt  DateTime @default(now())
+   id          String   @id @default(uuid())
+   userId      String
+   title       String
+   projectUrl  String?
+   description String?
+   date        String?
+   narratives  Json
+   tags        String[]
+   createdAt   DateTime @default(now())
 
    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -143,14 +147,18 @@ model ApplicantProfile {
    id        String   @id @default(uuid())
    userId    String
    title     String
-   resumeUrl String
+   resumeUrl String?
    summary   String?
    skills    String[]
 
    selectedEducationIds     String[]
    selectedExperienceIds    String[]
+   selectedProjectIds       String[] @default([])
    selectedProjectAngles    Json?
    selectedCertificationIds String[]
+   selectedLinkIds          String[] @default([])
+   selectedVolunteeringIds  String[] @default([])
+   selectedLanguageIds      String[] @default([])
 
    createdAt DateTime @default(now())
    updatedAt DateTime @updatedAt
@@ -160,6 +168,49 @@ model ApplicantProfile {
 
    @@index([userId])
    @@map("applicant_profiles")
+}
+
+model VaultVolunteering {
+   id           String   @id @default(uuid())
+   userId       String
+   organization String
+   role         String
+   description  String?
+   startDate    String?
+   endDate      String?
+   createdAt    DateTime @default(now())
+
+   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+   @@index([userId])
+   @@map("vault_volunteering")
+}
+
+model VaultLanguage {
+   id          String   @id @default(uuid())
+   userId      String
+   name        String
+   proficiency String
+   createdAt   DateTime @default(now())
+
+   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+   @@index([userId])
+   @@map("vault_languages")
+}
+
+model VaultLink {
+   id        String   @id @default(uuid())
+   userId    String
+   label     String
+   url       String
+   type      String   @default("other")
+   createdAt DateTime @default(now())
+
+   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+   @@index([userId])
+   @@map("vault_links")
 }
 
 model RefreshToken {
