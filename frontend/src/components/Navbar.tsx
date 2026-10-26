@@ -170,7 +170,7 @@ export default function Navbar() {
                             <Link
                                 to='/applicant/profiles'
                                 className='text-(--text-sub) hover:text-(--text-main) transition-colors'>
-                                Evidence Vault & Personas
+                                Resume & Profiles
                             </Link>
                             <Link
                                 to='/jobs'
