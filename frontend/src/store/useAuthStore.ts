@@ -4,6 +4,11 @@ import { persist } from 'zustand/middleware';
 export interface User {
     id: string;
     email: string;
+    firstName: string;
+    middleName?: string | null;
+    lastName: string;
+    phone?: string | null;
+    wilaya?: string | null;
     role: 'APPLICANT' | 'RECRUITER' | 'ADMIN';
     subscriptionTier: 'FREE' | 'PRO' | 'ENTERPRISE';
 }
