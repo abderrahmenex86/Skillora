@@ -177,7 +177,7 @@ export default function PositionApplicationsView() {
                                         Candidate {selectedApp.anonymousId}
                                     </h2>
                                     <div className='text-xs text-(--text-sub)'>
-                                        Persona: {selectedApp.profile.title}
+                                        Profile: {selectedApp.profile.title}
                                     </div>
                                 </div>
                                 <a
