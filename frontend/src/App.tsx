@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import {
     BrowserRouter as Router,
     Routes,
@@ -43,20 +43,22 @@ function ProtectedRoute({
     allowedRole: 'APPLICANT' | 'RECRUITER';
 }) {
     const user = useAuthStore((state) => state.user);
-    if (!user)
+    if (!user) {
         return (
             <Navigate
                 to='/auth?mode=login'
                 replace
             />
         );
-    if (user.role !== allowedRole)
+    }
+    if (user.role !== allowedRole) {
         return (
             <Navigate
                 to='/'
                 replace
             />
         );
+    }
     return <>{children}</>;
 }
 
@@ -109,6 +111,15 @@ export default function App() {
                                     <ProtectedRoute allowedRole='APPLICANT'>
                                         <ApplicantDashboardView />
                                     </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path='/applicant/applications'
+                                element={
+                                    <Navigate
+                                        to='/applicant/dashboard'
+                                        replace
+                                    />
                                 }
                             />
                             <Route
