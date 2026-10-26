@@ -17,18 +17,19 @@ export default function HowItWorksView() {
                 <div className='space-y-12 border-t border-(--border-line) pt-12 mb-16'>
                     <div className='grid grid-cols-1 md:grid-cols-12 gap-6 items-start'>
                         <div className='md:col-span-3 font-mono text-sm text-(--text-sub)'>
-                            01 / MULTIPLE PROFILES
+                            01 / TAILORED RESUMES
                         </div>
                         <div className='md:col-span-9'>
                             <h3 className='font-grotesque font-bold text-3xl text-(--text-main) mb-2'>
-                                Apply with tailored profiles
+                                Apply with tailored resumes
                             </h3>
                             <p className='text-sm text-(--text-sub) leading-relaxed'>
-                                Candidates set up dedicated profiles (e.g. Data
+                                Applicants set up dedicated resumes (e.g. Data
                                 Engineer, Penetration Tester, or Corporate
-                                Counsel) with role-specific resumes, GitHub
-                                repos, and bar credentials. Each application
-                                evaluated reflects the exact profile you choose.
+                                Counsel) with role-specific summaries, selected
+                                projects, GitHub repos, and credentials. Each
+                                application evaluated reflects the exact resume
+                                you choose.
                             </p>
                         </div>
                     </div>
@@ -73,7 +74,7 @@ export default function HowItWorksView() {
                     <Link
                         to='/auth?mode=register'
                         className='px-6 py-3.5 bg-(--btn-main-bg) text-(--btn-main-text) font-grotesque font-bold text-xl rounded-md hover:opacity-90 transition-opacity inline-flex items-center gap-2'>
-                        Create Your Profile <ArrowRight size={18} />
+                        Build Your Resume <ArrowRight size={18} />
                     </Link>
                 </div>
             </main>
