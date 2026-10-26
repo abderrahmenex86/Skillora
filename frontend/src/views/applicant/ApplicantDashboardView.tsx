@@ -66,9 +66,6 @@ export default function ApplicantDashboardView() {
         <div className='flex-1 max-w-7xl w-full mx-auto px-6 py-8'>
             <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4 border-b border-(--border-line) pb-6'>
                 <div>
-                    <span className='font-mono text-xs text-(--text-sub) uppercase tracking-wider block mb-1'>
-                        [CANDIDATE WORKSPACE]
-                    </span>
                     <h1 className='font-grotesque font-extrabold text-4xl text-(--text-main) tracking-tight'>
                         Dashboard & Interview Logistics
                     </h1>
