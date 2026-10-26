@@ -170,7 +170,7 @@ export default function Navbar() {
                             <Link
                                 to='/applicant/profiles'
                                 className='text-(--text-sub) hover:text-(--text-main) transition-colors'>
-                                Resume & Profiles
+                                Resume Builder
                             </Link>
                             <Link
                                 to='/jobs'
