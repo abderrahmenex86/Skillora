@@ -173,9 +173,6 @@ export default function PositionApplicationsView() {
                         <>
                             <div className='border-b border-(--border-line) pb-4 flex justify-between items-start'>
                                 <div>
-                                    <span className='font-mono text-xs text-(--text-sub) uppercase tracking-wider block mb-1'>
-                                        [EVIDENCE DOSSIER]
-                                    </span>
                                     <h2 className='font-grotesque font-extrabold text-3xl text-(--text-main)'>
                                         Candidate {selectedApp.anonymousId}
                                     </h2>
