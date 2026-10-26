@@ -38,4 +38,27 @@ router.get('/insights', (req, res, next) =>
     applicantController.getInsights(req, res, next)
 );
 
+router.post('/upgrade-pro', (req, res, next) =>
+    applicantController.upgradeToPro(req, res, next)
+);
+
+router.get('/vault/education', (req, res, next) =>
+    applicantController.getVaultEducations(req, res, next)
+);
+router.post('/vault/education', (req, res, next) =>
+    applicantController.addVaultEducation(req, res, next)
+);
+router.get('/vault/projects', (req, res, next) =>
+    applicantController.getVaultProjects(req, res, next)
+);
+router.post('/vault/projects', (req, res, next) =>
+    applicantController.addVaultProject(req, res, next)
+);
+router.get('/vault/experience', (req, res, next) =>
+    applicantController.getVaultExperiences(req, res, next)
+);
+router.post('/vault/experience', (req, res, next) =>
+    applicantController.addVaultExperience(req, res, next)
+);
+
 export const applicantRoutes = router;
