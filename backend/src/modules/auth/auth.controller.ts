@@ -1,6 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import { authService } from './auth.service.js';
-import { RegisterSchema, LoginSchema } from './auth.schema.js';
+import {
+    RegisterSchema,
+    LoginSchema,
+    UpdateProfileSchema,
+} from './auth.schema.js';
 import {
     setRefreshTokenCookie,
     clearRefreshTokenCookie,
@@ -102,6 +106,24 @@ export class AuthController {
             }
 
             const user = await authService.getMe(req.user.sub);
+            res.status(200).json({ user });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async updateMe(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            if (!req.user) {
+                throw new AppError(401, 'Unauthorized');
+            }
+
+            const input = UpdateProfileSchema.parse(req.body);
+            const user = await authService.updateProfile(req.user.sub, input);
             res.status(200).json({ user });
         } catch (error) {
             next(error);
