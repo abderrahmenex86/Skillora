@@ -1,13 +1,35 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../../api/apiClient';
-import { ArrowLeft, Check, AlertTriangle, ExternalLink } from 'lucide-react';
+import {
+    ArrowLeft,
+    Check,
+    AlertTriangle,
+    ExternalLink,
+    FileText,
+    X,
+} from 'lucide-react';
+import {
+    INFO_KINDS,
+    INFO_LABELS,
+    describeInfo,
+    getLibraryItems,
+    type VaultLibrary,
+} from '../applicant/resume/types';
+
+interface ApplicationResume extends VaultLibrary {
+    title: string;
+    summary?: string | null;
+    skills: string[];
+    resumeUrl?: string | null;
+}
 
 export default function PositionApplicationsView() {
     const { id: positionId } = useParams<{ id: string }>();
     const queryClient = useQueryClient();
     const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
+    const [resumeOpen, setResumeOpen] = useState(false);
     const [overrideStatus, setOverrideStatus] = useState<
         'ELIGIBLE' | 'REDIRECTED'
     >('ELIGIBLE');
@@ -70,6 +92,34 @@ export default function PositionApplicationsView() {
         applications?.[0];
     const isDeadlinePassed =
         positionData ? new Date() >= new Date(positionData.deadline) : false;
+    const selectedApplicationId = selectedApp?.id;
+
+    const {
+        data: resumePreview,
+        isLoading: resumeLoading,
+        error: resumeError,
+    } = useQuery({
+        queryKey: ['application-resume', selectedApplicationId],
+        queryFn: async () => {
+            if (!selectedApplicationId) {
+                throw new Error('No application selected');
+            }
+            const { data } = await apiClient.get(
+                `/recruiter/applications/${selectedApplicationId}/resume`
+            );
+            return data.resume as ApplicationResume;
+        },
+        enabled: resumeOpen && Boolean(selectedApplicationId),
+    });
+
+    useEffect(() => {
+        if (!resumeOpen) return;
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') setResumeOpen(false);
+        };
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [resumeOpen]);
 
     const handleOverrideSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -177,17 +227,57 @@ export default function PositionApplicationsView() {
                                         Candidate {selectedApp.anonymousId}
                                     </h2>
                                     <div className='text-xs text-(--text-sub)'>
-                                        Profile: {selectedApp.profile.title}
+                                        Resume: {selectedApp.profile.title}
                                     </div>
                                 </div>
-                                <a
-                                    href={selectedApp.profile.resumeUrl}
-                                    target='_blank'
-                                    rel='noreferrer'
-                                    className='px-3 py-1.5 border border-(--border-line) text-xs font-mono rounded hover:bg-(--bg-panel) inline-flex items-center gap-1.5 text-(--text-main)'>
-                                    Inspect Resume <ExternalLink size={13} />
-                                </a>
+                                <div className='flex items-center gap-2'>
+                                    <button
+                                        type='button'
+                                        onClick={() => setResumeOpen(true)}
+                                        className='px-3 py-1.5 border border-(--border-line) text-xs font-mono rounded hover:bg-(--bg-panel) inline-flex items-center gap-1.5 text-(--text-main)'>
+                                        <FileText size={13} /> View Resume
+                                    </button>
+                                    {selectedApp.profile.resumeUrl && (
+                                        <a
+                                            href={
+                                                selectedApp.profile.resumeUrl
+                                            }
+                                            target='_blank'
+                                            rel='noreferrer'
+                                            className='px-2.5 py-1.5 border border-(--border-line) text-xs font-mono rounded hover:bg-(--bg-panel) inline-flex items-center gap-1.5 text-(--text-sub)'>
+                                            PDF <ExternalLink size={12} />
+                                        </a>
+                                    )}
+                                </div>
                             </div>
+
+                            {(selectedApp.profile.summary ||
+                                selectedApp.profile.skills?.length > 0) && (
+                                <div className='rounded-md border border-(--border-line) bg-(--bg-panel) p-4'>
+                                    <h4 className='font-grotesque text-lg font-bold text-(--text-main)'>
+                                        Tailored Resume
+                                    </h4>
+                                    {selectedApp.profile.summary && (
+                                        <p className='mt-1 text-xs leading-relaxed text-(--text-sub)'>
+                                            {selectedApp.profile.summary}
+                                        </p>
+                                    )}
+                                    {selectedApp.profile.skills?.length >
+                                        0 && (
+                                        <div className='mt-3 flex flex-wrap gap-1.5'>
+                                            {selectedApp.profile.skills.map(
+                                                (skill: string) => (
+                                                    <span
+                                                        key={skill}
+                                                        className='rounded border border-(--border-line) px-2 py-0.5 font-mono text-[10px] text-(--text-sub)'>
+                                                        {skill}
+                                                    </span>
+                                                )
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
 
                             <div>
                                 <h4 className='font-grotesque font-bold text-xl text-(--text-main) mb-2'>
@@ -318,6 +408,189 @@ export default function PositionApplicationsView() {
                     }
                 </div>
             </div>
+
+            {resumeOpen && selectedApp && (
+                <div
+                    className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
+                    onMouseDown={(event) => {
+                        if (event.target === event.currentTarget) {
+                            setResumeOpen(false);
+                        }
+                    }}>
+                    <div className='max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg border border-(--border-line) bg-(--bg-canvas) shadow-xl'>
+                        <div className='flex items-center justify-between border-b border-(--border-line) px-6 py-4'>
+                            <div>
+                                <h2 className='font-grotesque text-2xl font-bold text-(--text-main)'>
+                                    Tailored Resume
+                                </h2>
+                                <p className='mt-0.5 font-mono text-[10px] text-(--text-sub)'>
+                                    Candidate {selectedApp.anonymousId}
+                                </p>
+                            </div>
+                            <button
+                                type='button'
+                                onClick={() => setResumeOpen(false)}
+                                aria-label='Close resume preview'
+                                className='rounded-md p-1.5 text-(--text-sub) transition-colors hover:bg-(--bg-panel) hover:text-(--text-main)'>
+                                <X size={18} />
+                            </button>
+                        </div>
+
+                        <div className='p-6'>
+                            {resumeLoading ?
+                                <div className='py-10 text-center text-xs text-(--text-sub)'>
+                                    Loading resume...
+                                </div>
+                            : resumeError ?
+                                <div className='rounded border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-600'>
+                                    Could not load this tailored resume.
+                                </div>
+                            : resumePreview ?
+                                <div className='space-y-5'>
+                                    <div>
+                                        <h3 className='font-grotesque text-3xl font-extrabold text-(--text-main)'>
+                                            {resumePreview.title}
+                                        </h3>
+                                        {resumePreview.summary && (
+                                            <p className='mt-2 text-sm leading-relaxed text-(--text-sub)'>
+                                                {resumePreview.summary}
+                                            </p>
+                                        )}
+                                        {resumePreview.skills?.length > 0 && (
+                                            <div className='mt-3 flex flex-wrap gap-1.5'>
+                                                {resumePreview.skills.map(
+                                                    (skill) => (
+                                                        <span
+                                                            key={skill}
+                                                            className='rounded border border-(--border-line) bg-(--bg-panel) px-2 py-0.5 font-mono text-[10px] text-(--text-sub)'>
+                                                            {skill}
+                                                        </span>
+                                                    )
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className='space-y-5 border-t border-(--border-line) pt-5'>
+                                        {INFO_KINDS.map((kind) => {
+                                            const items = getLibraryItems(
+                                                resumePreview,
+                                                kind
+                                            );
+                                            if (items.length === 0) return null;
+                                            return (
+                                                <section key={kind}>
+                                                    <h4 className='mb-2 font-mono text-[10px] uppercase tracking-wide text-(--text-sub)'>
+                                                        {INFO_LABELS[kind]}
+                                                    </h4>
+                                                    <div className='space-y-2'>
+                                                        {items.map((item) => {
+                                                            const info =
+                                                                describeInfo(
+                                                                    kind,
+                                                                    item
+                                                                );
+                                                            return (
+                                                                <div
+                                                                    key={
+                                                                        item.id
+                                                                    }
+                                                                    className='rounded-md border border-(--border-line) bg-(--bg-panel) p-3'>
+                                                                    <div className='text-sm font-semibold text-(--text-main)'>
+                                                                        {
+                                                                            info.title
+                                                                        }
+                                                                    </div>
+                                                                    {info.subtitle && (
+                                                                        <div className='mt-0.5 text-xs text-(--text-sub)'>
+                                                                            {
+                                                                                info.subtitle
+                                                                            }
+                                                                        </div>
+                                                                    )}
+                                                                    {info.description && (
+                                                                        <p className='mt-1 text-xs leading-relaxed text-(--text-sub)'>
+                                                                            {
+                                                                                info.description
+                                                                            }
+                                                                        </p>
+                                                                    )}
+                                                                    {info.tags &&
+                                                                        info.tags
+                                                                            .length >
+                                                                            0 && (
+                                                                            <div className='mt-2 flex flex-wrap gap-1'>
+                                                                                {info.tags.map(
+                                                                                    (
+                                                                                        tag
+                                                                                    ) => (
+                                                                                        <span
+                                                                                            key={
+                                                                                                tag
+                                                                                            }
+                                                                                            className='rounded border border-(--border-line) px-1.5 py-0.5 font-mono text-[9px] text-(--text-sub)'>
+                                                                                            {
+                                                                                                tag
+                                                                                            }
+                                                                                        </span>
+                                                                                    )
+                                                                                )}
+                                                                            </div>
+                                                                        )}
+                                                                    {info.url && (
+                                                                        <a
+                                                                            href={
+                                                                                info.url
+                                                                            }
+                                                                            target='_blank'
+                                                                            rel='noreferrer'
+                                                                            className='mt-2 inline-flex items-center gap-1 font-mono text-[10px] text-(--text-sub) underline hover:text-(--text-main)'>
+                                                                            Open link{' '}
+                                                                            <ExternalLink
+                                                                                size={
+                                                                                    10
+                                                                                }
+                                                                            />
+                                                                        </a>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </section>
+                                            );
+                                        })}
+
+                                        {INFO_KINDS.every(
+                                            (kind) =>
+                                                getLibraryItems(
+                                                    resumePreview,
+                                                    kind
+                                                ).length === 0
+                                        ) && (
+                                            <div className='rounded border border-dashed border-(--border-line) px-4 py-8 text-center text-xs text-(--text-sub)'>
+                                                No information was selected for
+                                                this resume.
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {resumePreview.resumeUrl && (
+                                        <a
+                                            href={resumePreview.resumeUrl}
+                                            target='_blank'
+                                            rel='noreferrer'
+                                            className='inline-flex items-center gap-1.5 rounded border border-(--border-line) px-3 py-2 text-xs font-medium text-(--text-main) hover:bg-(--bg-panel)'>
+                                            Open uploaded PDF{' '}
+                                            <ExternalLink size={13} />
+                                        </a>
+                                    )}
+                                </div>
+                            :   null}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
