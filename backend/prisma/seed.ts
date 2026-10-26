@@ -11,7 +11,7 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-    console.log('🌱 Starting Skillora Database Seeding...');
+    console.log('Starting Skillora Database Seeding...');
 
     // 1. Clean existing records in correct foreign key order
     await prisma.interviewEvent.deleteMany();
@@ -58,7 +58,7 @@ async function main() {
         },
     });
 
-    console.log('✅ Created 2 Recruiters');
+    console.log('Created 2 Recruiters');
 
     // 3. Create Applicants
     // Applicant A: Samy Benali (Free tier)
@@ -107,7 +107,7 @@ async function main() {
         },
     });
 
-    console.log('✅ Created 3 Applicants (Free & Pro)');
+    console.log('Created 3 Applicants (Free & Pro)');
 
     // 4. Create Master Evidence Vault Items
     // Education for Samy
@@ -198,7 +198,7 @@ async function main() {
     });
 
     console.log(
-        '✅ Created Vault Items (Education, Projects with Angles, Certifications)'
+        'Created Vault Items (Education, Projects with Angles, Certifications)'
     );
 
     // 5. Create Tailored Personas (Profiles)
@@ -289,7 +289,7 @@ async function main() {
         },
     });
 
-    console.log('✅ Created Synthesized Personas with Vault Links');
+    console.log('Created Synthesized Personas with Vault Links');
 
     // 6. Create Positions
     const deadlineFuture1 = new Date();
@@ -374,7 +374,7 @@ async function main() {
         },
     });
 
-    console.log('✅ Created Positions (3 Open, 1 Closed Archive)');
+    console.log('Created Positions (3 Open, 1 Closed Archive)');
 
     // 7. Create Applications & Evaluations
     // App 1: Samy Benali -> Shortlisted / Interview Pending
@@ -535,22 +535,22 @@ async function main() {
     });
 
     console.log(
-        '✅ Created Applications with Interview Schedules & Actionable Gap Analysis'
+        'Created Applications with Interview Schedules & Actionable Gap Analysis'
     );
-    console.log('\n🎉 Seeding Completed! Login credentials:');
+    console.log('\nSeeding Completed! Login credentials:');
     console.log('------------------------------------------------------------');
-    console.log('👉 Recruiter:  recruiter@techcorp.dz   / password123');
-    console.log('👉 Candidate 1 (Free): samy.benali@esi.dz    / password123');
-    console.log('👉 Candidate 2 (Pro):  amine.khelifi@gmail.com / password123');
+    console.log('Recruiter:  recruiter@techcorp.dz   / password123');
+    console.log('Candidate 1 (Free): samy.benali@esi.dz    / password123');
+    console.log('Candidate 2 (Pro):  amine.khelifi@gmail.com / password123');
     console.log(
-        '👉 Candidate 3 (Legal): yasmine.meziane@avocat.dz / password123'
+        'Candidate 3 (Legal): yasmine.meziane@avocat.dz / password123'
     );
     console.log('------------------------------------------------------------');
 }
 
 main()
     .catch((e) => {
-        console.error('❌ Seeding failed:', e);
+        console.error('Seeding failed:', e);
         process.exit(1);
     })
     .finally(async () => {
