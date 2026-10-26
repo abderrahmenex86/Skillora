@@ -49,8 +49,8 @@ export default function Navbar() {
                         ],
                     },
                     {
-                        duration: 800,
-                        easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+                        duration: 1200,
+                        easing: 'cubic-bezier(0.65, 0, 0.35, 1)',
                         pseudoElement: '::view-transition-new(root)',
                     }
                 );
