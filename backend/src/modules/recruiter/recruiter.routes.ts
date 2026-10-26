@@ -24,6 +24,9 @@ router.patch('/positions/:id/close', (req, res, next) =>
 router.get('/positions/:id/applications', (req, res, next) =>
     recruiterController.getPositionApplications(req, res, next)
 );
+router.get('/applications/:id/resume', (req, res, next) =>
+    recruiterController.getApplicationResume(req, res, next)
+);
 router.post('/applications/:id/override', (req, res, next) =>
     recruiterController.overrideDecision(req, res, next)
 );
