@@ -3,12 +3,16 @@ import { X } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../../../api/apiClient';
 import {
+    ALGERIA_DIPLOMAS,
+    ALGERIA_UNIVERSITIES,
+} from '../../../data/algeria';
+import {
     INFO_ENDPOINTS,
     INFO_SINGULAR_LABELS,
     type InfoKind,
 } from './types';
 
-type FieldType = 'text' | 'url' | 'textarea' | 'select';
+type FieldType = 'text' | 'url' | 'textarea' | 'select' | 'date';
 
 interface FieldDef {
     name: string;
@@ -20,22 +24,36 @@ interface FieldDef {
     options?: { label: string; value: string }[];
     format?: 'lines' | 'comma';
     defaultValue?: string;
+    allowPresent?: boolean;
 }
+
+const DIPLOMA_OPTIONS = ALGERIA_DIPLOMAS.map((diploma) => ({
+    label: diploma.name,
+    value: diploma.name,
+}));
+
+const UNIVERSITY_OPTIONS = ALGERIA_UNIVERSITIES.map((university) => ({
+    label: university.name,
+    value: university.name,
+}));
 
 const FIELDS: Record<InfoKind, FieldDef[]> = {
     education: [
         {
             name: 'degree',
             label: 'Diploma / Degree',
-            placeholder: "Ingénieur d'État en Informatique",
+            type: 'select',
             required: true,
             fullWidth: true,
+            options: DIPLOMA_OPTIONS,
         },
         {
             name: 'institution',
-            label: 'Institution',
-            placeholder: 'ESI Algiers',
+            label: 'University / Institution',
+            type: 'select',
             required: true,
+            fullWidth: true,
+            options: UNIVERSITY_OPTIONS,
         },
         {
             name: 'field',
@@ -46,12 +64,12 @@ const FIELDS: Record<InfoKind, FieldDef[]> = {
         {
             name: 'startDate',
             label: 'Start Date',
-            placeholder: '2019',
+            type: 'date',
         },
         {
             name: 'endDate',
             label: 'End Date',
-            placeholder: '2024',
+            type: 'date',
         },
     ],
     experience: [
@@ -75,13 +93,14 @@ const FIELDS: Record<InfoKind, FieldDef[]> = {
         {
             name: 'startDate',
             label: 'Start Date',
-            placeholder: '2023',
+            type: 'date',
             required: true,
         },
         {
             name: 'endDate',
             label: 'End Date',
-            placeholder: 'Present',
+            type: 'date',
+            allowPresent: true,
         },
         {
             name: 'highlights',
@@ -109,7 +128,7 @@ const FIELDS: Record<InfoKind, FieldDef[]> = {
         {
             name: 'date',
             label: 'Date',
-            placeholder: '2024',
+            type: 'date',
         },
         {
             name: 'description',
@@ -143,7 +162,7 @@ const FIELDS: Record<InfoKind, FieldDef[]> = {
         {
             name: 'issueDate',
             label: 'Issue Date',
-            placeholder: '2024',
+            type: 'date',
         },
         {
             name: 'credentialId',
@@ -168,12 +187,13 @@ const FIELDS: Record<InfoKind, FieldDef[]> = {
         {
             name: 'startDate',
             label: 'Start Date',
-            placeholder: '2022',
+            type: 'date',
         },
         {
             name: 'endDate',
             label: 'End Date',
-            placeholder: '2024',
+            type: 'date',
+            allowPresent: true,
         },
         {
             name: 'description',
@@ -401,6 +421,58 @@ export default function AddInformationModal({
                                             </option>
                                         ))}
                                     </select>
+                                : field.type === 'date' ?
+                                    <div className='space-y-1.5'>
+                                        <input
+                                            type='date'
+                                            required={field.required}
+                                            disabled={
+                                                field.allowPresent &&
+                                                values[field.name] ===
+                                                    'Present'
+                                            }
+                                            value={
+                                                values[field.name] ===
+                                                'Present' ?
+                                                    ''
+                                                :   values[field.name] ?? ''
+                                            }
+                                            onChange={(event) =>
+                                                setValues((current) => ({
+                                                    ...current,
+                                                    [field.name]:
+                                                        event.target.value,
+                                                }))
+                                            }
+                                            className={`${inputClass} [color-scheme:light] dark:[color-scheme:dark] disabled:opacity-50`}
+                                        />
+                                        {field.allowPresent && (
+                                            <label className='flex items-center gap-2 text-[11px] text-(--text-sub)'>
+                                                <input
+                                                    type='checkbox'
+                                                    checked={
+                                                        values[
+                                                            field.name
+                                                        ] === 'Present'
+                                                    }
+                                                    onChange={(event) =>
+                                                        setValues(
+                                                            (current) => ({
+                                                                ...current,
+                                                                [field.name]:
+                                                                    event.target
+                                                                        .checked ?
+                                                                        'Present'
+                                                                    :   '',
+                                                            })
+                                                        )
+                                                    }
+                                                    className='accent-(--text-main)'
+                                                />
+                                                Currently in progress
+                                            </label>
+                                        )}
+                                    </div>
                                 :   <input
                                         type={field.type || 'text'}
                                         required={field.required}
