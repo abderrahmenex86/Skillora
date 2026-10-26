@@ -17,5 +17,8 @@ router.post('/logout', (req, res, next) =>
 router.get('/me', requireAuth, (req, res, next) =>
     authController.me(req, res, next)
 );
+router.patch('/me', requireAuth, (req, res, next) =>
+    authController.updateMe(req, res, next)
+);
 
 export const authRoutes = router;
