@@ -53,6 +53,7 @@ export default function Navbar() {
                     {
                         duration: 1200,
                         easing: 'cubic-bezier(0.65, 0, 0.35, 1)',
+                        fill: 'both',
                         pseudoElement: '::view-transition-new(root)',
                     }
                 );
