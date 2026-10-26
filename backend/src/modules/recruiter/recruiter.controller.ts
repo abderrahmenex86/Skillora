@@ -49,7 +49,7 @@ export class RecruiterController {
             if (!req.user) throw new AppError(401, 'Unauthorized');
             const position = await recruiterService.getPositionById(
                 req.user.sub,
-                req.params.id
+                String(req.params.id)
             );
             res.json({ position });
         } catch (err) {
@@ -66,9 +66,26 @@ export class RecruiterController {
             if (!req.user) throw new AppError(401, 'Unauthorized');
             const applications = await recruiterService.getPositionApplications(
                 req.user.sub,
-                req.params.id
+                String(req.params.id)
             );
             res.json({ applications });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async getApplicationResume(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            if (!req.user) throw new AppError(401, 'Unauthorized');
+            const resume = await recruiterService.getApplicationResume(
+                req.user.sub,
+                String(req.params.id)
+            );
+            res.json({ resume });
         } catch (err) {
             next(err);
         }
@@ -84,7 +101,7 @@ export class RecruiterController {
             const input = OverrideDecisionSchema.parse(req.body);
             const updated = await recruiterService.overrideDecision(
                 req.user.sub,
-                req.params.id,
+                String(req.params.id),
                 input
             );
             res.json({ application: updated });
@@ -102,7 +119,7 @@ export class RecruiterController {
             if (!req.user) throw new AppError(401, 'Unauthorized');
             const position = await recruiterService.closePosition(
                 req.user.sub,
-                req.params.id
+                String(req.params.id)
             );
             res.json({ position });
         } catch (err) {
