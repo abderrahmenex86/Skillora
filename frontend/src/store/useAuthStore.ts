@@ -9,6 +9,7 @@ export interface User {
     lastName: string;
     phone?: string | null;
     wilaya?: string | null;
+    companyName?: string | null;
     role: 'APPLICANT' | 'RECRUITER' | 'ADMIN';
     subscriptionTier: 'FREE' | 'PRO' | 'ENTERPRISE';
 }
@@ -17,6 +18,7 @@ interface AuthState {
     user: User | null;
     accessToken: string | null;
     setTokens: (accessToken: string, user: User) => void;
+    setUser: (user: User) => void;
     logout: () => void;
 }
 
@@ -26,6 +28,7 @@ export const useAuthStore = create<AuthState>()(
             user: null,
             accessToken: null,
             setTokens: (accessToken, user) => set({ accessToken, user }),
+            setUser: (user) => set({ user }),
             logout: () => set({ user: null, accessToken: null }),
         }),
         {
