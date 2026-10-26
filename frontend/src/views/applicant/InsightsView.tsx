@@ -47,9 +47,6 @@ export default function InsightsView() {
     return (
         <div className='flex-1 max-w-5xl w-full mx-auto px-6 py-8'>
             <div className='mb-8 border-b border-(--border-line) pb-6'>
-                <span className='font-mono text-xs text-(--text-sub) uppercase tracking-wider block mb-1'>
-                    [PRO ANALYTICS ENGINE]
-                </span>
                 <h1 className='font-grotesque font-extrabold text-4xl text-(--text-main) tracking-tight'>
                     Personalized Career Insights
                 </h1>
