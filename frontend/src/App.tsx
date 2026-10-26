@@ -24,7 +24,7 @@ import RecruiterPositionsView from './views/recruiter/RecruiterPositionsView';
 import PositionApplicationsView from './views/recruiter/PositionApplicationsView';
 
 import { useThemeStore } from './store/useThemeStore';
-import { useAuthStore } from './store/useAuthStore';
+import { useAuthStore, type User } from './store/useAuthStore';
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -34,6 +34,25 @@ const queryClient = new QueryClient({
         },
     },
 });
+
+const roleHome: Record<User['role'], string> = {
+    APPLICANT: '/applicant/dashboard',
+    RECRUITER: '/recruiter/positions',
+    ADMIN: '/',
+};
+
+function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
+    const user = useAuthStore((state) => state.user);
+    if (user) {
+        return (
+            <Navigate
+                to={roleHome[user.role]}
+                replace
+            />
+        );
+    }
+    return <>{children}</>;
+}
 
 function ProtectedRoute({
     children,
@@ -102,7 +121,11 @@ export default function App() {
                             />
                             <Route
                                 path='/auth'
-                                element={<AuthView />}
+                                element={
+                                    <PublicOnlyRoute>
+                                        <AuthView />
+                                    </PublicOnlyRoute>
+                                }
                             />
 
                             <Route
