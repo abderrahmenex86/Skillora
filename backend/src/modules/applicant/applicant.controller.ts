@@ -163,6 +163,19 @@ export class ApplicantController {
             next(err);
         }
     }
+    async upgradeToPro(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            if (!req.user) throw new AppError(401, 'Unauthorized');
+            const user = await applicantService.upgradeToPro(req.user.sub);
+            res.json({ user, message: 'Upgraded to Pro successfully' });
+        } catch (err) {
+            next(err);
+        }
+    }
 }
 
 export const applicantController = new ApplicantController();
