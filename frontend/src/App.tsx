@@ -4,6 +4,7 @@ import {
     Routes,
     Route,
     Navigate,
+    useLocation,
 } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Navbar from './components/Navbar';
@@ -40,6 +41,18 @@ const roleHome: Record<User['role'], string> = {
     RECRUITER: '/recruiter/positions',
     ADMIN: '/',
 };
+
+function PageTransition({ children }: { children: React.ReactNode }) {
+    const location = useLocation();
+
+    return (
+        <div
+            key={location.pathname}
+            className='flex-1 flex flex-col page-transition'>
+            {children}
+        </div>
+    );
+}
 
 function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
     const user = useAuthStore((state) => state.user);
@@ -93,7 +106,7 @@ export default function App() {
             <Router>
                 <div className='min-h-screen flex flex-col bg-(--bg-canvas) text-(--text-main)'>
                     <Navbar />
-                    <div className='flex-1 flex flex-col'>
+                    <PageTransition>
                         <Routes>
                             <Route
                                 path='/'
@@ -189,7 +202,7 @@ export default function App() {
                                 }
                             />
                         </Routes>
-                    </div>
+                    </PageTransition>
                 </div>
             </Router>
         </QueryClientProvider>
