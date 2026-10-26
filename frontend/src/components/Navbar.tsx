@@ -1,15 +1,57 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { flushSync } from 'react-dom';
+import {
+    ChevronDown,
+    LayoutDashboard,
+    LogOut,
+    Moon,
+    Pencil,
+    Sun,
+    User as UserIcon,
+} from 'lucide-react';
+import { roleHome } from '../data/routes';
 import { useThemeStore } from '../store/useThemeStore';
 import { useAuthStore } from '../store/useAuthStore';
-import { Sun, Moon, LogOut, User as UserIcon } from 'lucide-react';
 
 export default function Navbar() {
     const { isDark, toggleTheme } = useThemeStore();
     const { user, logout } = useAuthStore();
     const navigate = useNavigate();
+    const location = useLocation();
+    const [menuOpen, setMenuOpen] = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        setMenuOpen(false);
+    }, [location.pathname]);
+
+    useEffect(() => {
+        if (!menuOpen) return;
+
+        const handleClickOutside = (event: MouseEvent) => {
+            if (!menuRef.current?.contains(event.target as Node)) {
+                setMenuOpen(false);
+            }
+        };
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                setMenuOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [menuOpen]);
 
     const handleLogout = () => {
+        setMenuOpen(false);
         logout();
         navigate('/');
     };
@@ -200,8 +242,17 @@ export default function Navbar() {
                                 Register
                             </Link>
                         </>
-                    :   <div className='flex items-center space-x-3 pl-2 border-l border-(--border-line)'>
-                            <div className='flex items-center space-x-2'>
+                    :   <div
+                            ref={menuRef}
+                            className='relative flex items-center gap-1 pl-3 border-l border-(--border-line)'>
+                            <button
+                                type='button'
+                                onClick={() => {
+                                    setMenuOpen(false);
+                                    navigate(roleHome[user.role]);
+                                }}
+                                aria-label='Go to dashboard'
+                                className='flex items-center space-x-2 rounded-md px-2 py-1 hover:bg-(--bg-panel) transition-colors cursor-pointer'>
                                 <div className='w-8 h-8 rounded-full bg-(--bg-panel) border border-(--border-line) flex items-center justify-center font-grotesque font-bold text-sm text-(--text-main)'>
                                     {initials || <UserIcon size={14} />}
                                 </div>
@@ -213,14 +264,60 @@ export default function Navbar() {
                                         {wilayaDisplay}
                                     </div>
                                 </div>
-                            </div>
+                            </button>
 
                             <button
-                                onClick={handleLogout}
-                                title='Log out'
-                                className='p-1.5 rounded-md border border-(--border-line) text-(--text-sub) hover:text-red-600 hover:bg-(--bg-panel) transition-colors cursor-pointer'>
-                                <LogOut size={15} />
+                                type='button'
+                                onClick={() => setMenuOpen((open) => !open)}
+                                aria-label={
+                                    menuOpen ?
+                                        'Close profile menu'
+                                    :   'Open profile menu'
+                                }
+                                aria-haspopup='menu'
+                                aria-expanded={menuOpen}
+                                className='p-1.5 rounded-md text-(--text-sub) hover:text-(--text-main) hover:bg-(--bg-panel) transition-colors cursor-pointer'>
+                                <ChevronDown
+                                    size={15}
+                                    className={`transition-transform duration-200 ${menuOpen ? 'rotate-180' : ''}`}
+                                />
                             </button>
+
+                            <div
+                                role='menu'
+                                aria-hidden={!menuOpen}
+                                inert={!menuOpen}
+                                className={`absolute right-0 top-full z-50 mt-2 w-56 origin-top-right rounded-md border border-(--border-line) bg-(--bg-canvas) p-1.5 shadow-lg transition-all duration-200 ease-out ${
+                                    menuOpen ?
+                                        'pointer-events-auto translate-y-0 scale-100 opacity-100'
+                                    :   'pointer-events-none -translate-y-1 scale-95 opacity-0'
+                                }`}>
+                                <Link
+                                    to={roleHome[user.role]}
+                                    role='menuitem'
+                                    onClick={() => setMenuOpen(false)}
+                                    className='flex items-center gap-2 rounded px-3 py-2 text-sm text-(--text-main) transition-colors hover:bg-(--bg-panel)'>
+                                    <LayoutDashboard size={15} />
+                                    Dashboard
+                                </Link>
+                                <Link
+                                    to='/settings/profile'
+                                    role='menuitem'
+                                    onClick={() => setMenuOpen(false)}
+                                    className='flex items-center gap-2 rounded px-3 py-2 text-sm text-(--text-main) transition-colors hover:bg-(--bg-panel)'>
+                                    <Pencil size={15} />
+                                    Edit Personal Info
+                                </Link>
+                                <div className='my-1 border-t border-(--border-line)' />
+                                <button
+                                    type='button'
+                                    role='menuitem'
+                                    onClick={handleLogout}
+                                    className='flex w-full items-center gap-2 rounded px-3 py-2 text-left text-sm text-red-600 transition-colors hover:bg-red-500/10 dark:text-red-400'>
+                                    <LogOut size={15} />
+                                    Logout
+                                </button>
+                            </div>
                         </div>
                     }
                 </div>
