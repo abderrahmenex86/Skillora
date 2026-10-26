@@ -35,10 +35,17 @@ html.dark {
     --btn-main-text: #111111;
 }
 
-::view-transition-old(root),
+::view-transition-old(root) {
+    animation: none;
+    mix-blend-mode: normal;
+}
+
 ::view-transition-new(root) {
     animation: none;
     mix-blend-mode: normal;
+    clip-path: circle(
+        0px at var(--theme-origin-x, 50%) var(--theme-origin-y, 50%)
+    );
 }
 
 html.theme-transitioning *,
