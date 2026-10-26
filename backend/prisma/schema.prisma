@@ -48,11 +48,22 @@ model User {
    id                    String           @id @default(uuid())
    email                 String           @unique
    passwordHash          String
+   firstName             String
+   middleName            String?
+   lastName              String
+   phone                 String?
+   wilaya                String?
    role                  Role             @default(APPLICANT)
    subscriptionTier      SubscriptionTier @default(FREE)
    subscriptionExpiresAt DateTime?
+   companyName           String?
    createdAt             DateTime         @default(now())
    updatedAt             DateTime         @updatedAt
+
+   vaultEducations     VaultEducation[]
+   vaultExperiences    VaultExperience[]
+   vaultProjects       VaultProject[]
+   vaultCertifications VaultCertification[]
 
    profiles            ApplicantProfile[]
    applications        Application[]      @relation("CandidateApplications")
@@ -62,6 +73,93 @@ model User {
    refreshTokens       RefreshToken[]
 
    @@map("users")
+}
+
+model VaultEducation {
+   id          String   @id @default(uuid())
+   userId      String
+   degree      String
+   institution String
+   field       String
+   startDate   String?
+   endDate     String?
+   createdAt   DateTime @default(now())
+
+   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+   @@index([userId])
+   @@map("vault_educations")
+}
+
+model VaultExperience {
+   id         String   @id @default(uuid())
+   userId     String
+   company    String
+   role       String
+   location   String?
+   startDate  String
+   endDate    String?
+   highlights String[]
+   createdAt  DateTime @default(now())
+
+   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+   @@index([userId])
+   @@map("vault_experiences")
+}
+
+model VaultProject {
+   id         String   @id @default(uuid())
+   userId     String
+   title      String
+   projectUrl String?
+   date       String?
+   narratives Json
+   tags       String[]
+   createdAt  DateTime @default(now())
+
+   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+   @@index([userId])
+   @@map("vault_projects")
+}
+
+model VaultCertification {
+   id           String   @id @default(uuid())
+   userId       String
+   name         String
+   issuer       String
+   issueDate    String?
+   credentialId String?
+   createdAt    DateTime @default(now())
+
+   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+   @@index([userId])
+   @@map("vault_certifications")
+}
+
+model ApplicantProfile {
+   id        String   @id @default(uuid())
+   userId    String
+   title     String
+   resumeUrl String
+   summary   String?
+   skills    String[]
+
+   selectedEducationIds     String[]
+   selectedExperienceIds    String[]
+   selectedProjectAngles    Json?
+   selectedCertificationIds String[]
+
+   createdAt DateTime @default(now())
+   updatedAt DateTime @updatedAt
+
+   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+   applications Application[]
+
+   @@index([userId])
+   @@map("applicant_profiles")
 }
 
 model RefreshToken {
@@ -75,24 +173,6 @@ model RefreshToken {
 
    @@index([userId])
    @@map("refresh_tokens")
-}
-
-model ApplicantProfile {
-   id        String   @id @default(uuid())
-   userId    String
-   title     String
-   resumeUrl String
-   summary   String?
-   skills    String[]
-   metadata  Json?
-   createdAt DateTime @default(now())
-   updatedAt DateTime @updatedAt
-
-   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-   applications Application[]
-
-   @@index([userId])
-   @@map("applicant_profiles")
 }
 
 model Position {
