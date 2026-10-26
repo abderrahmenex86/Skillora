@@ -39,7 +39,7 @@ export class ApplicantService {
             if (existingProfilesCount >= 1) {
                 throw new AppError(
                     403,
-                    'Free plan accounts are limited to 1 active profile. Upgrade to Pro for multi-profile personas (e.g. Data Engineer, Pen Tester, Legal Counsel).'
+                    'Free plan accounts are limited to 1 active profile. Upgrade to Pro for multiple tailored profiles (e.g. Data Engineer, Pen Tester, Legal Counsel).'
                 );
             }
         }
