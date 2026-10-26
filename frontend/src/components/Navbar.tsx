@@ -34,7 +34,7 @@ export default function Navbar() {
                 <div className='flex items-center'>
                     <Link
                         to='/'
-                        className='font-grotesque font-bold text-3xl tracking-tight text-forest dark:text-forest-dark transition-colors'>
+                        className='inline-flex items-center px-3 py-1 font-grotesque font-bold text-3xl tracking-tight bg-(--btn-main-bg) text-(--btn-main-text) rounded-sm transition-colors'>
                         Skillora
                     </Link>
                 </div>
