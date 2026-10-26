@@ -1,8 +1,7 @@
-import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useThemeStore } from '../store/useThemeStore';
 import { useAuthStore } from '../store/useAuthStore';
-import { Sun, Moon, LogOut } from 'lucide-react';
+import { Sun, Moon, LogOut, User as UserIcon } from 'lucide-react';
 
 export default function Navbar() {
     const { isDark, toggleTheme } = useThemeStore();
@@ -13,6 +12,21 @@ export default function Navbar() {
         logout();
         navigate('/');
     };
+
+    const displayName =
+        user ?
+            `${user.firstName || ''} ${user.lastName || ''}`.trim() ||
+            user.email
+        :   '';
+
+    const firstInitial = user?.firstName?.[0] || '';
+    const lastInitial = user?.lastName?.[0] || '';
+    const initials = (firstInitial + lastInitial).toUpperCase();
+
+    const wilayaDisplay =
+        user?.wilaya?.includes('-') ?
+            user.wilaya.split('-')[1].trim()
+        :   user?.wilaya || user?.role || '';
 
     return (
         <header className='sticky top-0 z-50 w-full border-b border-(--border-line) bg-(--bg-canvas)/95 backdrop-blur-sm transition-colors'>
@@ -66,7 +80,7 @@ export default function Navbar() {
                             <Link
                                 to='/applicant/profiles'
                                 className='text-(--text-sub) hover:text-(--text-main) transition-colors'>
-                                Profiles
+                                Evidence Vault & Personas
                             </Link>
                             <Link
                                 to='/jobs'
@@ -107,7 +121,7 @@ export default function Navbar() {
                         type='button'
                         onClick={toggleTheme}
                         aria-label='Toggle dark mode'
-                        className='p-2 rounded-md border border-(--border-line) text-(--text-sub) hover:text-(--text-main) hover:bg-(--bg-panel) transition-all flex items-center justify-center'>
+                        className='p-2 rounded-md border border-(--border-line) text-(--text-sub) hover:text-(--text-main) hover:bg-(--bg-panel) transition-all flex items-center justify-center cursor-pointer'>
                         {isDark ?
                             <Sun
                                 size={17}
@@ -129,15 +143,26 @@ export default function Navbar() {
                                 Register
                             </Link>
                         </>
-                    :   <div className='flex items-center space-x-3'>
-                            <span className='font-mono text-xs text-(--text-sub) hidden sm:inline'>
-                                [{user.role}]
-                            </span>
+                    :   <div className='flex items-center space-x-3 pl-2 border-l border-(--border-line)'>
+                            <div className='flex items-center space-x-2'>
+                                <div className='w-8 h-8 rounded-full bg-(--bg-panel) border border-(--border-line) flex items-center justify-center font-grotesque font-bold text-sm text-(--text-main)'>
+                                    {initials || <UserIcon size={14} />}
+                                </div>
+                                <div className='hidden sm:block text-left'>
+                                    <div className='text-xs font-semibold leading-tight text-(--text-main)'>
+                                        {displayName}
+                                    </div>
+                                    <div className='font-mono text-[10px] text-(--text-sub)'>
+                                        {wilayaDisplay}
+                                    </div>
+                                </div>
+                            </div>
+
                             <button
                                 onClick={handleLogout}
                                 title='Log out'
-                                className='p-2 rounded-md border border-(--border-line) text-(--text-sub) hover:text-(--text-main) hover:bg-(--bg-panel) transition-colors'>
-                                <LogOut size={16} />
+                                className='p-1.5 rounded-md border border-(--border-line) text-(--text-sub) hover:text-red-600 hover:bg-(--bg-panel) transition-colors cursor-pointer'>
+                                <LogOut size={15} />
                             </button>
                         </div>
                     }
