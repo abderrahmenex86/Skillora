@@ -181,7 +181,7 @@ export default function JobsExplorerView() {
                                         <div className='p-4 border border-(--border-line) rounded-md bg-(--bg-panel) text-center space-y-3'>
                                             <div className='flex items-center justify-center gap-2 text-xs text-(--text-sub)'>
                                                 <Lock size={14} /> Log in to
-                                                apply with your verified profile
+                                                apply with a tailored resume
                                             </div>
                                             <Link
                                                 to='/auth?mode=login'
@@ -191,8 +191,8 @@ export default function JobsExplorerView() {
                                         </div>
                                     : user.role === 'RECRUITER' ?
                                         <div className='text-xs text-(--text-sub) p-3 bg-(--bg-panel) rounded'>
-                                            Logged in as Recruiter. Switch to
-                                            Candidate account to submit
+                                            Logged in as Recruiter. Switch to an
+                                            applicant account to submit
                                             applications.
                                         </div>
                                     : appliedSuccess ?
@@ -206,7 +206,7 @@ export default function JobsExplorerView() {
                                                     setApplyModalOpen(true)
                                                 }
                                                 className='w-full py-3.5 bg-(--btn-main-bg) text-(--btn-main-text) font-grotesque font-bold text-xl rounded-md hover:opacity-90 transition-opacity'>
-                                                Apply with Candidate Profile
+                                                Apply with a Tailored Resume
                                             </button>
                                         </div>
                                     }
@@ -221,7 +221,7 @@ export default function JobsExplorerView() {
                 <div className='fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4'>
                     <div className='bg-(--bg-canvas) border border-(--border-line) rounded-lg p-6 max-w-md w-full space-y-4'>
                         <h3 className='font-grotesque font-bold text-2xl text-(--text-main)'>
-                            Select Profile for this Role
+                            Select a Resume for this Role
                         </h3>
 
                         {applyError && (
@@ -233,20 +233,20 @@ export default function JobsExplorerView() {
                         {profiles?.length === 0 ?
                             <div className='text-xs text-(--text-sub) space-y-3'>
                                 <p>
-                                    You haven't created any candidate profiles
+                                    You haven't created any tailored resumes
                                     yet.
                                 </p>
                                 <Link
                                     to='/applicant/profiles'
                                     className='inline-block px-4 py-2 bg-(--btn-main-bg) text-(--btn-main-text) text-xs rounded'>
-                                    Create Profile First
+                                    Create Tailored Resume
                                 </Link>
                             </div>
                         :   <form
                                 onSubmit={handleApply}
                                 className='space-y-4'>
                                 <label className='block text-xs text-(--text-sub)'>
-                                    Which profile best matches this opening?
+                                    Which resume best matches this opening?
                                 </label>
                                 <select
                                     required
@@ -256,7 +256,7 @@ export default function JobsExplorerView() {
                                     }
                                     className='w-full px-3 py-2 text-xs rounded border border-(--border-line) bg-(--bg-canvas) text-(--text-main)'>
                                     <option value=''>
-                                        -- Choose Profile --
+                                        -- Choose Resume --
                                     </option>
                                     {profiles?.map((p: any) => (
                                         <option
