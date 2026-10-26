@@ -17,14 +17,14 @@ export default function HowItWorksView() {
                 <div className='space-y-12 border-t border-(--border-line) pt-12 mb-16'>
                     <div className='grid grid-cols-1 md:grid-cols-12 gap-6 items-start'>
                         <div className='md:col-span-3 font-mono text-sm text-(--text-sub)'>
-                            01 / MULTI-PERSONAS
+                            01 / MULTIPLE PROFILES
                         </div>
                         <div className='md:col-span-9'>
                             <h3 className='font-grotesque font-bold text-3xl text-(--text-main) mb-2'>
                                 Apply with tailored profiles
                             </h3>
                             <p className='text-sm text-(--text-sub) leading-relaxed'>
-                                Candidates set up dedicated personas (e.g. Data
+                                Candidates set up dedicated profiles (e.g. Data
                                 Engineer, Penetration Tester, or Corporate
                                 Counsel) with role-specific resumes, GitHub
                                 repos, and bar credentials. Each application
