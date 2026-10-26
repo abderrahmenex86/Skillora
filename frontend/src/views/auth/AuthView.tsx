@@ -149,7 +149,7 @@ export default function AuthView() {
                     </h3>
                     <p className='text-xs text-(--text-sub) mb-6'>
                         {isLogin ?
-                            'Access your applications, evidence vault, or company cohorts.'
+                            'Access your applications, resume, or company cohorts.'
                         :   'Fill in your civil and contact information to create your verified talent account.'
                         }
                     </p>
