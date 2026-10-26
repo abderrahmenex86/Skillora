@@ -245,11 +245,32 @@ export function getLibraryItem(
     return getLibraryItems(library, kind).find((item) => item.id === id);
 }
 
+function formatDate(value?: string | null): string {
+    if (!value) return '';
+    if (value === 'Present') return value;
+
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+    if (!match) return value;
+
+    const date = new Date(
+        Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]))
+    );
+    if (Number.isNaN(date.getTime())) return value;
+
+    return new Intl.DateTimeFormat('en', {
+        month: 'short',
+        year: 'numeric',
+        timeZone: 'UTC',
+    }).format(date);
+}
+
 function formatRange(
     startDate?: string | null,
     endDate?: string | null
 ): string {
-    return [startDate, endDate].filter(Boolean).join(' - ');
+    return [formatDate(startDate), formatDate(endDate)]
+        .filter(Boolean)
+        .join(' - ');
 }
 
 export function describeInfo(
@@ -286,7 +307,7 @@ export function describeInfo(
             const project = item as VaultProject;
             return {
                 title: project.title,
-                subtitle: project.date || '',
+                subtitle: formatDate(project.date),
                 description:
                     project.description ||
                     project.narratives?.[0]?.text ||
@@ -301,7 +322,7 @@ export function describeInfo(
                 title: certification.name,
                 subtitle: certification.issuer,
                 description: [
-                    certification.issueDate,
+                    formatDate(certification.issueDate),
                     certification.credentialId,
                 ]
                     .filter(Boolean)
