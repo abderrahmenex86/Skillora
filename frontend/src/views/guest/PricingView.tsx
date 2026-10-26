@@ -36,9 +36,6 @@ export default function PricingView() {
     return (
         <div className='flex-1 flex flex-col justify-between'>
             <main className='max-w-6xl mx-auto px-6 py-16 w-full'>
-                <div className='font-mono text-xs text-(--text-sub) uppercase tracking-wider mb-2'>
-                    [FAIR & TRANSPARENT PRICING]
-                </div>
                 <h1 className='font-grotesque font-extrabold text-5xl sm:text-6xl text-(--text-main) tracking-tight mb-4'>
                     Plans for Applicants and Employers
                 </h1>
