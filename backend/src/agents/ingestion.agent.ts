@@ -33,7 +33,7 @@ export class IngestionAgent {
             title: string;
             summary: string | null;
             skills: string[];
-            metadata: any;
+            metadata?: any;
         },
         anonymousId: string
     ): Promise<IngestionOutput> {
