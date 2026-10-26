@@ -168,11 +168,6 @@ export default function Navbar() {
                     {user?.role === 'APPLICANT' && (
                         <>
                             <Link
-                                to='/applicant/dashboard'
-                                className='text-(--text-sub) hover:text-(--text-main) transition-colors'>
-                                Dashboard & Calendar
-                            </Link>
-                            <Link
                                 to='/applicant/profiles'
                                 className='text-(--text-sub) hover:text-(--text-main) transition-colors'>
                                 Evidence Vault & Personas
