@@ -74,7 +74,7 @@ export default function ApplicantDashboardView() {
                     <Link
                         to='/applicant/profiles'
                         className='px-4 py-2 border border-(--border-line) text-sm font-medium rounded-md hover:bg-(--bg-panel) text-(--text-main)'>
-                        Manage Profiles
+                        Manage Resumes
                     </Link>
                     <Link
                         to='/jobs'
@@ -316,7 +316,7 @@ export default function ApplicantDashboardView() {
                                         <div className='flex justify-between items-start'>
                                             <div>
                                                 <div className='font-mono text-xs text-(--text-sub)'>
-                                                    {app.anonymousId} • Profile:{' '}
+                                                    {app.anonymousId} • Resume:{' '}
                                                     {app.profile.title}
                                                 </div>
                                                 <h4 className='font-grotesque font-bold text-2xl text-(--text-main)'>
