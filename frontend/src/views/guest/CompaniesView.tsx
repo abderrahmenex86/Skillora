@@ -5,9 +5,6 @@ export default function CompaniesView() {
     return (
         <div className='flex-1 flex flex-col justify-between'>
             <main className='max-w-6xl mx-auto px-6 py-16 w-full'>
-                <div className='font-mono text-xs text-(--text-sub) uppercase tracking-wider mb-2'>
-                    [FOR EMPLOYERS & TECH LEADS]
-                </div>
                 <h1 className='font-grotesque font-extrabold text-5xl sm:text-6xl text-(--text-main) tracking-tight mb-4'>
                     Stop screening 500 unvetted CVs per opening.
                 </h1>
