@@ -56,6 +56,27 @@ export class ApplicantService {
         });
     }
 
+    async upgradeToPro(userId: string) {
+        const user = await prisma.user.update({
+            where: { id: userId },
+            data: {
+                subscriptionTier: 'PRO',
+                subscriptionExpiresAt: new Date(
+                    Date.now() + 30 * 24 * 60 * 60 * 1000
+                ), // 30 days
+            },
+            select: {
+                id: true,
+                email: true,
+                role: true,
+                subscriptionTier: true,
+                subscriptionExpiresAt: true,
+            },
+        });
+
+        return user;
+    }
+
     async updateProfile(
         userId: string,
         profileId: string,
@@ -232,6 +253,69 @@ export class ApplicantService {
                 },
             },
         });
+    }
+    // Vault Education
+    async getVaultEducations(userId: string) {
+        return prisma.vaultEducation.findMany({
+            where: { userId },
+            orderBy: { createdAt: 'desc' },
+        });
+    }
+
+    async addVaultEducation(
+        userId: string,
+        data: {
+            degree: string;
+            institution: string;
+            field: string;
+            startDate?: string;
+            endDate?: string;
+        }
+    ) {
+        return prisma.vaultEducation.create({ data: { ...data, userId } });
+    }
+
+    // Vault Projects (with multiple narrative angles)
+    async getVaultProjects(userId: string) {
+        return prisma.vaultProject.findMany({
+            where: { userId },
+            orderBy: { createdAt: 'desc' },
+        });
+    }
+
+    async addVaultProject(
+        userId: string,
+        data: {
+            title: string;
+            projectUrl?: string;
+            date?: string;
+            tags: string[];
+            narratives: { label: string; text: string }[];
+        }
+    ) {
+        return prisma.vaultProject.create({ data: { ...data, userId } });
+    }
+
+    // Vault Experiences
+    async getVaultExperiences(userId: string) {
+        return prisma.vaultExperience.findMany({
+            where: { userId },
+            orderBy: { createdAt: 'desc' },
+        });
+    }
+
+    async addVaultExperience(
+        userId: string,
+        data: {
+            company: string;
+            role: string;
+            location?: string;
+            startDate: string;
+            endDate?: string;
+            highlights: string[];
+        }
+    ) {
+        return prisma.vaultExperience.create({ data: { ...data, userId } });
     }
 }
 
