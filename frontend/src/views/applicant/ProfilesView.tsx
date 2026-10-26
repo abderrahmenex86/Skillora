@@ -188,9 +188,6 @@ export default function ProfilesView() {
             {/* Top Header */}
             <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 border-b border-(--border-line) pb-6 gap-4'>
                 <div>
-                    <span className='font-mono text-xs text-(--text-sub) uppercase tracking-wider block mb-1'>
-                        [CANDIDATE EVIDENCE ARCHITECTURE]
-                    </span>
                     <h1 className='font-grotesque font-extrabold text-4xl text-(--text-main) tracking-tight'>
                         Evidence Vault & Personas
                     </h1>
