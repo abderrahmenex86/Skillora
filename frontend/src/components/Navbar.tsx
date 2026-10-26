@@ -33,6 +33,8 @@ export default function Navbar() {
         );
         const root = document.documentElement;
 
+        root.style.setProperty('--theme-origin-x', `${x}px`);
+        root.style.setProperty('--theme-origin-y', `${y}px`);
         root.classList.add('theme-transitioning');
 
         const transition = document.startViewTransition(() => {
