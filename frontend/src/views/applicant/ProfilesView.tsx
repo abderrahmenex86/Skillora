@@ -131,7 +131,7 @@ export default function ProfilesView() {
         },
         onError: (err: any) => {
             setFormError(
-                err.response?.data?.error || 'Failed to synthesize persona'
+                err.response?.data?.error || 'Failed to create profile'
             );
         },
     });
@@ -189,7 +189,7 @@ export default function ProfilesView() {
             <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 border-b border-(--border-line) pb-6 gap-4'>
                 <div>
                     <h1 className='font-grotesque font-extrabold text-4xl text-(--text-main) tracking-tight'>
-                        Evidence Vault & Personas
+                        Resume & Profiles
                     </h1>
                 </div>
 
@@ -202,7 +202,7 @@ export default function ProfilesView() {
                                     'bg-(--bg-canvas) text-(--text-main) font-semibold shadow-xs'
                                 :   'text-(--text-sub)'
                             }`}>
-                            Active Personas ({profiles?.length ?? 0})
+                            Profiles ({profiles?.length ?? 0})
                         </button>
                         <button
                             onClick={() => setActiveTab('vault')}
@@ -211,7 +211,7 @@ export default function ProfilesView() {
                                     'bg-(--bg-canvas) text-(--text-main) font-semibold shadow-xs'
                                 :   'text-(--text-sub)'
                             }`}>
-                            Master Evidence Vault
+                            Master Resume
                         </button>
                     </div>
                 </div>
@@ -225,8 +225,8 @@ export default function ProfilesView() {
                             className='text-(--text-sub)'
                         />
                         <p className='text-xs text-(--text-main)'>
-                            Free Plan includes 1 active persona. Upgrade to Pro
-                            (1,200 DZD/mo) for unlimited personas tailored to
+                            Free Plan includes 1 active profile. Upgrade to Pro
+                            (1,200 DZD/mo) for unlimited profiles tailored to
                             different roles.
                         </p>
                     </div>
@@ -244,11 +244,11 @@ export default function ProfilesView() {
                     {/* Persona Synthesizer Form */}
                     <div className='lg:col-span-5 border border-(--border-line) rounded-lg p-6 bg-(--bg-canvas) space-y-4'>
                         <h3 className='font-grotesque font-bold text-2xl text-(--text-main) flex items-center gap-2'>
-                            <Sparkles size={18} /> Synthesize Tailored Persona
+                            <Sparkles size={18} /> Create Tailored Profile
                         </h3>
                         <p className='text-xs text-(--text-sub)'>
                             Construct a focused profile selecting from your
-                            master vault artifacts.
+                            master resume items.
                         </p>
 
                         {formError && (
@@ -264,7 +264,7 @@ export default function ProfilesView() {
                                 type='text'
                                 required
                                 disabled={isFreeLimitReached}
-                                placeholder='Persona Title (e.g. AI Systems Engineer, Legal Counsel)'
+                                placeholder='Profile Title (e.g. AI Systems Engineer, Legal Counsel)'
                                 value={personaTitle}
                                 onChange={(e) =>
                                     setPersonaTitle(e.target.value)
@@ -275,7 +275,7 @@ export default function ProfilesView() {
                                 type='url'
                                 required
                                 disabled={isFreeLimitReached}
-                                placeholder='Persona Tailored Resume URL (PDF)'
+                                placeholder='Tailored Resume URL (PDF)'
                                 value={resumeUrl}
                                 onChange={(e) => setResumeUrl(e.target.value)}
                                 className='w-full px-3 py-2 text-xs rounded border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none disabled:opacity-50'
@@ -294,7 +294,7 @@ export default function ProfilesView() {
                             <textarea
                                 rows={3}
                                 disabled={isFreeLimitReached}
-                                placeholder='Persona Objective & Summary'
+                                placeholder='Profile Objective & Summary'
                                 value={personaSummary}
                                 onChange={(e) =>
                                     setPersonaSummary(e.target.value)
@@ -306,7 +306,7 @@ export default function ProfilesView() {
                             {vaultProjects?.length > 0 && (
                                 <div className='pt-2 border-t border-(--border-line)'>
                                     <span className='font-mono text-[10px] text-(--text-sub) uppercase block mb-2'>
-                                        Select Narrative Angles for Vault
+                                        Select Narrative Angles for Resume
                                         Projects:
                                     </span>
                                     <div className='space-y-2 max-h-48 overflow-y-auto pr-1'>
@@ -339,7 +339,7 @@ export default function ProfilesView() {
                                                     className='w-full text-[11px] p-1 border border-(--border-line) rounded bg-(--bg-canvas) text-(--text-main)'>
                                                     <option value=''>
                                                         -- Exclude from this
-                                                        persona --
+                                                        profile --
                                                     </option>
                                                     {proj.narratives?.map(
                                                         (
@@ -368,8 +368,8 @@ export default function ProfilesView() {
                                 }
                                 className='w-full py-2.5 bg-(--btn-main-bg) text-(--btn-main-text) text-xs font-mono uppercase tracking-wider rounded font-semibold hover:opacity-90 disabled:opacity-50'>
                                 {createPersonaMutation.isPending ?
-                                    'Synthesizing...'
-                                :   'Save & Publish Persona'}
+                                    'Saving...'
+                                :   'Save & Publish Profile'}
                             </button>
                         </form>
                     </div>
@@ -377,17 +377,17 @@ export default function ProfilesView() {
                     {/* Active Personas List */}
                     <div className='lg:col-span-7 space-y-4'>
                         <h3 className='font-grotesque font-bold text-2xl text-(--text-main) mb-2'>
-                            Configured Personas ({profiles?.length ?? 0})
+                            Your Profiles ({profiles?.length ?? 0})
                         </h3>
 
                         {profilesLoading ?
                             <div className='text-xs text-(--text-sub)'>
-                                Loading personas...
+                                Loading profiles...
                             </div>
                         : profiles?.length === 0 ?
                             <div className='p-8 border border-dashed border-(--border-line) text-center text-xs text-(--text-sub) rounded'>
-                                No active personas yet. Use the synthesizer on
-                                the left to create your first persona.
+                                No profiles yet. Use the builder on the left to
+                                create your first profile.
                             </div>
                         :   profiles?.map((p: any) => (
                                 <div
@@ -453,7 +453,7 @@ export default function ProfilesView() {
                             {/* Add Project Form */}
                             <div className='lg:col-span-5 border border-(--border-line) rounded-lg p-5 bg-(--bg-canvas) space-y-3'>
                                 <span className='font-mono text-xs text-(--text-sub) uppercase block'>
-                                    Add Artifact to Vault
+                                    Add Project to Resume
                                 </span>
                                 <form
                                     onSubmit={handleCreateProject}
@@ -537,7 +537,7 @@ export default function ProfilesView() {
                                         type='submit'
                                         disabled={addProjectMutation.isPending}
                                         className='w-full py-2 bg-(--btn-main-bg) text-(--btn-main-text) text-xs font-mono uppercase tracking-wider rounded font-semibold hover:opacity-90'>
-                                        Save Project to Vault
+                                        Save Project to Resume
                                     </button>
                                 </form>
                             </div>
@@ -546,8 +546,8 @@ export default function ProfilesView() {
                             <div className='lg:col-span-7 space-y-3'>
                                 {vaultProjects?.length === 0 ?
                                     <div className='p-8 border border-dashed border-(--border-line) text-center text-xs text-(--text-sub) rounded'>
-                                        No projects saved in vault. Add one on
-                                        the left.
+                                        No projects saved in your resume. Add
+                                        one on the left.
                                     </div>
                                 :   vaultProjects?.map((proj: any) => (
                                         <div
@@ -639,7 +639,7 @@ export default function ProfilesView() {
                                             addEducationMutation.isPending
                                         }
                                         className='w-full py-2 bg-(--btn-main-bg) text-(--btn-main-text) text-xs font-mono uppercase tracking-wider rounded font-semibold hover:opacity-90'>
-                                        Add Degree to Vault
+                                        Add Degree to Resume
                                     </button>
                                 </form>
                             </div>
