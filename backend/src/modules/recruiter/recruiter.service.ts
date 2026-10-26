@@ -8,6 +8,30 @@ import {
 import { coordinatorAgent } from '../../agents/coordinator.agent.js';
 import { ApplicationStatus } from '@prisma/client';
 
+function extractLegacyProjectIds(value: unknown): string[] {
+    if (!Array.isArray(value)) return [];
+
+    return value.flatMap((entry) => {
+        if (typeof entry === 'string') return [entry];
+        if (
+            entry &&
+            typeof entry === 'object' &&
+            'projectId' in entry &&
+            typeof entry.projectId === 'string'
+        ) {
+            return [entry.projectId];
+        }
+        return [];
+    });
+}
+
+function orderById<T extends { id: string }>(items: T[], ids: string[]): T[] {
+    const byId = new Map(items.map((item) => [item.id, item]));
+    return ids
+        .map((id) => byId.get(id))
+        .filter((item): item is T => Boolean(item));
+}
+
 export class RecruiterService {
     async createPosition(recruiterId: string, input: CreatePositionInput) {
         const deadlineDate = new Date(input.deadline);
@@ -114,6 +138,107 @@ export class RecruiterService {
                 },
             },
         });
+    }
+
+    async getApplicationResume(recruiterId: string, applicationId: string) {
+        const application = await prisma.application.findFirst({
+            where: {
+                id: applicationId,
+                position: { recruiterId },
+            },
+            include: {
+                profile: true,
+            },
+        });
+
+        if (!application) {
+            throw new AppError(404, 'Application not found or access denied');
+        }
+
+        const profile = application.profile;
+        const projectIds =
+            profile.selectedProjectIds.length > 0 ?
+                profile.selectedProjectIds
+            :   extractLegacyProjectIds(profile.selectedProjectAngles);
+
+        const [
+            educationRows,
+            experienceRows,
+            projectRows,
+            certificationRows,
+            volunteeringRows,
+            languageRows,
+            linkRows,
+        ] = await Promise.all([
+            prisma.vaultEducation.findMany({
+                where: {
+                    userId: profile.userId,
+                    id: { in: profile.selectedEducationIds },
+                },
+            }),
+            prisma.vaultExperience.findMany({
+                where: {
+                    userId: profile.userId,
+                    id: { in: profile.selectedExperienceIds },
+                },
+            }),
+            prisma.vaultProject.findMany({
+                where: {
+                    userId: profile.userId,
+                    id: { in: projectIds },
+                },
+            }),
+            prisma.vaultCertification.findMany({
+                where: {
+                    userId: profile.userId,
+                    id: { in: profile.selectedCertificationIds },
+                },
+            }),
+            prisma.vaultVolunteering.findMany({
+                where: {
+                    userId: profile.userId,
+                    id: { in: profile.selectedVolunteeringIds },
+                },
+            }),
+            prisma.vaultLanguage.findMany({
+                where: {
+                    userId: profile.userId,
+                    id: { in: profile.selectedLanguageIds },
+                },
+            }),
+            prisma.vaultLink.findMany({
+                where: {
+                    userId: profile.userId,
+                    id: { in: profile.selectedLinkIds },
+                },
+            }),
+        ]);
+
+        return {
+            title: profile.title,
+            summary: profile.summary,
+            skills: profile.skills,
+            resumeUrl: profile.resumeUrl,
+            education: orderById(
+                educationRows,
+                profile.selectedEducationIds
+            ),
+            experience: orderById(
+                experienceRows,
+                profile.selectedExperienceIds
+            ),
+            projects: orderById(projectRows, projectIds),
+            certifications: orderById(
+                certificationRows,
+                profile.selectedCertificationIds
+            ),
+            volunteering: orderById(
+                volunteeringRows,
+                profile.selectedVolunteeringIds
+            ),
+            languages: orderById(languageRows, profile.selectedLanguageIds),
+            links: orderById(linkRows, profile.selectedLinkIds),
+        };
     }
 
     async overrideDecision(
