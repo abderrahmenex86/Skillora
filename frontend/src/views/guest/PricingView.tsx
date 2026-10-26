@@ -23,7 +23,7 @@ export default function PricingView() {
                 setTokens(accessToken, data.user);
             }
             setSuccessMsg(
-                'Successfully upgraded to Pro! You now have unlimited profiles & insights.'
+                'Successfully upgraded to Pro! You now have unlimited resumes & insights.'
             );
             setTimeout(() => navigate('/applicant/insights'), 1500);
         } catch (err: any) {
@@ -41,7 +41,7 @@ export default function PricingView() {
                 </h1>
                 <p className='text-lg text-(--text-sub) max-w-2xl leading-relaxed mb-10'>
                     Affordable subscription tiers for candidates to unlock
-                    multiple profiles and cross-round insights, alongside
+                    multiple resumes and cross-round insights, alongside
                     verified pipeline plans for hiring teams.
                 </p>
 
@@ -66,11 +66,11 @@ export default function PricingView() {
                             </div>
                             <p className='text-xs text-(--text-sub) mb-6'>
                                 For candidates starting their job hunt with a
-                                single focused profile.
+                                single focused resume.
                             </p>
                             <ul className='space-y-3 text-xs text-(--text-main) font-mono mb-8'>
                                 <li className='flex items-center gap-2'>
-                                    <Check size={14} /> Exactly 1 Active Profile
+                                    <Check size={14} /> Exactly 1 Active Resume
                                 </li>
                                 <li className='flex items-center gap-2'>
                                     <Check size={14} /> Standard application
@@ -122,7 +122,7 @@ export default function PricingView() {
                             <ul className='space-y-3 text-xs text-(--text-main) font-mono mb-8'>
                                 <li className='flex items-center gap-2'>
                                     <Check size={14} /> Unlimited Active
-                                    Profiles (Tech, Law, etc.)
+                                    Resumes (Tech, Law, etc.)
                                 </li>
                                 <li className='flex items-center gap-2'>
                                     <Check size={14} /> Unlimited monthly
