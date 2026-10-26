@@ -3,12 +3,82 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { apiClient } from '../../api/apiClient';
 import { useAuthStore } from '../../store/useAuthStore';
 
+const ALGERIA_WILAYAS = [
+    '01 - Adrar',
+    '02 - Chlef',
+    '03 - Laghouat',
+    '04 - Oum El Bouaghi',
+    '05 - Batna',
+    '06 - Béjaïa',
+    '07 - Biskra',
+    '08 - Béchar',
+    '09 - Blida',
+    '10 - Bouira',
+    '11 - Tamanrasset',
+    '12 - Tébessa',
+    '13 - Tlemcen',
+    '14 - Tiaret',
+    '15 - Tizi Ouzou',
+    '16 - Alger',
+    '17 - Djelfa',
+    '18 - Djidjelli (Jijel)',
+    '19 - Sétif',
+    '20 - Saïda',
+    '21 - Skikda',
+    '22 - Sidi Bel Abbès',
+    '23 - Annaba',
+    '24 - Guelma',
+    '25 - Constantine',
+    '26 - Médéa',
+    '27 - Mostaganem',
+    "28 - M'Sila",
+    '29 - Mascara',
+    '30 - Ouargla',
+    '31 - Oran',
+    '32 - El Bayadh',
+    '33 - Illizi',
+    '34 - Bordj Bou Arréridj',
+    '35 - Boumerdès',
+    '36 - El Tarf',
+    '37 - Tindouf',
+    '38 - Tissemsilt',
+    '39 - El Oued',
+    '40 - Khenchela',
+    '41 - Souk Ahras',
+    '42 - Tipaza',
+    '43 - Mila',
+    '44 - Aïn Defla',
+    '45 - Naâma',
+    '46 - Aïn Témouchent',
+    '47 - Ghardaïa',
+    '48 - Relizane',
+    '49 - Timimoun',
+    '50 - Bordj Badji Mokhtar',
+    '51 - Ouled Djellal',
+    '52 - Béni Abbès',
+    '53 - In Salah',
+    '54 - In Guezzam',
+    '55 - Touggourt',
+    '56 - Djanet',
+    "57 - El M'Ghair",
+    '58 - El Meniaa',
+];
+
 export default function AuthView() {
     const [searchParams] = useSearchParams();
     const [role, setRole] = useState<'APPLICANT' | 'RECRUITER'>('APPLICANT');
+    const [isLogin, setIsLogin] = useState(true);
+
+    // Form Fields
+    const [firstName, setFirstName] = useState('');
+    const [middleName, setMiddleName] = useState('');
+    const [lastName, setLastName] = useState('');
+    const [phone, setPhone] = useState('');
+    const [wilaya, setWilaya] = useState('16 - Alger');
+    const [companyName, setCompanyName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [isLogin, setIsLogin] = useState(true);
+
     const [errorMsg, setErrorMsg] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
@@ -31,7 +101,20 @@ export default function AuthView() {
         try {
             const endpoint = isLogin ? '/auth/login' : '/auth/register';
             const payload =
-                isLogin ? { email, password } : { email, password, role };
+                isLogin ?
+                    { email, password }
+                :   {
+                        email,
+                        password,
+                        firstName,
+                        middleName: middleName || undefined,
+                        lastName,
+                        phone: phone || undefined,
+                        wilaya,
+                        companyName:
+                            role === 'RECRUITER' ? companyName : undefined,
+                        role,
+                    };
 
             const { data } = await apiClient.post(endpoint, payload);
             setTokens(data.accessToken, data.user);
@@ -42,7 +125,16 @@ export default function AuthView() {
                 navigate('/applicant/dashboard');
             }
         } catch (err: any) {
-            setErrorMsg(err.response?.data?.error || 'Authentication failed');
+            if (err.response?.data?.issues) {
+                const detailedErrors = err.response.data.issues
+                    .map((i: any) => i.message)
+                    .join(' • ');
+                setErrorMsg(detailedErrors);
+            } else {
+                setErrorMsg(
+                    err.response?.data?.error || 'Authentication failed'
+                );
+            }
         } finally {
             setIsLoading(false);
         }
@@ -50,7 +142,7 @@ export default function AuthView() {
 
     return (
         <div className='flex-1 flex flex-col md:flex-row'>
-            <div className='w-full md:w-[48%] bg-(--bg-panel) border-r border-(--border-line) p-8 md:p-14 flex flex-col justify-between'>
+            <div className='w-full md:w-[42%] bg-(--bg-panel) border-r border-(--border-line) p-8 md:p-14 flex flex-col justify-between'>
                 <div className='max-w-md my-auto'>
                     <h2 className='font-grotesque font-extrabold text-4xl sm:text-5xl leading-[1.05] tracking-tight mb-8 text-(--text-main)'>
                         Every applicant gets either an interview or a path to
@@ -59,30 +151,34 @@ export default function AuthView() {
                     <div className='space-y-4 text-sm text-(--text-main)'>
                         <div className='flex items-center space-x-3'>
                             <span className='font-mono'>✓</span>
-                            <span>Zero unread PDF black holes.</span>
-                        </div>
-                        <div className='flex items-center space-x-3'>
-                            <span className='font-mono'>✓</span>
                             <span>
-                                Evidence-based matching across all disciplines.
+                                Zero unread PDF black holes across all 58
+                                wilayas.
                             </span>
                         </div>
                         <div className='flex items-center space-x-3'>
                             <span className='font-mono'>✓</span>
                             <span>
-                                Transparent decision timelines and calendar
-                                dispatch.
+                                Verified state degrees (ESI, USTHB, CAPA) and
+                                real artifacts.
+                            </span>
+                        </div>
+                        <div className='flex items-center space-x-3'>
+                            <span className='font-mono'>✓</span>
+                            <span>
+                                Autonomous scheduling and guaranteed Cedar Amber
+                                gap analysis.
                             </span>
                         </div>
                     </div>
                 </div>
                 <div className='font-mono text-xs text-(--text-sub)'>
-                    [ALGERIA TALENT INFRASTRUCTURE]
+                    [ALGERIA TALENT INFRASTRUCTURE • 58 WILAYAS]
                 </div>
             </div>
 
-            <div className='w-full md:w-[52%] p-8 md:p-14 flex flex-col justify-center items-center'>
-                <div className='w-full max-w-md'>
+            <div className='w-full md:w-[58%] p-8 md:p-14 flex flex-col justify-center items-center'>
+                <div className='w-full max-w-lg'>
                     <div className='bg-(--bg-panel) p-1 rounded-md border border-(--border-line) flex mb-6'>
                         <button
                             type='button'
@@ -107,12 +203,14 @@ export default function AuthView() {
                     </div>
 
                     <h3 className='font-grotesque font-bold text-3xl tracking-tight mb-1 text-(--text-main)'>
-                        {isLogin ? 'Enter the Workspace' : 'Create an Account'}
+                        {isLogin ?
+                            'Enter the Workspace'
+                        :   'Create Candidate Profile'}
                     </h3>
                     <p className='text-xs text-(--text-sub) mb-6'>
                         {isLogin ?
-                            'Access your applications, profiles, or recruiter pipelines.'
-                        :   'Join Skillora with deterministic evaluation on verified evidence.'
+                            'Access your applications, evidence vault, or company cohorts.'
+                        :   'Fill in your civil and contact information to create your verified talent account.'
                         }
                     </p>
 
@@ -125,6 +223,87 @@ export default function AuthView() {
                     <form
                         onSubmit={handleSubmit}
                         className='space-y-4'>
+                        {!isLogin && (
+                            <>
+                                <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
+                                    <input
+                                        type='text'
+                                        required
+                                        placeholder='Prénom (First Name)'
+                                        value={firstName}
+                                        onChange={(e) =>
+                                            setFirstName(e.target.value)
+                                        }
+                                        className='w-full px-3.5 py-2.5 text-xs rounded-md border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none focus:ring-1 focus:ring-(--text-main)'
+                                    />
+                                    <input
+                                        type='text'
+                                        required
+                                        placeholder='Nom (Last Name)'
+                                        value={lastName}
+                                        onChange={(e) =>
+                                            setLastName(e.target.value)
+                                        }
+                                        className='w-full px-3.5 py-2.5 text-xs rounded-md border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none focus:ring-1 focus:ring-(--text-main)'
+                                    />
+                                </div>
+
+                                <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
+                                    <input
+                                        type='text'
+                                        placeholder='Deuxième prénom (Middle Name, optional)'
+                                        value={middleName}
+                                        onChange={(e) =>
+                                            setMiddleName(e.target.value)
+                                        }
+                                        className='w-full px-3.5 py-2.5 text-xs rounded-md border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none focus:ring-1 focus:ring-(--text-main)'
+                                    />
+                                    <input
+                                        type='tel'
+                                        placeholder='Numéro de téléphone (+213 ...)'
+                                        value={phone}
+                                        onChange={(e) =>
+                                            setPhone(e.target.value)
+                                        }
+                                        className='w-full px-3.5 py-2.5 text-xs rounded-md border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none focus:ring-1 focus:ring-(--text-main)'
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className='block text-[11px] font-mono text-(--text-sub) mb-1'>
+                                        Wilaya de Résidence (District)
+                                    </label>
+                                    <select
+                                        value={wilaya}
+                                        onChange={(e) =>
+                                            setWilaya(e.target.value)
+                                        }
+                                        className='w-full px-3.5 py-2.5 text-xs rounded-md border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none focus:ring-1 focus:ring-(--text-main)'>
+                                        {ALGERIA_WILAYAS.map((w) => (
+                                            <option
+                                                key={w}
+                                                value={w}>
+                                                {w}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {role === 'RECRUITER' && (
+                                    <input
+                                        type='text'
+                                        required
+                                        placeholder="Company or Organization (e.g. Sonatrach, Banque d'Algérie)"
+                                        value={companyName}
+                                        onChange={(e) =>
+                                            setCompanyName(e.target.value)
+                                        }
+                                        className='w-full px-3.5 py-2.5 text-xs rounded-md border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none focus:ring-1 focus:ring-(--text-main)'
+                                    />
+                                )}
+                            </>
+                        )}
+
                         <input
                             type='email'
                             required
@@ -136,7 +315,7 @@ export default function AuthView() {
                         <input
                             type='password'
                             required
-                            placeholder='Password'
+                            placeholder='Password (minimum 8 characters)'
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             className='w-full px-3.5 py-2.5 text-sm rounded-md border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none focus:ring-1 focus:ring-(--text-main)'
@@ -150,7 +329,7 @@ export default function AuthView() {
                                 'Processing...'
                             : isLogin ?
                                 'Continue to Workspace'
-                            :   'Create Account'}
+                            :   'Complete Registration'}
                         </button>
                     </form>
 
