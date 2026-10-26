@@ -7,12 +7,6 @@ export default function LandingView() {
     return (
         <div className='flex-1 flex flex-col justify-between'>
             <main className='max-w-7xl mx-auto px-6 py-14 md:py-20 w-full'>
-                <div className='mb-4'>
-                    <span className='font-mono text-xs uppercase tracking-wider text-(--text-sub)'>
-                        [AUTONOMOUS TALENT PIPELINE • ZERO GHOSTING]
-                    </span>
-                </div>
-
                 <div className='max-w-4xl mb-10'>
                     <h1 className='font-grotesque font-extrabold text-5xl sm:text-6xl md:text-7xl leading-[0.95] tracking-tight mb-6 text-(--text-main)'>
                         Hiring shouldn’t end in silence. Match talent on real
