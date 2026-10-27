@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../../api/apiClient';
+import { DossierSketch } from '../../components/Sketches';
 import { Link } from 'react-router-dom';
 import { Plus, Users, Clock, ArrowRight } from 'lucide-react';
 
@@ -176,9 +177,15 @@ export default function RecruiterPositionsView() {
                         </h3>
 
                         {openPositions?.length === 0 ?
-                            <div className='p-6 border border-dashed border-(--border-line) text-xs text-(--text-sub) text-center rounded'>
-                                No active openings. Click "Open New Position"
-                                above to launch a pipeline.
+                            <div className='p-8 border border-dashed border-(--border-line) text-center rounded-lg'>
+                                <DossierSketch className='mx-auto h-20 w-auto text-(--text-sub)' />
+                                <div className='mt-3 text-sm font-medium text-(--text-main)'>
+                                    No active openings
+                                </div>
+                                <p className='mt-1 text-xs text-(--text-sub)'>
+                                    Click "Open New Position" above to launch a
+                                    pipeline.
+                                </p>
                             </div>
                         :   <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                                 {openPositions?.map((p: any) => (
