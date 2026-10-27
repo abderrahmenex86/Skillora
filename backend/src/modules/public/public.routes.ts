@@ -1,10 +1,11 @@
 import { Router } from 'express';
 import { prisma } from '../../db/prisma.js';
+import { requireAuth } from '../../middleware/auth.middleware.js';
 import { AppError } from '../../middleware/errorHandler.js';
 
 const router = Router();
 
-router.get('/positions', async (_req, res, next) => {
+router.get('/positions', requireAuth, async (_req, res, next) => {
     try {
         const now = new Date();
         const positions = await prisma.position.findMany({
@@ -31,7 +32,7 @@ router.get('/positions', async (_req, res, next) => {
     }
 });
 
-router.get('/positions/:id', async (req, res, next) => {
+router.get('/positions/:id', requireAuth, async (req, res, next) => {
     try {
         const position = await prisma.position.findUnique({
             where: { id: req.params.id },
