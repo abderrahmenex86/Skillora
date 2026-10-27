@@ -18,6 +18,11 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { apiClient } from '../../../api/apiClient';
+import {
+    DossierSketch,
+    ResumeStackSketch,
+    SearchSketch,
+} from '../../../components/Sketches';
 import { useAuthStore } from '../../../store/useAuthStore';
 import {
     INFO_KINDS,
@@ -523,10 +528,7 @@ export default function TailoredResumes({
 
             {!editingId ?
                 <div className='rounded-lg border border-dashed border-(--border-line) bg-(--bg-canvas) px-6 py-16 text-center'>
-                    <FileText
-                        size={30}
-                        className='mx-auto text-(--text-sub)'
-                    />
+                    <ResumeStackSketch className='mx-auto h-24 w-auto text-(--text-sub)' />
                     <h3 className='mt-3 font-grotesque text-2xl font-bold text-(--text-main)'>
                         {profiles.length === 0 ?
                             'Create your first tailored resume'
@@ -885,6 +887,7 @@ export default function TailoredResumes({
 
                             {totalLibraryItems === 0 ?
                                 <div className='rounded-md border border-dashed border-(--border-line) px-4 py-10 text-center'>
+                                    <DossierSketch className='mx-auto mb-2 h-16 w-auto text-(--text-sub)' />
                                     <p className='text-xs text-(--text-sub)'>
                                         Your information library is empty.
                                     </p>
@@ -897,6 +900,7 @@ export default function TailoredResumes({
                                 </div>
                             : visibleLibrarySections.length === 0 ?
                                 <div className='rounded-md border border-dashed border-(--border-line) px-4 py-8 text-center text-xs text-(--text-sub)'>
+                                    <SearchSketch className='mx-auto mb-2 h-14 w-auto text-(--text-sub)' />
                                     No information matches "{search}".
                                 </div>
                             :   <div className='space-y-4'>
