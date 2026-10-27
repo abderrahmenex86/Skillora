@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../../api/apiClient';
 import {
+    CalendarSketch,
+    DossierSketch,
+} from '../../components/Sketches';
+import {
     Calendar,
     Video,
     Clock,
@@ -101,8 +105,12 @@ export default function ApplicantDashboardView() {
                                 Loading calendar logistics...
                             </div>
                         : calendarData?.length === 0 ?
-                            <div className='text-xs text-(--text-sub) py-6 text-center border border-dashed border-(--border-line) rounded'>
-                                No active interview slots pending or scheduled.
+                            <div className='text-xs text-(--text-sub) py-6 text-center border border-dashed border-(--border-line) rounded-lg'>
+                                <CalendarSketch className='mx-auto h-20 w-auto text-(--text-sub)' />
+                                <p className='mt-3'>
+                                    No active interview slots pending or
+                                    scheduled.
+                                </p>
                             </div>
                         :   <div className='space-y-4'>
                                 {calendarData?.map((event: any) => {
@@ -305,8 +313,15 @@ export default function ApplicantDashboardView() {
                                 Loading applications...
                             </div>
                         : appsData?.length === 0 ?
-                            <div className='text-xs text-(--text-sub) py-8 text-center border border-dashed border-(--border-line) rounded'>
-                                You haven't submitted any applications yet.
+                            <div className='text-xs text-(--text-sub) py-8 text-center border border-dashed border-(--border-line) rounded-lg'>
+                                <DossierSketch className='mx-auto h-20 w-auto text-(--text-sub)' />
+                                <div className='mt-3 text-sm font-medium text-(--text-main)'>
+                                    No applications yet
+                                </div>
+                                <p className='mt-1 text-xs text-(--text-sub)'>
+                                    Choose a tailored resume and apply to an
+                                    open role.
+                                </p>
                             </div>
                         :   <div className='space-y-4'>
                                 {appsData?.map((app: any) => (
