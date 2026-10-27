@@ -147,6 +147,12 @@ export default function Navbar() {
                     {!user && (
                         <>
                             <NavLink
+                                to='/'
+                                end
+                                className={navLinkClass}>
+                                Home
+                            </NavLink>
+                            <NavLink
                                 to='/how-it-works'
                                 className={navLinkClass}>
                                 How It Works
