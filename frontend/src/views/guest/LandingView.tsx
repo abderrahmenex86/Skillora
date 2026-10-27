@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { MatchPathSketch } from '../../components/Sketches';
 import { useAuthStore } from '../../store/useAuthStore';
 
 export default function LandingView() {
@@ -7,38 +8,59 @@ export default function LandingView() {
     return (
         <div className='flex-1 flex flex-col justify-between'>
             <main className='max-w-7xl mx-auto px-6 py-14 md:py-20 w-full'>
-                <div className='max-w-4xl mb-10'>
-                    <h1 className='font-grotesque font-extrabold text-5xl sm:text-6xl md:text-7xl leading-[0.95] tracking-tight mb-6 text-(--text-main)'>
-                        Hiring shouldn’t end in silence. Match talent on real
-                        evidence.
-                    </h1>
-                    <p className='text-lg md:text-xl text-(--text-sub) max-w-2xl leading-relaxed'>
-                        Skillora automates screening and scheduling for
-                        employers while guaranteeing actionable learning
-                        roadmaps to every applicant.
-                    </p>
-                </div>
+                <div className='grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center mb-16'>
+                    <div className='lg:col-span-7'>
+                        <h1 className='font-grotesque font-extrabold text-5xl sm:text-6xl md:text-7xl leading-[0.95] tracking-tight mb-6 text-(--text-main)'>
+                            Hiring shouldn’t end in silence. Match talent on
+                            real evidence.
+                        </h1>
+                        <p className='text-lg md:text-xl text-(--text-sub) max-w-2xl leading-relaxed'>
+                            Skillora automates screening and scheduling for
+                            employers while guaranteeing actionable learning
+                            roadmaps to every applicant.
+                        </p>
 
-                <div className='flex flex-wrap items-center gap-4 mb-16'>
-                    <Link
-                        to={
-                            user?.role === 'RECRUITER' ? '/recruiter/positions'
-                            : user?.role === 'APPLICANT' ?
-                                '/jobs'
-                            :   '/auth?mode=register'
-                        }
-                        className='px-6 py-3.5 bg-(--btn-main-bg) text-(--btn-main-text) font-grotesque font-bold text-xl rounded-md hover:opacity-90 transition-opacity'>
-                        {user?.role === 'RECRUITER' ?
-                            'Recruiter Workspace'
-                        : user?.role === 'APPLICANT' ?
-                            'Explore Positions'
-                        :   'Get Started'}
-                    </Link>
-                    <Link
-                        to='/jobs'
-                        className='px-6 py-3.5 border border-(--border-line) font-grotesque font-bold text-xl rounded-md hover:bg-(--bg-panel) transition-colors text-(--text-main)'>
-                        Explore Open Roles
-                    </Link>
+                        <div className='flex flex-wrap items-center gap-4 mt-8'>
+                            <Link
+                                to={
+                                    user?.role === 'RECRUITER' ?
+                                        '/recruiter/positions'
+                                    : user?.role === 'APPLICANT' ?
+                                        '/jobs'
+                                    :   '/auth?mode=register'
+                                }
+                                className='px-6 py-3.5 bg-(--btn-main-bg) text-(--btn-main-text) font-grotesque font-bold text-xl rounded-md hover:opacity-90 transition-opacity'>
+                                {user?.role === 'RECRUITER' ?
+                                    'Recruiter Workspace'
+                                : user?.role === 'APPLICANT' ?
+                                    'Explore Positions'
+                                :   'Get Started'}
+                            </Link>
+                            <Link
+                                to='/jobs'
+                                className='px-6 py-3.5 border border-(--border-line) font-grotesque font-bold text-xl rounded-md hover:bg-(--bg-panel) transition-colors text-(--text-main)'>
+                                Explore Open Roles
+                            </Link>
+                        </div>
+                    </div>
+
+                    <div className='lg:col-span-5'>
+                        <div className='rounded-lg border border-(--border-line) bg-(--bg-panel) p-5 sm:p-6'>
+                            <div className='flex items-center justify-between border-b border-(--border-line) pb-3'>
+                                <span className='font-mono text-[10px] uppercase tracking-[0.18em] text-(--text-sub)'>
+                                    Evidence Routing
+                                </span>
+                                <span className='font-mono text-[10px] text-(--text-sub)'>
+                                    01 / 03
+                                </span>
+                            </div>
+                            <MatchPathSketch className='mt-4 h-auto w-full text-(--text-main)' />
+                            <p className='mt-4 border-t border-(--border-line) pt-3 font-mono text-[10px] leading-relaxed text-(--text-sub)'>
+                                Verified evidence sends every application to an
+                                interview or a concrete growth path.
+                            </p>
+                        </div>
+                    </div>
                 </div>
 
                 <div className='border border-(--border-line) rounded-lg p-6 md:p-8 bg-(--bg-canvas) max-w-4xl'>
