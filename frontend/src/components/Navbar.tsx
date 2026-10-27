@@ -168,11 +168,6 @@ export default function Navbar() {
                                 Companies
                             </NavLink>
                             <NavLink
-                                to='/jobs'
-                                className={navLinkClass}>
-                                Jobs
-                            </NavLink>
-                            <NavLink
                                 to='/about'
                                 className={navLinkClass}>
                                 About Us
