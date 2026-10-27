@@ -37,9 +37,11 @@ export default function LandingView() {
                                 :   'Get Started'}
                             </Link>
                             <Link
-                                to='/jobs'
+                                to={user ? '/jobs' : '/auth?mode=login'}
                                 className='px-6 py-3.5 border border-(--border-line) font-grotesque font-bold text-xl rounded-md hover:bg-(--bg-panel) transition-colors text-(--text-main)'>
-                                Explore Open Roles
+                                {user ?
+                                    'Explore Open Roles'
+                                :   'Sign In to Explore Roles'}
                             </Link>
                         </div>
                     </div>
@@ -105,12 +107,15 @@ export default function LandingView() {
                                     to={
                                         user?.role === 'APPLICANT' ?
                                             '/applicant/dashboard'
-                                        :   '/jobs'
+                                        : user ? '/jobs'
+                                        :   '/auth?mode=register'
                                     }
                                     className='text-xs font-mono text-amber-accent hover:underline block'>
                                     {user?.role === 'APPLICANT' ?
                                         'View your feedback dossier →'
-                                    :   'Explore open roles with rubrics →'}
+                                    : user ?
+                                        'Explore open roles with rubrics →'
+                                    :   'Register to explore roles with rubrics →'}
                                 </Link>
                             </div>
                         </div>
