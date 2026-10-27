@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../../api/apiClient';
+import { SearchSketch } from '../../components/Sketches';
 import { useAuthStore } from '../../store/useAuthStore';
 import { Search, ArrowRight, Check, Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -89,8 +90,14 @@ export default function JobsExplorerView() {
                     Loading openings...
                 </div>
             : positions?.length === 0 ?
-                <div className='p-8 border border-dashed border-(--border-line) text-center text-xs text-(--text-sub) rounded'>
-                    No active positions found. Check back soon.
+                <div className='p-8 border border-dashed border-(--border-line) text-center rounded-lg'>
+                    <SearchSketch className='mx-auto h-24 w-auto text-(--text-sub)' />
+                    <div className='mt-4 text-sm font-medium text-(--text-main)'>
+                        No active positions found
+                    </div>
+                    <p className='mt-1 text-xs text-(--text-sub)'>
+                        Check back soon. New roles are added regularly.
+                    </p>
                 </div>
             :   <div className='grid grid-cols-1 md:grid-cols-12 gap-8 items-start'>
                     <div className='md:col-span-5 space-y-3'>
