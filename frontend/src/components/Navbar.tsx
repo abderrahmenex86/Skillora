@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { flushSync } from 'react-dom';
 import {
     ChevronDown,
@@ -13,6 +13,15 @@ import {
 import { roleHome } from '../data/routes';
 import { useThemeStore } from '../store/useThemeStore';
 import { useAuthStore } from '../store/useAuthStore';
+
+function navLinkClass({ isActive }: { isActive: boolean }) {
+    return [
+        'relative py-1 transition-colors',
+        isActive
+            ? 'text-(--text-main) after:absolute after:-bottom-1 after:left-0 after:right-0 after:h-0.5 after:rounded-full after:bg-(--text-main)'
+            : 'text-(--text-sub) hover:text-(--text-main)',
+    ].join(' ');
+}
 
 export default function Navbar() {
     const { isDark, toggleTheme } = useThemeStore();
@@ -137,71 +146,71 @@ export default function Navbar() {
                 <nav className='hidden md:flex items-center space-x-8 text-sm font-medium'>
                     {!user && (
                         <>
-                            <Link
+                            <NavLink
                                 to='/how-it-works'
-                                className='text-(--text-sub) hover:text-(--text-main) transition-colors'>
+                                className={navLinkClass}>
                                 How It Works
-                            </Link>
-                            <Link
+                            </NavLink>
+                            <NavLink
                                 to='/pricing'
-                                className='text-(--text-sub) hover:text-(--text-main) transition-colors'>
+                                className={navLinkClass}>
                                 Pricing
-                            </Link>
-                            <Link
+                            </NavLink>
+                            <NavLink
                                 to='/companies'
-                                className='text-(--text-sub) hover:text-(--text-main) transition-colors'>
+                                className={navLinkClass}>
                                 Companies
-                            </Link>
-                            <Link
+                            </NavLink>
+                            <NavLink
                                 to='/jobs'
-                                className='text-(--text-sub) hover:text-(--text-main) transition-colors'>
+                                className={navLinkClass}>
                                 Jobs
-                            </Link>
-                            <Link
+                            </NavLink>
+                            <NavLink
                                 to='/about'
-                                className='text-(--text-sub) hover:text-(--text-main) transition-colors'>
+                                className={navLinkClass}>
                                 About Us
-                            </Link>
+                            </NavLink>
                         </>
                     )}
 
                     {user?.role === 'APPLICANT' && (
                         <>
-                            <Link
+                            <NavLink
                                 to='/applicant/profiles'
-                                className='text-(--text-sub) hover:text-(--text-main) transition-colors'>
+                                className={navLinkClass}>
                                 Resume Builder
-                            </Link>
-                            <Link
+                            </NavLink>
+                            <NavLink
                                 to='/jobs'
-                                className='text-(--text-sub) hover:text-(--text-main) transition-colors'>
+                                className={navLinkClass}>
                                 Open Positions
-                            </Link>
-                            <Link
+                            </NavLink>
+                            <NavLink
                                 to='/applicant/insights'
-                                className='text-(--text-sub) hover:text-(--text-main) transition-colors'>
+                                className={navLinkClass}>
                                 Insights
-                            </Link>
+                            </NavLink>
                         </>
                     )}
 
                     {user?.role === 'RECRUITER' && (
                         <>
-                            <Link
+                            <NavLink
                                 to='/recruiter/positions'
-                                className='text-(--text-sub) hover:text-(--text-main) transition-colors'>
+                                className={navLinkClass}>
                                 Positions History
-                            </Link>
-                            <Link
+                            </NavLink>
+                            <NavLink
                                 to='/jobs'
-                                className='text-(--text-sub) hover:text-(--text-main) transition-colors'>
+                                className={navLinkClass}>
                                 Public Jobs Preview
-                            </Link>
-                            <Link
+                            </NavLink>
+                            <NavLink
                                 to='/pricing'
-                                className='text-(--text-sub) hover:text-(--text-main) transition-colors'>
+                                className={navLinkClass}>
                                 Plans
-                            </Link>
+                            </NavLink>
                         </>
                     )}
                 </nav>
