@@ -154,7 +154,11 @@ export default function App() {
                             />
                             <Route
                                 path='/jobs'
-                                element={<JobsExplorerView />}
+                                element={
+                                    <SignedInRoute>
+                                        <JobsExplorerView />
+                                    </SignedInRoute>
+                                }
                             />
                             <Route
                                 path='/about'
