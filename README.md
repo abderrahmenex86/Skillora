@@ -673,7 +673,9 @@ Company plans include:
 - Autonomous calendar dispatch
 - Automated respectful gap analysis
 
-> Plan activation is currently handled directly by the API. No payment gateway is integrated yet.
+> **Test-mode activation.** No payment gateway is integrated yet. On `/pricing`, choosing a plan opens a confirmation modal that states no payment is collected and then calls the existing upgrade endpoint. The account tier and expiry update immediately, and choosing another plan while a plan is active extends the expiry from the current expiry date. Prices are shown for reference only.
+
+Candidate packs activate `PRO`; company plans activate `ENTERPRISE`. The confirmation modal is the only gate before activation, so demo accounts can exercise paid features without a checkout flow.
 
 ---
 
@@ -711,7 +713,7 @@ The UI uses a restrained editorial palette with CSS custom properties for instan
 
 ## Current limitations
 
-- **No payment gateway.** Upgrade endpoints activate tiers and expiry dates directly.
+- **No payment gateway.** Upgrades are test-mode only: the pricing page asks for confirmation and then the existing endpoints activate tiers and expiry dates directly. No payment is collected.
 - **LLM-dependent evaluation quality.** Ingestion, matching, growth, and coordination are LLM-first with deterministic fallbacks. Output quality depends on the configured model; the heuristic path is coarser but keeps the pipeline available when the provider is offline.
 - **No automated test suite.** Validation is currently manual plus TypeScript checks.
 - **Frontend TypeScript config.** The repo has no `frontend/tsconfig.json`, so use `npx vite build` for a production bundle.

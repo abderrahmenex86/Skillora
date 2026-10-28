@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
+    AlertTriangle,
     Building2,
     Check,
     CheckCircle2,
@@ -65,8 +66,8 @@ function PlanCard({
                 </div>
                 <div className='text-xs text-(--text-sub) mb-4'>
                     {plan.months === 1 ?
-                        'Billed monthly'
-                    :   `Billed every ${plan.months} months`}
+                        '1 month of access'
+                    :   `${plan.months} months of access`}
                     {plan.months > 1 && (
                         <> · {formatDzd(plan.monthlyPrice)}/mo</>
                     )}
@@ -144,10 +145,14 @@ export default function PricingView() {
     const navigate = useNavigate();
 
     const [pendingPlan, setPendingPlan] = useState<string | null>(null);
+    const [confirmPlan, setConfirmPlan] = useState<{
+        plan: Plan;
+        audience: Audience;
+    } | null>(null);
     const [successMsg, setSuccessMsg] = useState('');
-    const [errorMsg, setErrorMsg] = useState('');
+    const [confirmError, setConfirmError] = useState('');
 
-    const handleSelectPlan = async (plan: Plan, audience: Audience) => {
+    const openConfirm = (plan: Plan, audience: Audience) => {
         if (!user) {
             navigate('/auth?mode=register');
             return;
@@ -157,9 +162,33 @@ export default function PricingView() {
             audience === 'candidate' ? 'APPLICANT' : 'RECRUITER';
         if (user.role !== requiredRole) return;
 
-        setPendingPlan(plan.id);
         setSuccessMsg('');
-        setErrorMsg('');
+        setConfirmError('');
+        setConfirmPlan({ plan, audience });
+    };
+
+    useEffect(() => {
+        if (!confirmPlan) return;
+
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape' && pendingPlan === null) {
+                setConfirmPlan(null);
+                setConfirmError('');
+            }
+        };
+
+        document.addEventListener('keydown', onKeyDown);
+        return () => document.removeEventListener('keydown', onKeyDown);
+    }, [confirmPlan, pendingPlan]);
+
+    const confirmUpgrade = async () => {
+        if (!confirmPlan) return;
+
+        const { plan, audience } = confirmPlan;
+
+        setPendingPlan(plan.id);
+        setConfirmError('');
+        setSuccessMsg('');
 
         try {
             const endpoint =
@@ -173,6 +202,8 @@ export default function PricingView() {
             }>(endpoint, { months: plan.months });
 
             setUser(data.user);
+            setPendingPlan(null);
+            setConfirmPlan(null);
             setSuccessMsg(
                 audience === 'candidate' ?
                     `${plan.label} candidate pack activated. Unlimited resumes and insights are unlocked.`
@@ -189,7 +220,7 @@ export default function PricingView() {
                 1500
             );
         } catch (error) {
-            setErrorMsg(getApiErrorMessage(error));
+            setConfirmError(getApiErrorMessage(error));
             setPendingPlan(null);
         }
     };
@@ -218,6 +249,12 @@ export default function PricingView() {
         };
     };
 
+    const activeConfirmTier =
+        confirmPlan?.audience === 'candidate' ? 'PRO' : 'ENTERPRISE';
+    const isConfirmExtension = Boolean(
+        confirmPlan && user?.subscriptionTier === activeConfirmTier
+    );
+
     return (
         <div className='flex-1 flex flex-col justify-between'>
             <main className='max-w-6xl mx-auto px-6 pt-8 pb-4 tall:py-16 w-full'>
@@ -225,7 +262,7 @@ export default function PricingView() {
                     Candidate packs and company plans
                 </h1>
                 <p className='text-lg text-(--text-sub) max-w-2xl leading-relaxed mb-6 tall:mb-10'>
-                    Buy access in packs that match your search. Candidates
+                    Choose the access pack that matches your search. Candidates
                     unlock unlimited resumes and cross-round insights, while
                     companies get a verified hiring pipeline.
                 </p>
@@ -236,11 +273,18 @@ export default function PricingView() {
                     </div>
                 )}
 
-                {errorMsg && (
-                    <div className='mb-6 p-4 border border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400 rounded-md text-xs font-mono'>
-                        {errorMsg}
-                    </div>
-                )}
+                <div className='mb-6 p-4 border border-amber-accent/40 bg-amber-accent/5 rounded-md text-xs text-(--text-main) flex items-start gap-2'>
+                    <AlertTriangle
+                        size={16}
+                        className='mt-0.5 shrink-0 text-amber-accent'
+                    />
+                    <span>
+                        <strong className='font-semibold'>Test mode:</strong>{' '}
+                        no payment gateway is connected. Confirming a plan
+                        activates it immediately so you can test Pro and
+                        company features.
+                    </span>
+                </div>
 
                 <section className='mb-10 tall:mb-14'>
                     <div className='flex flex-wrap items-end justify-between gap-3 mb-5'>
@@ -249,7 +293,7 @@ export default function PricingView() {
                                 <UserRound size={14} /> Candidate Packs
                             </div>
                             <h2 className='font-grotesque font-extrabold text-3xl text-(--text-main) tracking-tight'>
-                                Unlimited access, bought as a pack
+                                Unlimited access, activated as a pack
                             </h2>
                         </div>
                         {user?.subscriptionTier === 'PRO' && (
@@ -277,7 +321,7 @@ export default function PricingView() {
                                     disabled={cta.disabled}
                                     loading={pendingPlan === plan.id}
                                     onSelect={() =>
-                                        handleSelectPlan(plan, 'candidate')
+                                        openConfirm(plan, 'candidate')
                                     }
                                 />
                             );
@@ -334,7 +378,7 @@ export default function PricingView() {
                                     disabled={cta.disabled}
                                     loading={pendingPlan === plan.id}
                                     onSelect={() =>
-                                        handleSelectPlan(plan, 'company')
+                                        openConfirm(plan, 'company')
                                     }
                                 />
                             );
@@ -348,9 +392,132 @@ export default function PricingView() {
                 </section>
             </main>
 
+            {confirmPlan && (
+                <div
+                    className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
+                    role='dialog'
+                    aria-modal='true'
+                    aria-labelledby='confirm-plan-title'
+                    onClick={() => {
+                        if (pendingPlan === null) {
+                            setConfirmPlan(null);
+                            setConfirmError('');
+                        }
+                    }}>
+                    <div
+                        onClick={(event) => event.stopPropagation()}
+                        className='max-h-[90vh] w-full max-w-lg space-y-5 overflow-y-auto rounded-lg border border-(--border-line) bg-(--bg-canvas) p-6'>
+                        <div className='flex items-start justify-between gap-3'>
+                            <div>
+                                <span className='font-mono text-[10px] uppercase tracking-wider text-(--text-sub)'>
+                                    {confirmPlan.audience === 'candidate' ?
+                                        'Candidate pack'
+                                    :   'Company plan'}
+                                </span>
+                                <h3
+                                    id='confirm-plan-title'
+                                    className='font-grotesque font-bold text-2xl text-(--text-main)'>
+                                    Confirm {confirmPlan.plan.label}
+                                </h3>
+                            </div>
+                            <span className='whitespace-nowrap font-grotesque font-extrabold text-2xl text-(--text-main)'>
+                                {formatDzd(confirmPlan.plan.price)}
+                            </span>
+                        </div>
+
+                        <div className='space-y-2 rounded-md border border-(--border-line) bg-(--bg-panel) p-4'>
+                            <div className='flex justify-between font-mono text-xs text-(--text-sub)'>
+                                <span>Duration</span>
+                                <span>
+                                    {confirmPlan.plan.months === 1 ?
+                                        '1 month'
+                                    :   `${confirmPlan.plan.months} months`}
+                                </span>
+                            </div>
+                            <p className='text-xs text-(--text-sub)'>
+                                {confirmPlan.plan.description}
+                            </p>
+                        </div>
+
+                        <ul className='space-y-2 font-mono text-xs text-(--text-main)'>
+                            {confirmPlan.plan.features.map((feature) => (
+                                <li
+                                    key={feature}
+                                    className='flex items-start gap-2'>
+                                    <Check
+                                        size={14}
+                                        className='mt-0.5 shrink-0'
+                                    />
+                                    {feature}
+                                </li>
+                            ))}
+                        </ul>
+
+                        {isConfirmExtension && (
+                            <p className='text-xs text-(--text-sub)'>
+                                Your current plan is active. This adds{' '}
+                                {confirmPlan.plan.months === 1 ?
+                                    'one month'
+                                :   `${confirmPlan.plan.months} months`}{' '}
+                                to your existing expiry date.
+                            </p>
+                        )}
+
+                        <div className='flex items-start gap-2 rounded border border-amber-accent/40 bg-amber-accent/5 p-3 text-xs text-(--text-main)'>
+                            <AlertTriangle
+                                size={15}
+                                className='mt-0.5 shrink-0 text-amber-accent'
+                            />
+                            <span>
+                                <strong className='font-semibold'>
+                                    Test activation:
+                                </strong>{' '}
+                                no payment is collected. The plan activates
+                                immediately after you confirm.
+                            </span>
+                        </div>
+
+                        {confirmError && (
+                            <div className='rounded border border-red-500/20 bg-red-500/10 p-2 text-xs text-red-600'>
+                                {confirmError}
+                            </div>
+                        )}
+
+                        <div className='flex justify-end gap-2 pt-1'>
+                            <button
+                                type='button'
+                                onClick={() => {
+                                    setConfirmPlan(null);
+                                    setConfirmError('');
+                                }}
+                                disabled={pendingPlan !== null}
+                                className='rounded border border-(--border-line) px-4 py-2 text-xs font-semibold disabled:opacity-50'>
+                                Cancel
+                            </button>
+                            <button
+                                type='button'
+                                onClick={confirmUpgrade}
+                                disabled={pendingPlan !== null}
+                                autoFocus
+                                className='inline-flex items-center justify-center gap-2 rounded bg-(--btn-main-bg) px-4 py-2 text-xs font-semibold text-(--btn-main-text) hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50'>
+                                {pendingPlan !== null ?
+                                    <Loader2
+                                        size={14}
+                                        className='animate-spin'
+                                    />
+                                :   <CheckCircle2 size={14} />}
+                                {pendingPlan !== null ?
+                                    'Activating...'
+                                :   `Activate ${confirmPlan.plan.label}`}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <footer className='border-t border-(--border-line) py-3 tall:py-6 px-6 text-xs font-mono text-(--text-sub) max-w-7xl mx-auto w-full text-center'>
-                All plans billed in Algerian Dinars (DZD) • Packs activate
-                immediately
+                Prices in Algerian Dinars (DZD) • Test mode: no payment is
+                collected • Plans activate after confirmation
             </footer>
         </div>
     );

@@ -226,7 +226,9 @@ export default function Navbar() {
                         <Link
                             to='/pricing'
                             className='whitespace-nowrap rounded-md bg-(--btn-main-bg) px-3 py-2 text-xs font-semibold text-(--btn-main-text) transition-opacity hover:opacity-90 sm:px-4 sm:text-sm'>
-                            Upgrade to Pro
+                            {user?.role === 'RECRUITER' ?
+                                'Upgrade Plan'
+                            :   'Upgrade to Pro'}
                         </Link>
                     )}
 
