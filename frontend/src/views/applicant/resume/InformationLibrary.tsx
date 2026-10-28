@@ -162,9 +162,9 @@ export default function InformationLibrary() {
     };
 
     return (
-        <div className='space-y-4'>
+        <div className='flex h-full min-h-0 flex-col gap-4 overflow-y-auto md:overflow-hidden'>
             {error && (
-                <div className='rounded border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-600'>
+                <div className='shrink-0 rounded border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-600'>
                     {error}
                 </div>
             )}
@@ -173,8 +173,8 @@ export default function InformationLibrary() {
                 <div className='text-xs text-(--text-sub)'>
                     Loading your information...
                 </div>
-            :   <div className='grid grid-cols-1 gap-5 md:grid-cols-[220px_minmax(0,1fr)]'>
-                    <nav className='self-start rounded-lg border border-(--border-line) bg-(--bg-canvas) p-2 md:sticky md:top-20'>
+            :   <div className='grid min-h-0 grid-cols-1 gap-5 md:flex-1 md:grid-cols-[220px_minmax(0,1fr)]'>
+                    <nav className='rounded-lg border border-(--border-line) bg-(--bg-canvas) p-2 md:panel-scroll md:min-h-0'>
                         <div className='flex items-center justify-between px-2 pb-2 pt-1'>
                             <span className='font-mono text-[10px] uppercase tracking-wider text-(--text-sub)'>
                                 Sections
@@ -228,7 +228,7 @@ export default function InformationLibrary() {
                     <div
                         ref={scrollRef}
                         onScroll={handleScroll}
-                        className='relative h-[calc(100vh-12rem)] min-h-[480px] snap-y snap-mandatory overflow-y-auto overscroll-contain scroll-smooth rounded-lg border border-(--border-line) bg-(--bg-canvas)'>
+                        className='relative h-[65vh] min-h-[420px] snap-y snap-mandatory overflow-y-auto overscroll-contain scroll-smooth rounded-lg border border-(--border-line) bg-(--bg-canvas) md:h-auto md:min-h-0'>
                         {sortedKinds.map((kind) => {
                             const Icon = SECTION_ICONS[kind];
                             const items = getLibraryItems(vault, kind);

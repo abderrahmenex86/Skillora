@@ -1,6 +1,6 @@
 export default function AboutView() {
     return (
-        <div className='flex-1 flex flex-col justify-between'>
+        <div className='page-scroll flex flex-col'>
             <main className='max-w-4xl mx-auto px-6 py-12 tall:py-16 w-full'>
                 <h1 className='font-grotesque font-extrabold text-5xl sm:text-6xl text-(--text-main) tracking-tight mb-6 tall:mb-8'>
                     Why Skillora Exists
@@ -37,10 +37,6 @@ export default function AboutView() {
                     Skillora Collective • Algiers, Algeria • 2026
                 </div>
             </main>
-
-            <footer className='border-t border-(--border-line) py-4 tall:py-6 px-6 text-xs font-mono text-(--text-sub) max-w-7xl mx-auto w-full text-center'>
-                Deterministic Hiring Protocol for North Africa
-            </footer>
         </div>
     );
 }

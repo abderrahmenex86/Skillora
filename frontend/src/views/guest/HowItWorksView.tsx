@@ -3,7 +3,7 @@ import { ArrowRight } from 'lucide-react';
 
 export default function HowItWorksView() {
     return (
-        <div className='flex-1 flex flex-col justify-between'>
+        <div className='page-scroll flex flex-col'>
             <main className='max-w-5xl mx-auto px-6 py-16 w-full'>
                 <h1 className='font-grotesque font-extrabold text-5xl sm:text-6xl text-(--text-main) tracking-tight mb-6 leading-none'>
                     How Skillora Works
@@ -78,10 +78,6 @@ export default function HowItWorksView() {
                     </Link>
                 </div>
             </main>
-
-            <footer className='border-t border-(--border-line) py-6 px-6 text-xs font-mono text-(--text-sub) max-w-7xl mx-auto w-full text-center'>
-                Skillora Architecture • Deterministic Talent Evaluation
-            </footer>
         </div>
     );
 }

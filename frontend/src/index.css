@@ -80,6 +80,32 @@ body {
     animation: page-enter 280ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/*
+ * Layout defaults: the app shell never scrolls the window. Each page either
+ * scrolls its own content (`page-scroll`) or keeps a fixed workspace where
+ * individual panels scroll (`panel-scroll`).
+ */
+@utility page-scroll {
+    flex: 1 1 0%;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+@utility panel-scroll {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+@utility page-frame {
+    display: flex;
+    flex: 1 1 0%;
+    min-height: 0;
+    flex-direction: column;
+    overflow: hidden;
+}
+
 @media (prefers-reduced-motion: reduce) {
     .page-transition {
         animation: none;

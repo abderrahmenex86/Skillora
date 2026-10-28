@@ -22,7 +22,7 @@ export default function InsightsView() {
 
     if (user?.subscriptionTier === 'FREE') {
         return (
-            <div className='flex-1 flex flex-col justify-center items-center px-6 py-20 text-center'>
+            <div className='page-scroll flex flex-col justify-center items-center px-6 py-20 text-center'>
                 <div className='p-3 rounded-full bg-(--bg-panel) border border-(--border-line) mb-4 text-(--text-main)'>
                     <Lock size={24} />
                 </div>
@@ -45,14 +45,14 @@ export default function InsightsView() {
     }
 
     return (
-        <div className='flex-1 max-w-5xl w-full mx-auto px-6 py-8'>
-            <div className='mb-8 border-b border-(--border-line) pb-6'>
+        <div className='flex min-h-0 w-full max-w-5xl flex-1 flex-col gap-5 overflow-y-auto mx-auto px-6 py-6 lg:overflow-hidden'>
+            <div className='shrink-0 border-b border-(--border-line) pb-4'>
                 <h1 className='font-grotesque font-extrabold text-4xl text-(--text-main) tracking-tight'>
                     Personalized Career Insights
                 </h1>
             </div>
 
-            <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-8'>
+            <div className='grid shrink-0 grid-cols-1 gap-4 md:grid-cols-3'>
                 <div className='p-5 border border-(--border-line) rounded-md bg-(--bg-canvas)'>
                     <div className='font-mono text-xs text-(--text-sub) uppercase mb-1'>
                         Total Cohorts
@@ -79,11 +79,12 @@ export default function InsightsView() {
                 </div>
             </div>
 
-            <div className='grid grid-cols-1 md:grid-cols-12 gap-8 items-start'>
-                <div className='md:col-span-7 border border-(--border-line) rounded-lg p-6 bg-(--bg-canvas) space-y-4'>
-                    <h3 className='font-grotesque font-bold text-2xl text-(--text-main)'>
+            <div className='grid grid-cols-1 gap-6 md:min-h-0 md:flex-1 md:grid-cols-12 md:items-stretch'>
+                <section className='flex min-h-0 flex-col rounded-lg border border-(--border-line) bg-(--bg-canvas) md:col-span-7'>
+                    <h3 className='shrink-0 border-b border-(--border-line) px-6 py-4 font-grotesque font-bold text-2xl text-(--text-main)'>
                         Recurrent Unmet Criteria
                     </h3>
+                    <div className='panel-scroll flex-1 space-y-4 p-6'>
                     <p className='text-xs text-(--text-sub)'>
                         These criteria appeared most frequently in your
                         redirection dossiers across all cohorts:
@@ -106,13 +107,14 @@ export default function InsightsView() {
                             )
                         )}
                     </div>
-                </div>
+                    </div>
+                </section>
 
-                <div className='md:col-span-5 border border-(--border-line) rounded-lg p-6 bg-(--bg-canvas) space-y-4'>
-                    <h3 className='font-grotesque font-bold text-2xl text-(--text-main)'>
+                <section className='flex min-h-0 flex-col rounded-lg border border-(--border-line) bg-(--bg-canvas) md:col-span-5'>
+                    <h3 className='shrink-0 border-b border-(--border-line) px-6 py-4 font-grotesque font-bold text-2xl text-(--text-main)'>
                         Targeted Recommendations
                     </h3>
-                    <div className='space-y-2'>
+                    <div className='panel-scroll flex-1 space-y-2 p-6'>
                         {insightsData?.recommendations?.map(
                             (rec: string, i: number) => (
                                 <div
@@ -123,7 +125,7 @@ export default function InsightsView() {
                             )
                         )}
                     </div>
-                </div>
+                </section>
             </div>
         </div>
     );

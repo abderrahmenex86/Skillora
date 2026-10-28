@@ -134,8 +134,8 @@ export default function PositionApplicationsView() {
     };
 
     return (
-        <div className='flex-1 max-w-7xl w-full mx-auto px-6 py-8'>
-            <div className='mb-6'>
+        <div className='flex min-h-0 w-full max-w-7xl flex-1 flex-col gap-5 overflow-y-auto mx-auto px-6 py-6 lg:overflow-hidden'>
+            <div className='shrink-0'>
                 <Link
                     to='/recruiter/positions'
                     className='text-xs font-mono text-(--text-sub) hover:text-(--text-main) inline-flex items-center gap-1 mb-2'>
@@ -162,12 +162,13 @@ export default function PositionApplicationsView() {
                 </div>
             </div>
 
-            <div className='grid grid-cols-1 md:grid-cols-12 gap-8 items-start'>
-                <div className='md:col-span-5 border border-(--border-line) rounded-lg p-5 bg-(--bg-canvas) space-y-3'>
-                    <h3 className='font-grotesque font-bold text-2xl text-(--text-main) mb-2'>
+            <div className='grid grid-cols-1 gap-6 md:min-h-0 md:flex-1 md:grid-cols-12 md:items-stretch'>
+                <div className='flex min-h-0 flex-col rounded-lg border border-(--border-line) bg-(--bg-canvas) md:col-span-5'>
+                    <h3 className='shrink-0 border-b border-(--border-line) px-5 py-4 font-grotesque font-bold text-2xl text-(--text-main)'>
                         Received Applications ({applications?.length ?? 0})
                     </h3>
 
+                    <div className='panel-scroll flex-1 space-y-3 p-5'>
                     {isLoading ?
                         <div className='text-xs text-(--text-sub)'>
                             Loading cohort submissions...
@@ -218,9 +219,11 @@ export default function PositionApplicationsView() {
                             );
                         })
                     }
+                    </div>
                 </div>
 
-                <div className='md:col-span-7 border border-(--border-line) rounded-lg p-6 bg-(--bg-canvas) space-y-6'>
+                <div className='flex min-h-0 flex-col rounded-lg border border-(--border-line) bg-(--bg-canvas) md:col-span-7'>
+                    <div className='panel-scroll flex-1 space-y-6 p-6'>
                     {selectedApp ?
                         <>
                             <div className='border-b border-(--border-line) pb-4 flex justify-between items-start'>
@@ -408,6 +411,7 @@ export default function PositionApplicationsView() {
                             evidence.
                         </div>
                     }
+                    </div>
                 </div>
             </div>
 

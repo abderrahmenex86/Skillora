@@ -11,6 +11,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { apiClient } from './api/apiClient';
 import { queryClient } from './api/queryClient';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 
 import LandingView from './views/guest/LandingView';
 import HowItWorksView from './views/guest/HowItWorksView';
@@ -39,7 +40,7 @@ function PageTransition({ children }: { children: React.ReactNode }) {
     return (
         <div
             key={location.pathname}
-            className='flex-1 flex flex-col page-transition'>
+            className='flex min-h-0 flex-1 flex-col page-transition'>
             {children}
         </div>
     );
@@ -47,11 +48,12 @@ function PageTransition({ children }: { children: React.ReactNode }) {
 
 function AppLayout() {
     return (
-        <div className='min-h-dvh flex flex-col bg-(--bg-canvas) text-(--text-main)'>
+        <div className='flex h-dvh flex-col overflow-hidden bg-(--bg-canvas) text-(--text-main)'>
             <Navbar />
             <PageTransition>
                 <Outlet />
             </PageTransition>
+            <Footer />
         </div>
     );
 }

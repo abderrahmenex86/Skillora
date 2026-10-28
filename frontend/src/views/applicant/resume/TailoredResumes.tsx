@@ -419,25 +419,8 @@ export default function TailoredResumes({
     const selectedCount = countSelectedItems(draft);
 
     return (
-        <div className='space-y-6'>
-            <div className='flex flex-col justify-between gap-3 border-b border-(--border-line) pb-5 sm:flex-row sm:items-end'>
-                <div>
-                    <h2 className='font-grotesque text-3xl font-bold text-(--text-main)'>
-                        Tailored Resumes
-                    </h2>
-                    <p className='mt-1 max-w-2xl text-sm text-(--text-sub)'>
-                        Create a focused resume for each role. Add a custom
-                        summary and skills, then drag information from your
-                        library into the resume.
-                    </p>
-                </div>
-                <span className='font-mono text-xs text-(--text-sub)'>
-                    {profiles.length}{' '}
-                    {profiles.length === 1 ? 'resume' : 'resumes'}
-                </span>
-            </div>
-
-            <div className='flex flex-wrap items-stretch gap-2'>
+        <div className='flex h-full min-h-0 flex-col gap-4 overflow-y-auto lg:overflow-hidden'>
+            <div className='flex shrink-0 flex-wrap items-stretch gap-2'>
                 {profilesLoading ?
                     <div className='py-3 text-xs text-(--text-sub)'>
                         Loading resumes...
@@ -504,7 +487,7 @@ export default function TailoredResumes({
             </div>
 
             {limitReached && (
-                <div className='rounded border border-(--border-line) bg-(--bg-panel) px-3 py-2 text-xs text-(--text-sub)'>
+                <div className='shrink-0 rounded border border-(--border-line) bg-(--bg-panel) px-3 py-2 text-xs text-(--text-sub)'>
                     Free accounts can keep one tailored resume.{' '}
                     <Link
                         to='/pricing'
@@ -517,7 +500,7 @@ export default function TailoredResumes({
 
             {(notice || error) && (
                 <div
-                    className={`rounded border p-3 text-xs ${
+                    className={`shrink-0 rounded border p-3 text-xs ${
                         error ?
                             'border-red-500/20 bg-red-500/10 text-red-600'
                         :   'border-forest/20 bg-forest/5 text-forest dark:text-forest-dark'
@@ -527,7 +510,7 @@ export default function TailoredResumes({
             )}
 
             {!editingId ?
-                <div className='rounded-lg border border-dashed border-(--border-line) bg-(--bg-canvas) px-6 py-16 text-center'>
+                <div className='flex flex-1 min-h-0 flex-col items-center justify-center overflow-y-auto rounded-lg border border-dashed border-(--border-line) bg-(--bg-canvas) px-6 py-16 text-center'>
                     <ResumeStackSketch className='mx-auto h-24 w-auto text-(--text-sub)' />
                     <h3 className='mt-3 font-grotesque text-2xl font-bold text-(--text-main)'>
                         {profiles.length === 0 ?
@@ -550,7 +533,7 @@ export default function TailoredResumes({
                         </button>
                     )}
                 </div>
-            :   <div className='grid grid-cols-1 items-start gap-5 lg:grid-cols-2'>
+            :   <div className='grid grid-cols-1 items-stretch gap-5 lg:min-h-0 lg:flex-1 lg:grid-cols-2'>
                     <section
                         onDragOver={(event) => {
                             event.preventDefault();
@@ -568,12 +551,12 @@ export default function TailoredResumes({
                             }
                         }}
                         onDrop={handleDropOnResume}
-                        className={`rounded-lg border bg-(--bg-canvas) transition-shadow ${
+                        className={`flex min-h-0 flex-col rounded-lg border bg-(--bg-canvas) transition-shadow ${
                             dropZone === 'resume' ?
                                 'border-(--text-main) ring-2 ring-(--text-main)/20'
                             :   'border-(--border-line)'
                         }`}>
-                        <div className='flex items-center justify-between gap-3 border-b border-(--border-line) px-4 py-3'>
+                        <div className='flex shrink-0 items-center justify-between gap-3 border-b border-(--border-line) px-4 py-3'>
                             <div className='flex items-center gap-2'>
                                 <FileText
                                     size={16}
@@ -606,7 +589,7 @@ export default function TailoredResumes({
                             </div>
                         </div>
 
-                        <div className='space-y-5 p-5'>
+                        <div className='panel-scroll flex-1 space-y-5 p-5'>
                             <div>
                                 <label className='mb-1 block font-mono text-[10px] uppercase text-(--text-sub)'>
                                     Resume Title
@@ -840,12 +823,12 @@ export default function TailoredResumes({
                             }
                         }}
                         onDrop={handleDropOnLibrary}
-                        className={`rounded-lg border bg-(--bg-canvas) transition-shadow lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto ${
+                        className={`flex min-h-0 flex-col rounded-lg border bg-(--bg-canvas) transition-shadow ${
                             dropZone === 'library' ?
                                 'border-(--text-main) ring-2 ring-(--text-main)/20'
                             :   'border-(--border-line)'
                         }`}>
-                        <div className='flex items-center justify-between gap-3 border-b border-(--border-line) px-4 py-3'>
+                        <div className='flex shrink-0 items-center justify-between gap-3 border-b border-(--border-line) px-4 py-3'>
                             <div>
                                 <h3 className='font-grotesque text-xl font-bold text-(--text-main)'>
                                     Your Information
@@ -863,7 +846,7 @@ export default function TailoredResumes({
                             </button>
                         </div>
 
-                        <div className='space-y-4 p-4'>
+                        <div className='panel-scroll flex-1 space-y-4 p-4'>
                             <div className='relative'>
                                 <Search
                                     size={14}

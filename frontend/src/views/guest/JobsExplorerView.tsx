@@ -113,37 +113,34 @@ export default function JobsExplorerView() {
     };
 
     return (
-        <div className='flex-1 max-w-7xl w-full mx-auto px-6 py-8'>
-            <div className='mb-8 border-b border-(--border-line) pb-6'>
+        <div className='flex min-h-0 w-full max-w-7xl flex-1 flex-col gap-5 overflow-y-auto mx-auto px-6 py-6 md:overflow-hidden'>
+            <div className='shrink-0 border-b border-(--border-line) pb-4'>
                 <h1 className='font-grotesque font-extrabold text-4xl text-(--text-main) tracking-tight'>
-                    Explore Open Roles
+                    Jobs
                 </h1>
-                <p className='text-sm text-(--text-sub) mt-1'>
-                    Every role guarantees either an interview or an actionable
-                    growth roadmap.
-                </p>
             </div>
 
             {isLoading ?
                 <div className='flex items-center gap-2 text-xs text-(--text-sub)'>
                     <Loader2 size={14} className='animate-spin' />
-                    Loading openings...
+                    Loading jobs...
                 </div>
             : positions?.length === 0 ?
                 <div className='p-8 border border-dashed border-(--border-line) text-center rounded-lg'>
                     <SearchSketch className='mx-auto h-24 w-auto text-(--text-sub)' />
                     <div className='mt-4 text-sm font-medium text-(--text-main)'>
-                        No active positions found
+                        No active jobs found
                     </div>
                     <p className='mt-1 text-xs text-(--text-sub)'>
                         Check back soon. New roles are added regularly.
                     </p>
                 </div>
-            :   <div className='grid grid-cols-1 md:grid-cols-12 gap-8 items-start'>
-                    <div className='md:col-span-5 space-y-3'>
-                        <h3 className='font-grotesque font-bold text-2xl text-(--text-main) mb-2'>
-                            Available Openings ({positions?.length ?? 0})
+            :   <div className='grid grid-cols-1 gap-6 md:min-h-0 md:flex-1 md:grid-cols-12 md:items-stretch'>
+                    <div className='flex flex-col gap-3 md:col-span-5 md:min-h-0'>
+                        <h3 className='shrink-0 font-grotesque font-bold text-2xl text-(--text-main)'>
+                            Available Jobs ({positions?.length ?? 0})
                         </h3>
+                        <div className='panel-scroll flex-1 space-y-3 md:pr-1'>
                         {positions?.map((job: any) => {
                             const isSelected =
                                 (selectedJobId || positions[0]?.id) === job.id;
@@ -198,9 +195,10 @@ export default function JobsExplorerView() {
                                 </div>
                             );
                         })}
+                        </div>
                     </div>
 
-                    <div className='md:col-span-7 border border-(--border-line) rounded-lg p-8 bg-(--bg-canvas) space-y-6'>
+                    <div className='panel-scroll rounded-lg border border-(--border-line) bg-(--bg-canvas) p-6 space-y-6 md:col-span-7 md:p-8'>
                         {selectedJob && (
                             <>
                                 <div>
@@ -259,7 +257,7 @@ export default function JobsExplorerView() {
                                             </div>
                                             <p className='text-[11px] font-normal opacity-80'>
                                                 You can still apply to any other
-                                                open role.
+                                                open job.
                                             </p>
                                         </div>
                                     :   <div>

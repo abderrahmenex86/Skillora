@@ -138,7 +138,7 @@ export default function Navbar() {
         user?.subscriptionTier !== 'ENTERPRISE';
 
     return (
-        <header className='sticky top-0 z-50 w-full border-b border-(--border-line) bg-(--bg-canvas)/95 backdrop-blur-sm transition-colors'>
+        <header className='sticky top-0 z-50 w-full shrink-0 border-b border-(--border-line) bg-(--bg-canvas)/95 backdrop-blur-sm transition-colors'>
             <div className='max-w-7xl mx-auto px-6 h-16 flex items-center justify-between'>
                 <div className='flex items-center'>
                     <Link
@@ -185,12 +185,12 @@ export default function Navbar() {
                             <NavLink
                                 to='/applicant/profiles'
                                 className={navLinkClass}>
-                                Resume Builder
+                                My Resumes
                             </NavLink>
                             <NavLink
                                 to='/jobs'
                                 className={navLinkClass}>
-                                Open Positions
+                                Jobs
                             </NavLink>
                             <NavLink
                                 to='/applicant/insights'

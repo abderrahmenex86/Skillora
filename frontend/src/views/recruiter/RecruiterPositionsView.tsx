@@ -74,8 +74,8 @@ export default function RecruiterPositionsView() {
     );
 
     return (
-        <div className='flex-1 max-w-7xl w-full mx-auto px-6 py-8'>
-            <div className='flex justify-between items-center mb-8 border-b border-(--border-line) pb-6'>
+        <div className='flex min-h-0 w-full max-w-7xl flex-1 flex-col gap-5 overflow-y-auto mx-auto px-6 py-6 lg:overflow-hidden'>
+            <div className='flex shrink-0 flex-col justify-between gap-3 border-b border-(--border-line) pb-4 sm:flex-row sm:items-center'>
                 <div>
                     <h1 className='font-grotesque font-extrabold text-4xl text-(--text-main) tracking-tight'>
                         Positions History
@@ -168,14 +168,15 @@ export default function RecruiterPositionsView() {
                 <div className='text-xs text-(--text-sub)'>
                     Loading position pipelines...
                 </div>
-            :   <div className='space-y-10'>
-                    <div>
-                        <h3 className='font-grotesque font-bold text-2xl text-(--text-main) mb-4 flex items-center gap-2'>
+            :   <div className='grid min-h-0 gap-6 lg:flex-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]'>
+                    <section className='flex min-h-0 flex-col'>
+                        <h3 className='mb-3 flex shrink-0 items-center gap-2 font-grotesque font-bold text-2xl text-(--text-main)'>
                             <span className='w-2 h-2 rounded-full bg-forest dark:bg-forest-dark' />{' '}
                             Active & Open Pipelines (
                             {openPositions?.length ?? 0})
                         </h3>
 
+                        <div className='panel-scroll flex-1 min-h-0'>
                         {openPositions?.length === 0 ?
                             <div className='p-8 border border-dashed border-(--border-line) text-center rounded-lg'>
                                 <DossierSketch className='mx-auto h-20 w-auto text-(--text-sub)' />
@@ -232,13 +233,15 @@ export default function RecruiterPositionsView() {
                                 ))}
                             </div>
                         }
-                    </div>
+                        </div>
+                    </section>
 
-                    <div>
-                        <h3 className='font-grotesque font-bold text-2xl text-(--text-sub) mb-4'>
+                    <section className='flex min-h-0 flex-col'>
+                        <h3 className='mb-3 shrink-0 font-grotesque font-bold text-2xl text-(--text-sub)'>
                             Archived & Closed Positions (
                             {closedPositions?.length ?? 0})
                         </h3>
+                        <div className='panel-scroll flex-1 min-h-0'>
                         {closedPositions?.length > 0 && (
                             <div className='grid grid-cols-1 md:grid-cols-2 gap-4 opacity-75'>
                                 {closedPositions.map((p: any) => (
@@ -267,7 +270,8 @@ export default function RecruiterPositionsView() {
                                 ))}
                             </div>
                         )}
-                    </div>
+                        </div>
+                    </section>
                 </div>
             }
         </div>

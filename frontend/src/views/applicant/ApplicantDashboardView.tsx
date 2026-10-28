@@ -68,8 +68,8 @@ export default function ApplicantDashboardView() {
     });
 
     return (
-        <div className='flex-1 max-w-7xl w-full mx-auto px-6 py-8'>
-            <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4 border-b border-(--border-line) pb-6'>
+        <div className='flex min-h-0 w-full max-w-7xl flex-1 flex-col gap-5 overflow-y-auto mx-auto px-6 py-6 lg:overflow-hidden'>
+            <div className='flex shrink-0 flex-col justify-between gap-4 border-b border-(--border-line) pb-4 sm:flex-row sm:items-center'>
                 <div>
                     <h1 className='font-grotesque font-extrabold text-4xl text-(--text-main) tracking-tight'>
                         Dashboard & Interview Logistics
@@ -84,23 +84,23 @@ export default function ApplicantDashboardView() {
                     <Link
                         to='/jobs'
                         className='px-4 py-2 bg-(--btn-main-bg) text-(--btn-main-text) text-sm font-medium rounded-md hover:opacity-90'>
-                        Explore Open Roles
+                        Explore Jobs
                     </Link>
                 </div>
             </div>
 
-            <div className='grid grid-cols-1 lg:grid-cols-12 gap-8 items-start'>
-                <div className='lg:col-span-5 space-y-6'>
-                    <div className='border border-(--border-line) rounded-lg p-6 bg-(--bg-canvas)'>
-                        <div className='flex items-center justify-between mb-4'>
-                            <h3 className='font-grotesque font-bold text-2xl text-(--text-main) flex items-center gap-2'>
-                                <Calendar size={20} /> Interview Schedule
-                            </h3>
-                            <span className='font-mono text-xs text-(--text-sub)'>
-                                AGENT DISPATCH
-                            </span>
-                        </div>
+            <div className='grid grid-cols-1 items-stretch gap-6 lg:min-h-0 lg:flex-1 lg:grid-cols-12'>
+                <section className='flex min-h-0 flex-col rounded-lg border border-(--border-line) bg-(--bg-canvas) lg:col-span-5'>
+                    <div className='flex shrink-0 items-center justify-between border-b border-(--border-line) px-6 py-4'>
+                        <h3 className='font-grotesque font-bold text-2xl text-(--text-main) flex items-center gap-2'>
+                            <Calendar size={20} /> Interview Schedule
+                        </h3>
+                        <span className='font-mono text-xs text-(--text-sub)'>
+                            AGENT DISPATCH
+                        </span>
+                    </div>
 
+                    <div className='panel-scroll flex-1 space-y-4 p-6'>
                         {calLoading ?
                             <div className='flex items-center gap-2 py-4 text-xs text-(--text-sub)'>
                                 <Loader2
@@ -311,14 +311,16 @@ export default function ApplicantDashboardView() {
                             </div>
                         }
                     </div>
-                </div>
+                </section>
 
-                <div className='lg:col-span-7 space-y-6'>
-                    <div className='border border-(--border-line) rounded-lg p-6 bg-(--bg-canvas)'>
-                        <h3 className='font-grotesque font-bold text-2xl text-(--text-main) mb-4'>
+                <section className='flex min-h-0 flex-col rounded-lg border border-(--border-line) bg-(--bg-canvas) lg:col-span-7'>
+                    <div className='shrink-0 border-b border-(--border-line) px-6 py-4'>
+                        <h3 className='font-grotesque font-bold text-2xl text-(--text-main)'>
                             My Active Applications
                         </h3>
+                    </div>
 
+                    <div className='panel-scroll flex-1 space-y-4 p-6'>
                         {appsLoading ?
                             <div className='flex items-center gap-2 py-4 text-xs text-(--text-sub)'>
                                 <Loader2
@@ -335,7 +337,7 @@ export default function ApplicantDashboardView() {
                                 </div>
                                 <p className='mt-1 text-xs text-(--text-sub)'>
                                     Choose a tailored resume and apply to an
-                                    open role.
+                                    open job.
                                 </p>
                             </div>
                         :   <div className='space-y-4'>
@@ -390,7 +392,7 @@ export default function ApplicantDashboardView() {
                             </div>
                         }
                     </div>
-                </div>
+                </section>
             </div>
         </div>
     );

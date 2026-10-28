@@ -7,7 +7,7 @@ type BuilderTab = 'information' | 'resumes';
 
 const HELP_ITEMS = [
     {
-        title: 'Resumes',
+        title: 'My Resumes',
         text: 'Assemble role-specific resumes from your saved information and keep them ready to send.',
     },
     {
@@ -52,8 +52,8 @@ export default function ProfilesView() {
     }, [helpOpen]);
 
     return (
-        <div className='flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
-            <div className='mb-8 flex items-center justify-between gap-3 border-b border-(--border-line)'>
+        <div className='page-frame w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6'>
+            <div className='mb-5 flex shrink-0 items-center justify-between gap-3 border-b border-(--border-line)'>
                 <div className='flex items-center gap-1'>
                     <button
                         type='button'
@@ -64,7 +64,7 @@ export default function ProfilesView() {
                             :   'text-(--text-sub) hover:text-(--text-main)'
                         }`}>
                         <FileText size={16} />
-                        Resumes
+                        My Resumes
                         {activeTab === 'resumes' && (
                             <span className='absolute inset-x-3 -bottom-px h-0.5 bg-(--text-main)' />
                         )}
@@ -96,13 +96,19 @@ export default function ProfilesView() {
 
             <div
                 className={
-                    activeTab === 'information' ? undefined : 'hidden'
+                    activeTab === 'information' ?
+                        'flex min-h-0 flex-1 flex-col'
+                    :   'hidden'
                 }>
                 <InformationLibrary />
             </div>
 
             <div
-                className={activeTab === 'resumes' ? undefined : 'hidden'}>
+                className={
+                    activeTab === 'resumes' ?
+                        'flex min-h-0 flex-1 flex-col'
+                    :   'hidden'
+                }>
                 <TailoredResumes
                     onOpenInformation={() => setActiveTab('information')}
                 />
@@ -122,10 +128,11 @@ export default function ProfilesView() {
                                 <h2
                                     id='resume-builder-help-title'
                                     className='font-grotesque text-2xl font-bold text-(--text-main)'>
-                                    Resume Builder Help
+                                    My Resumes Help
                                 </h2>
                                 <p className='mt-1 text-xs text-(--text-sub)'>
-                                    A quick guide to each part of the builder.
+                                    A quick guide to your resumes and saved
+                                    information.
                                 </p>
                             </div>
                             <button

@@ -256,7 +256,7 @@ export default function PricingView() {
     );
 
     return (
-        <div className='flex-1 flex flex-col justify-between'>
+        <div className='page-scroll flex flex-col'>
             <main className='max-w-6xl mx-auto px-6 pt-8 pb-4 tall:py-16 w-full'>
                 <h1 className='font-grotesque font-extrabold text-5xl sm:text-6xl text-(--text-main) tracking-tight mb-4'>
                     Candidate packs and company plans
@@ -514,11 +514,6 @@ export default function PricingView() {
                     </div>
                 </div>
             )}
-
-            <footer className='border-t border-(--border-line) py-3 tall:py-6 px-6 text-xs font-mono text-(--text-sub) max-w-7xl mx-auto w-full text-center'>
-                Prices in Algerian Dinars (DZD) • Test mode: no payment is
-                collected • Plans activate after confirmation
-            </footer>
         </div>
     );
 }

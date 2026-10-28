@@ -94,7 +94,7 @@ export default function AuthView() {
     };
 
     return (
-        <div className='flex-1 flex flex-col md:flex-row'>
+        <div className='page-scroll flex flex-col md:flex-row'>
             <div className='w-full md:w-[42%] bg-(--bg-panel) border-r border-(--border-line) p-8 md:p-14 flex flex-col justify-between'>
                 <div className='max-w-md my-auto'>
                     <h2 className='font-grotesque font-extrabold text-4xl sm:text-5xl leading-[1.05] tracking-tight mb-8 text-(--text-main)'>

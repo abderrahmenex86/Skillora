@@ -6,7 +6,7 @@ export default function LandingView() {
     const user = useAuthStore((state) => state.user);
 
     return (
-        <div className='flex-1 flex flex-col justify-between'>
+        <div className='page-scroll flex flex-col'>
             <main className='max-w-7xl mx-auto px-6 py-14 md:py-20 w-full'>
                 <div className='grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center mb-16'>
                     <div className='lg:col-span-7'>
@@ -33,15 +33,15 @@ export default function LandingView() {
                                 {user?.role === 'RECRUITER' ?
                                     'Recruiter Workspace'
                                 : user?.role === 'APPLICANT' ?
-                                    'Explore Positions'
+                                    'Explore Jobs'
                                 :   'Get Started'}
                             </Link>
                             <Link
                                 to={user ? '/jobs' : '/auth?mode=login'}
                                 className='px-6 py-3.5 border border-(--border-line) font-grotesque font-bold text-xl rounded-md hover:bg-(--bg-panel) transition-colors text-(--text-main)'>
                                 {user ?
-                                    'Explore Open Roles'
-                                :   'Sign In to Explore Roles'}
+                                    'Explore Jobs'
+                                :   'Sign In to Explore Jobs'}
                             </Link>
                         </div>
                     </div>
@@ -115,8 +115,8 @@ export default function LandingView() {
                                     {user?.role === 'APPLICANT' ?
                                         'View your feedback dossier →'
                                     : user ?
-                                        'Explore open roles with rubrics →'
-                                    :   'Register to explore roles with rubrics →'
+                                        'Explore jobs with rubrics →'
+                                    :   'Register to explore jobs with rubrics →'
                                     }
                                 </Link>
                             </div>
@@ -124,11 +124,6 @@ export default function LandingView() {
                     </div>
                 </div>
             </main>
-
-            <footer className='border-t border-(--border-line) py-6 px-6 text-xs font-mono text-(--text-sub) max-w-7xl mx-auto w-full flex flex-col sm:flex-row justify-between items-center gap-2'>
-                <div>Skillora © 2026 • Multilingual parsing (FR/EN/AR)</div>
-                <div>[Algeria Talent Infrastructure]</div>
-            </footer>
         </div>
     );
 }

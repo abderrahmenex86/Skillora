@@ -3,7 +3,7 @@ import { ArrowRight, ShieldCheck, Terminal, Users } from 'lucide-react';
 
 export default function CompaniesView() {
     return (
-        <div className='flex-1 flex flex-col justify-between'>
+        <div className='page-scroll flex flex-col'>
             <main className='max-w-6xl mx-auto px-6 pt-6 pb-2 tall:py-16 w-full'>
                 <h1 className='font-grotesque font-extrabold text-5xl sm:text-6xl text-(--text-main) tracking-tight mb-4'>
                     Stop screening 500 unvetted CVs per opening.
@@ -79,11 +79,6 @@ export default function CompaniesView() {
                     </Link>
                 </div>
             </main>
-
-            <footer className='border-t border-(--border-line) py-3 tall:py-6 px-6 text-xs font-mono text-(--text-sub) max-w-7xl mx-auto w-full text-center'>
-                Skillora Infrastructure • Used by teams across Algiers, Oran,
-                and Constantine
-            </footer>
         </div>
     );
 }
