@@ -222,23 +222,6 @@ export default function Navbar() {
                 </nav>
 
                 <div className='flex items-center space-x-3'>
-                    <button
-                        type='button'
-                        onClick={handleThemeToggle}
-                        aria-label={
-                            isDark ?
-                                'Switch to light mode'
-                            :   'Switch to dark mode'
-                        }
-                        className='p-2 rounded-md border border-(--border-line) text-(--text-sub) hover:text-(--text-main) hover:bg-(--bg-panel) transition-all flex items-center justify-center cursor-pointer'>
-                        {isDark ?
-                            <Sun
-                                size={17}
-                                className='text-amber-400'
-                            />
-                        :   <Moon size={17} />}
-                    </button>
-
                     {showUpgradeButton && (
                         <Link
                             to='/pricing'
@@ -338,6 +321,23 @@ export default function Navbar() {
                             </div>
                         </div>
                     }
+
+                    <button
+                        type='button'
+                        onClick={handleThemeToggle}
+                        aria-label={
+                            isDark ?
+                                'Switch to light mode'
+                            :   'Switch to dark mode'
+                        }
+                        className='p-2 rounded-md border border-(--border-line) text-(--text-sub) hover:text-(--text-main) hover:bg-(--bg-panel) transition-all flex items-center justify-center cursor-pointer'>
+                        {isDark ?
+                            <Sun
+                                size={17}
+                                className='text-amber-400'
+                            />
+                        :   <Moon size={17} />}
+                    </button>
                 </div>
             </div>
         </header>
