@@ -20,7 +20,7 @@ import AboutView from './views/guest/AboutView';
 import JobsExplorerView from './views/guest/JobsExplorerView';
 import NotFoundView from './views/NotFoundView';
 import AuthView from './views/auth/AuthView';
-import PersonalInfoView from './views/settings/PersonalInfoView';
+import EditProfileView from './views/settings/EditProfileView';
 
 import ApplicantDashboardView from './views/applicant/ApplicantDashboardView';
 import ProfilesView from './views/applicant/ProfilesView';
@@ -180,7 +180,7 @@ export default function App() {
                             path='/settings/profile'
                             element={
                                 <SignedInRoute>
-                                    <PersonalInfoView />
+                                    <EditProfileView />
                                 </SignedInRoute>
                             }
                         />

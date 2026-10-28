@@ -311,7 +311,7 @@ export default function Navbar() {
                                     onClick={() => setMenuOpen(false)}
                                     className='flex items-center gap-2 rounded px-3 py-2 text-sm text-(--text-main) transition-colors hover:bg-(--bg-panel)'>
                                     <Pencil size={15} />
-                                    Edit Personal Info
+                                    Edit Profile
                                 </Link>
                                 <div className='my-1 border-t border-(--border-line)' />
                                 <button
