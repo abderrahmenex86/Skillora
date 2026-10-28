@@ -9,6 +9,7 @@ import {
     UserRound,
 } from 'lucide-react';
 import { apiClient } from '../../api/apiClient';
+import { SiteFooter } from '../../components/Brand';
 import {
     CANDIDATE_PACKS,
     COMPANY_PLANS,
@@ -36,34 +37,32 @@ function PlanCard({
 }: PlanCardProps) {
     return (
         <article
-            className={`flex flex-col justify-between rounded-lg p-5 tall:p-6 bg-(--bg-canvas) ${
+            className={`relative flex flex-col justify-between rounded-3xl p-7 transition-all duration-300 hover:-translate-y-1 ${
                 plan.recommended ?
-                    'border-2 border-(--text-main) shadow-xs'
-                :   'border border-(--border-line)'
+                    'border border-brand-400/70 bg-(--bg-elevated) ring-4 ring-brand-500/10 shadow-[0_24px_60px_-24px_rgb(99_102_241/0.55)]'
+                :   'border border-(--border-line) bg-(--bg-elevated) shadow-sm hover:shadow-lg'
             }`}>
+            {plan.recommended && (
+                <span className='absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-linear-to-r from-brand-600 to-violet-accent px-3 py-1 text-[11px] font-semibold text-white shadow-md'>
+                    Most popular
+                </span>
+            )}
             <div>
                 <div className='flex items-start justify-between gap-3'>
-                    <span className='font-mono text-xs text-(--text-sub) uppercase'>
+                    <span className='font-display text-lg font-bold text-(--text-main)'>
                         {plan.label}
                     </span>
-                    <div className='flex flex-wrap justify-end gap-1.5'>
-                        {plan.recommended && (
-                            <span className='font-mono text-[10px] px-2 py-0.5 rounded bg-(--bg-panel) text-(--text-main)'>
-                                RECOMMENDED
-                            </span>
-                        )}
-                        {plan.savingsPercent > 0 && (
-                            <span className='font-mono text-[10px] px-2 py-0.5 rounded border border-forest/30 bg-forest/5 text-forest dark:text-forest-dark'>
-                                SAVE {plan.savingsPercent}%
-                            </span>
-                        )}
-                    </div>
+                    {plan.savingsPercent > 0 && (
+                        <span className='rounded-full bg-forest/10 px-2.5 py-1 text-[11px] font-semibold text-forest dark:text-forest-dark'>
+                            Save {plan.savingsPercent}%
+                        </span>
+                    )}
                 </div>
 
-                <div className='font-grotesque font-extrabold text-4xl text-(--text-main) my-3 tall:my-4'>
+                <div className='mt-5 font-display text-4xl font-extrabold tracking-tight text-(--text-main)'>
                     {formatDzd(plan.price)}
                 </div>
-                <div className='text-xs text-(--text-sub) mb-4'>
+                <div className='mt-1 text-sm text-(--text-sub)'>
                     {plan.months === 1 ?
                         'Billed monthly'
                     :   `Billed every ${plan.months} months`}
@@ -72,19 +71,21 @@ function PlanCard({
                     )}
                 </div>
 
-                <p className='text-xs text-(--text-sub) mb-4 tall:mb-6'>
+                <p className='mt-5 text-sm leading-relaxed text-(--text-sub)'>
                     {plan.description}
                 </p>
 
-                <ul className='space-y-2.5 tall:space-y-3 text-xs text-(--text-main) font-mono mb-5 tall:mb-8'>
+                <ul className='mb-8 mt-6 space-y-3 border-t border-(--border-line) pt-6 text-sm text-(--text-main)'>
                     {plan.features.map((feature) => (
                         <li
                             key={feature}
-                            className='flex items-start gap-2'>
-                            <Check
-                                size={14}
-                                className='mt-0.5 shrink-0'
-                            />
+                            className='flex items-start gap-2.5'>
+                            <span className='mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-300'>
+                                <Check
+                                    size={12}
+                                    strokeWidth={3}
+                                />
+                            </span>
                             {feature}
                         </li>
                     ))}
@@ -95,22 +96,20 @@ function PlanCard({
                 type='button'
                 onClick={onSelect}
                 disabled={disabled || loading}
-                className={`w-full py-2.5 text-center text-xs font-mono uppercase tracking-wider font-semibold rounded-md transition-opacity disabled:cursor-not-allowed ${
+                className={`w-full ${
                     disabled ?
-                        'border border-(--border-line) text-(--text-sub)'
+                        'btn-secondary text-(--text-sub)!'
                     : plan.recommended ?
-                        'bg-(--btn-main-bg) text-(--btn-main-text) hover:opacity-90 disabled:opacity-50'
-                    :   'border border-(--border-line) text-(--text-main) hover:bg-(--bg-panel) disabled:opacity-50'
+                        'btn-primary'
+                    :   'btn-secondary'
                 }`}>
-                <span className='inline-flex items-center justify-center gap-2'>
-                    {loading && (
-                        <Loader2
-                            size={14}
-                            className='animate-spin'
-                        />
-                    )}
-                    {loading ? 'Activating...' : ctaLabel}
-                </span>
+                {loading && (
+                    <Loader2
+                        size={16}
+                        className='animate-spin'
+                    />
+                )}
+                {loading ? 'Activating...' : ctaLabel}
             </button>
         </article>
     );
@@ -219,54 +218,58 @@ export default function PricingView() {
     };
 
     return (
-        <div className='flex-1 flex flex-col justify-between'>
-            <main className='max-w-6xl mx-auto px-6 pt-8 pb-4 tall:py-16 w-full'>
-                <h1 className='font-grotesque font-extrabold text-5xl sm:text-6xl text-(--text-main) tracking-tight mb-4'>
-                    Candidate packs and company plans
+        <div className='flex flex-1 flex-col'>
+            <main className='mx-auto w-full max-w-6xl px-6 py-16 md:py-20'>
+                <div className='animate-fade-up mx-auto mb-14 max-w-3xl text-center'>
+                <span className='eyebrow mb-5'>Pricing</span>
+                <h1 className='font-display text-5xl font-extrabold tracking-tight text-(--text-main) sm:text-6xl'>
+                    Simple plans for{' '}
+                    <span className='text-gradient'>candidates & companies</span>
                 </h1>
-                <p className='text-lg text-(--text-sub) max-w-2xl leading-relaxed mb-6 tall:mb-10'>
+                <p className='mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-(--text-sub)'>
                     Buy access in packs that match your search. Candidates
                     unlock unlimited resumes and cross-round insights, while
                     companies get a verified hiring pipeline.
                 </p>
+                </div>
 
                 {successMsg && (
-                    <div className='mb-6 p-4 border border-forest/40 bg-forest/5 text-forest dark:text-forest-dark rounded-md text-xs font-mono flex items-center gap-2'>
+                    <div className='mb-8 flex items-center gap-2 rounded-2xl border border-forest/30 bg-forest/10 p-4 text-sm font-medium text-forest dark:text-forest-dark'>
                         <CheckCircle2 size={16} /> {successMsg}
                     </div>
                 )}
 
                 {errorMsg && (
-                    <div className='mb-6 p-4 border border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400 rounded-md text-xs font-mono'>
+                    <div className='mb-8 rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-600 dark:text-red-400'>
                         {errorMsg}
                     </div>
                 )}
 
-                <section className='mb-10 tall:mb-14'>
-                    <div className='flex flex-wrap items-end justify-between gap-3 mb-5'>
+                <section className='mb-20'>
+                    <div className='mb-10 flex flex-wrap items-end justify-between gap-3'>
                         <div>
-                            <div className='flex items-center gap-2 font-mono text-xs text-(--text-sub) uppercase mb-1'>
+                            <div className='mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-300'>
                                 <UserRound size={14} /> Candidate Packs
                             </div>
-                            <h2 className='font-grotesque font-extrabold text-3xl text-(--text-main) tracking-tight'>
+                            <h2 className='font-display text-3xl font-extrabold tracking-tight text-(--text-main) md:text-4xl'>
                                 Unlimited access, bought as a pack
                             </h2>
                         </div>
                         {user?.subscriptionTier === 'PRO' && (
-                            <span className='font-mono text-[10px] px-2 py-1 rounded border border-forest/30 bg-forest/5 text-forest dark:text-forest-dark'>
+                            <span className='rounded-full bg-forest/10 px-3 py-1 text-xs font-semibold text-forest dark:text-forest-dark'>
                                 ACTIVE PRO PACK
                             </span>
                         )}
                     </div>
 
                     {user?.subscriptionTier === 'PRO' && (
-                        <div className='mb-5 rounded border border-(--border-line) bg-(--bg-panel) px-3 py-2 text-xs text-(--text-sub)'>
+                        <div className='mb-8 rounded-2xl border border-(--border-line) bg-(--bg-panel) px-4 py-3 text-sm text-(--text-sub)'>
                             Your current pack is active. Choosing another pack
                             adds its duration from your existing expiry date.
                         </div>
                     )}
 
-                    <div className='grid grid-cols-1 md:grid-cols-3 gap-6 tall:gap-8'>
+                    <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
                         {CANDIDATE_PACKS.map((plan) => {
                             const cta = resolveCta(plan, 'candidate');
                             return (
@@ -284,7 +287,7 @@ export default function PricingView() {
                         })}
                     </div>
 
-                    <div className='mt-4 rounded border border-(--border-line) bg-(--bg-panel) px-4 py-3 text-xs text-(--text-sub)'>
+                    <div className='mt-8 rounded-2xl border border-(--border-line) bg-(--bg-panel) px-5 py-4 text-sm text-(--text-sub)'>
                         New candidate accounts start free with one active
                         resume and the standard application queue. Pick a pack
                         when you need unlimited resumes and personalized
@@ -292,38 +295,38 @@ export default function PricingView() {
                         {!user && (
                             <Link
                                 to='/auth?mode=register'
-                                className='font-medium text-(--text-main) underline'>
+                                className='font-semibold text-brand-600 underline-offset-4 hover:underline dark:text-brand-300'>
                                 Create a free account
                             </Link>
                         )}
                     </div>
                 </section>
 
-                <section className='mb-6 tall:mb-16'>
-                    <div className='flex flex-wrap items-end justify-between gap-3 mb-5'>
+                <section>
+                    <div className='mb-10 flex flex-wrap items-end justify-between gap-3'>
                         <div>
-                            <div className='flex items-center gap-2 font-mono text-xs text-(--text-sub) uppercase mb-1'>
+                            <div className='mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-300'>
                                 <Building2 size={14} /> Company Plans
                             </div>
-                            <h2 className='font-grotesque font-extrabold text-3xl text-(--text-main) tracking-tight'>
+                            <h2 className='font-display text-3xl font-extrabold tracking-tight text-(--text-main) md:text-4xl'>
                                 A verified pipeline for hiring teams
                             </h2>
                         </div>
                         {user?.subscriptionTier === 'ENTERPRISE' && (
-                            <span className='font-mono text-[10px] px-2 py-1 rounded border border-forest/30 bg-forest/5 text-forest dark:text-forest-dark'>
+                            <span className='rounded-full bg-forest/10 px-3 py-1 text-xs font-semibold text-forest dark:text-forest-dark'>
                                 ACTIVE COMPANY PLAN
                             </span>
                         )}
                     </div>
 
                     {user?.subscriptionTier === 'ENTERPRISE' && (
-                        <div className='mb-5 rounded border border-(--border-line) bg-(--bg-panel) px-3 py-2 text-xs text-(--text-sub)'>
+                        <div className='mb-8 rounded-2xl border border-(--border-line) bg-(--bg-panel) px-4 py-3 text-sm text-(--text-sub)'>
                             Your company plan is active. Choosing another plan
                             adds its duration from your existing expiry date.
                         </div>
                     )}
 
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-6 tall:gap-8'>
+                    <div className='mx-auto grid max-w-4xl grid-cols-1 gap-6 md:grid-cols-2'>
                         {COMPANY_PLANS.map((plan) => {
                             const cta = resolveCta(plan, 'company');
                             return (
@@ -341,17 +344,14 @@ export default function PricingView() {
                         })}
                     </div>
 
-                    <div className='mt-4 rounded border border-(--border-line) bg-(--bg-panel) px-4 py-3 text-xs text-(--text-sub)'>
+                    <div className='mt-8 rounded-2xl border border-(--border-line) bg-(--bg-panel) px-5 py-4 text-sm text-(--text-sub)'>
                         Company plans require a recruiter account. Register as
                         a hiring team to activate a monthly or annual plan.
                     </div>
                 </section>
             </main>
 
-            <footer className='border-t border-(--border-line) py-3 tall:py-6 px-6 text-xs font-mono text-(--text-sub) max-w-7xl mx-auto w-full text-center'>
-                All plans billed in Algerian Dinars (DZD) • Packs activate
-                immediately
-            </footer>
+            <SiteFooter tagline='All plans billed in DZD · Packs activate immediately' />
         </div>
     );
 }

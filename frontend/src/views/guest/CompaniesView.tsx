@@ -1,89 +1,103 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, ShieldCheck, Terminal, Users } from 'lucide-react';
+import {
+    ArrowRight,
+    Building2,
+    CheckCircle2,
+    ShieldCheck,
+    Terminal,
+    Users,
+} from 'lucide-react';
+import { SiteFooter } from '../../components/Brand';
+
+const FEATURES = [
+    {
+        icon: Terminal,
+        title: 'Verifiable Rubrics',
+        text: 'Specify mandatory proofs: public commits, Docker configurations, Go/Python APIs, bar credentials, or university diplomas.',
+    },
+    {
+        icon: ShieldCheck,
+        title: 'Pre-Deadline Override',
+        text: 'Recruiters retain full authority: manually promote or decline candidate decisions at any time prior to the position closing deadline.',
+    },
+    {
+        icon: Users,
+        title: 'Zero-Ghosting Brand Protection',
+        text: 'Preserve your employer reputation. Applicants not selected receive courteous, actionable learning roadmaps instead of silence.',
+    },
+];
 
 export default function CompaniesView() {
     return (
-        <div className='flex-1 flex flex-col justify-between'>
-            <main className='max-w-6xl mx-auto px-6 pt-6 pb-2 tall:py-16 w-full'>
-                <h1 className='font-grotesque font-extrabold text-5xl sm:text-6xl text-(--text-main) tracking-tight mb-4'>
-                    Stop screening 500 unvetted CVs per opening.
-                </h1>
-                <p className='text-lg text-(--text-sub) max-w-2xl leading-relaxed mb-8 tall:mb-16'>
-                    Engineering managers and HR leads lose dozens of hours every
-                    week reading inflated resumes. Skillora delivers verified
-                    candidate dossiers where claimed competencies are backed by
-                    evidence.
-                </p>
-
-                <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 tall:mb-16'>
-                    <div className='p-5 tall:p-6 border border-(--border-line) rounded-lg bg-(--bg-canvas)'>
-                        <Terminal
-                            size={22}
-                            className='text-(--text-main) mb-3 tall:mb-4'
-                        />
-                        <h4 className='font-grotesque font-bold text-2xl text-(--text-main) mb-2'>
-                            Verifiable Rubrics
-                        </h4>
-                        <p className='text-xs text-(--text-sub) leading-relaxed'>
-                            Specify mandatory proofs: public commits, Docker
-                            configurations, Go/Python APIs, bar credentials, or
-                            university diplomas.
-                        </p>
-                    </div>
-
-                    <div className='p-5 tall:p-6 border border-(--border-line) rounded-lg bg-(--bg-canvas)'>
-                        <ShieldCheck
-                            size={22}
-                            className='text-(--text-main) mb-3 tall:mb-4'
-                        />
-                        <h4 className='font-grotesque font-bold text-2xl text-(--text-main) mb-2'>
-                            Pre-Deadline Override
-                        </h4>
-                        <p className='text-xs text-(--text-sub) leading-relaxed'>
-                            Recruiters retain full authority: manually promote
-                            or decline candidate decisions at any time prior to
-                            the position closing deadline.
-                        </p>
-                    </div>
-
-                    <div className='p-5 tall:p-6 border border-(--border-line) rounded-lg bg-(--bg-canvas)'>
-                        <Users
-                            size={22}
-                            className='text-(--text-main) mb-3 tall:mb-4'
-                        />
-                        <h4 className='font-grotesque font-bold text-2xl text-(--text-main) mb-2'>
-                            Zero-Ghosting Brand Protection
-                        </h4>
-                        <p className='text-xs text-(--text-sub) leading-relaxed'>
-                            Preserve your employer reputation. Applicants not
-                            selected receive courteous, actionable learning
-                            roadmaps instead of silence.
-                        </p>
-                    </div>
+        <div className='flex flex-1 flex-col'>
+            <main className='mx-auto w-full max-w-6xl px-6 py-16 md:py-20'>
+                <div className='animate-fade-up max-w-3xl'>
+                    <span className='eyebrow mb-5'>
+                        <Building2 size={13} />
+                        For hiring teams
+                    </span>
+                    <h1 className='font-display text-5xl font-extrabold leading-[1.05] tracking-tight text-(--text-main) sm:text-6xl'>
+                        Stop screening{' '}
+                        <span className='text-gradient'>500 unvetted CVs</span>{' '}
+                        per opening.
+                    </h1>
+                    <p className='mt-6 max-w-2xl text-lg leading-relaxed text-(--text-sub)'>
+                        Engineering managers and HR leads lose dozens of hours
+                        every week reading inflated resumes. Skillora delivers
+                        verified candidate dossiers where claimed competencies
+                        are backed by evidence.
+                    </p>
                 </div>
 
-                <div className='border border-(--border-line) p-6 tall:p-8 rounded-lg bg-(--bg-panel) flex flex-col md:flex-row items-center justify-between gap-6'>
-                    <div>
-                        <h3 className='font-grotesque font-bold text-3xl text-(--text-main) mb-1'>
-                            Ready to deploy your candidate cohort?
-                        </h3>
-                        <p className='text-xs text-(--text-sub)'>
-                            First job opening completely free. Automated
-                            calendar coordination included.
-                        </p>
+                <div className='mt-14 grid grid-cols-1 gap-6 md:grid-cols-3'>
+                    {FEATURES.map((feature) => (
+                        <div
+                            key={feature.title}
+                            className='card card-hover p-7'>
+                            <span className='icon-tile mb-5'>
+                                <feature.icon size={20} />
+                            </span>
+                            <h3 className='font-display text-xl font-bold text-(--text-main)'>
+                                {feature.title}
+                            </h3>
+                            <p className='mt-2 text-sm leading-relaxed text-(--text-sub)'>
+                                {feature.text}
+                            </p>
+                        </div>
+                    ))}
+                </div>
+
+                <div className='relative mt-14 overflow-hidden rounded-3xl bg-linear-to-br from-brand-600 via-violet-accent to-pink-accent p-8 text-white shadow-[0_30px_80px_-30px_rgb(99_102_241/0.8)] md:p-12'>
+                    <div
+                        aria-hidden='true'
+                        className='absolute inset-0 opacity-20 [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:22px_22px]'
+                    />
+                    <div className='relative flex flex-col items-start justify-between gap-8 md:flex-row md:items-center'>
+                        <div>
+                            <h3 className='font-display text-3xl font-extrabold tracking-tight md:text-4xl'>
+                                Ready to deploy your candidate cohort?
+                            </h3>
+                            <ul className='mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm text-white/85'>
+                                <li className='flex items-center gap-2'>
+                                    <CheckCircle2 size={16} /> First job
+                                    opening completely free
+                                </li>
+                                <li className='flex items-center gap-2'>
+                                    <CheckCircle2 size={16} /> Automated
+                                    calendar coordination included
+                                </li>
+                            </ul>
+                        </div>
+                        <Link
+                            to='/auth?mode=register'
+                            className='inline-flex shrink-0 items-center gap-2 rounded-full bg-white px-6 py-3.5 font-semibold text-brand-700 shadow-lg transition-transform hover:-translate-y-px'>
+                            Open Recruiter Account <ArrowRight size={18} />
+                        </Link>
                     </div>
-                    <Link
-                        to='/auth?mode=register'
-                        className='px-6 py-3 bg-(--btn-main-bg) text-(--btn-main-text) font-grotesque font-bold text-xl rounded-md hover:opacity-90 transition-opacity inline-flex items-center gap-2'>
-                        Open Recruiter Account <ArrowRight size={18} />
-                    </Link>
                 </div>
             </main>
 
-            <footer className='border-t border-(--border-line) py-3 tall:py-6 px-6 text-xs font-mono text-(--text-sub) max-w-7xl mx-auto w-full text-center'>
-                Skillora Infrastructure • Used by teams across Algiers, Oran,
-                and Constantine
-            </footer>
+            <SiteFooter tagline='Used by teams across Algiers, Oran & Constantine' />
         </div>
     );
 }

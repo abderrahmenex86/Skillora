@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { Building2, Check, Sparkles, UserRound } from 'lucide-react';
 import { apiClient } from '../../api/apiClient';
 import { ALGERIA_WILAYAS } from '../../data/algeria';
 import {
@@ -94,77 +95,84 @@ export default function AuthView() {
     };
 
     return (
-        <div className='flex-1 flex flex-col md:flex-row'>
-            <div className='w-full md:w-[42%] bg-(--bg-panel) border-r border-(--border-line) p-8 md:p-14 flex flex-col justify-between'>
-                <div className='max-w-md my-auto'>
-                    <h2 className='font-grotesque font-extrabold text-4xl sm:text-5xl leading-[1.05] tracking-tight mb-8 text-(--text-main)'>
+        <div className='flex flex-1 flex-col md:flex-row'>
+            <div className='relative w-full overflow-hidden bg-linear-to-br from-brand-700 via-violet-accent to-pink-accent p-8 text-white md:w-[42%] md:p-14 flex flex-col justify-between'>
+                <div
+                    aria-hidden='true'
+                    className='absolute inset-0 opacity-20 [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:22px_22px]'
+                />
+                <div
+                    aria-hidden='true'
+                    className='absolute -bottom-24 -right-24 h-80 w-80 rounded-full bg-white/20 blur-3xl'
+                />
+                <div className='relative my-auto max-w-md'>
+                    <span className='mb-6 inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-semibold backdrop-blur'>
+                        <Sparkles size={13} /> Skillora promise
+                    </span>
+                    <h2 className='mb-10 font-display text-4xl font-extrabold leading-[1.1] tracking-tight sm:text-5xl'>
                         Every applicant gets either an interview or a path to
                         grow. Guaranteed.
                     </h2>
-                    <div className='space-y-4 text-sm text-(--text-main)'>
-                        <div className='flex items-center space-x-3'>
-                            <span className='font-mono'>✓</span>
-                            <span>
-                                Zero unread PDF black holes across all 58
-                                wilayas.
-                            </span>
-                        </div>
-                        <div className='flex items-center space-x-3'>
-                            <span className='font-mono'>✓</span>
-                            <span>
-                                Verified state degrees (ESI, USTHB, CAPA) and
-                                real artifacts.
-                            </span>
-                        </div>
-                        <div className='flex items-center space-x-3'>
-                            <span className='font-mono'>✓</span>
-                            <span>
-                                Autonomous scheduling and guaranteed Cedar Amber
-                                gap analysis.
-                            </span>
-                        </div>
-                    </div>
+                    <ul className='space-y-4 text-sm text-white/90'>
+                        {[
+                            'Zero unread PDF black holes across all 58 wilayas.',
+                            'Verified state degrees (ESI, USTHB, CAPA) and real artifacts.',
+                            'Autonomous scheduling and guaranteed Cedar Amber gap analysis.',
+                        ].map((item) => (
+                            <li
+                                key={item}
+                                className='flex items-start gap-3'>
+                                <span className='mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20'>
+                                    <Check
+                                        size={12}
+                                        strokeWidth={3}
+                                    />
+                                </span>
+                                <span>{item}</span>
+                            </li>
+                        ))}
+                    </ul>
                 </div>
-                <div className='font-mono text-xs text-(--text-sub)'>
-                    [ALGERIA TALENT INFRASTRUCTURE • 58 WILAYAS]
+                <div className='relative mt-10 text-xs text-white/70'>
+                    Algeria Talent Infrastructure · 58 wilayas
                 </div>
             </div>
 
-            <div className='w-full md:w-[58%] p-8 md:p-14 flex flex-col justify-center items-center'>
-                <div className='w-full max-w-lg'>
+            <div className='w-full md:w-[58%] p-6 py-12 md:p-14 flex flex-col justify-center items-center'>
+                <div className='card w-full max-w-lg p-7 shadow-lg sm:p-9'>
                     {!isLogin && (
-                        <div className='bg-(--bg-panel) p-1 rounded-md border border-(--border-line) flex mb-6'>
+                        <div className='mb-7 flex rounded-full border border-(--border-line) bg-(--bg-panel) p-1'>
                             <button
                                 type='button'
                                 onClick={() => setRole('APPLICANT')}
-                                className={`flex-1 py-2 text-xs font-medium rounded transition-colors ${
+                                className={`flex flex-1 items-center justify-center gap-1.5 rounded-full py-2.5 text-xs font-semibold transition-all ${
                                     role === 'APPLICANT' ?
-                                        'bg-(--bg-canvas) text-(--text-main) font-semibold shadow-xs'
-                                    :   'text-(--text-sub)'
+                                        'bg-(--bg-elevated) text-(--text-main) shadow-sm ring-1 ring-(--border-line)'
+                                    :   'text-(--text-sub) hover:text-(--text-main)'
                                 }`}>
-                                Seeking Roles (Candidate)
+                                <UserRound size={14} /> Seeking Roles
                             </button>
                             <button
                                 type='button'
                                 onClick={() => setRole('RECRUITER')}
-                                className={`flex-1 py-2 text-xs font-medium rounded transition-colors ${
+                                className={`flex flex-1 items-center justify-center gap-1.5 rounded-full py-2.5 text-xs font-semibold transition-all ${
                                     role === 'RECRUITER' ?
-                                        'bg-(--bg-canvas) text-(--text-main) font-semibold shadow-xs'
-                                    :   'text-(--text-sub)'
+                                        'bg-(--bg-elevated) text-(--text-main) shadow-sm ring-1 ring-(--border-line)'
+                                    :   'text-(--text-sub) hover:text-(--text-main)'
                                 }`}>
-                                Hiring Talent (Recruiter)
+                                <Building2 size={14} /> Hiring Talent
                             </button>
                         </div>
                     )}
 
-                    <h3 className='font-grotesque font-bold text-3xl tracking-tight mb-1 text-(--text-main)'>
+                    <h3 className='mb-1.5 font-display text-3xl font-extrabold tracking-tight text-(--text-main)'>
                         {isLogin ?
                             'Enter the Workspace'
                         : role === 'RECRUITER' ?
                             'Create Recruiter Profile'
                         :   'Create Candidate Profile'}
                     </h3>
-                    <p className='text-xs text-(--text-sub) mb-6'>
+                    <p className='mb-7 text-sm text-(--text-sub)'>
                         {isLogin ?
                             'Access your applications, resume, or company cohorts.'
                         :   'Fill in your civil and contact information to create your verified talent account.'
@@ -172,7 +180,7 @@ export default function AuthView() {
                     </p>
 
                     {errorMsg && (
-                        <div className='mb-4 p-3 text-xs bg-red-500/10 border border-red-500/20 text-red-600 rounded'>
+                        <div className='mb-5 rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-sm text-red-600 dark:text-red-400'>
                             {errorMsg}
                         </div>
                     )}
@@ -191,7 +199,7 @@ export default function AuthView() {
                                         onChange={(e) =>
                                             setFirstName(e.target.value)
                                         }
-                                        className='w-full px-3.5 py-2.5 text-xs rounded-md border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none focus:ring-1 focus:ring-(--text-main)'
+                                        className='field'
                                     />
                                     <input
                                         type='text'
@@ -201,7 +209,7 @@ export default function AuthView() {
                                         onChange={(e) =>
                                             setLastName(e.target.value)
                                         }
-                                        className='w-full px-3.5 py-2.5 text-xs rounded-md border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none focus:ring-1 focus:ring-(--text-main)'
+                                        className='field'
                                     />
                                 </div>
 
@@ -213,7 +221,7 @@ export default function AuthView() {
                                         onChange={(e) =>
                                             setMiddleName(e.target.value)
                                         }
-                                        className='w-full px-3.5 py-2.5 text-xs rounded-md border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none focus:ring-1 focus:ring-(--text-main)'
+                                        className='field'
                                     />
                                     <input
                                         type='tel'
@@ -222,12 +230,12 @@ export default function AuthView() {
                                         onChange={(e) =>
                                             setPhone(e.target.value)
                                         }
-                                        className='w-full px-3.5 py-2.5 text-xs rounded-md border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none focus:ring-1 focus:ring-(--text-main)'
+                                        className='field'
                                     />
                                 </div>
 
                                 <div>
-                                    <label className='block text-[11px] font-mono text-(--text-sub) mb-1'>
+                                    <label className='mb-1.5 block text-xs font-medium text-(--text-sub)'>
                                         Wilaya de Résidence (District)
                                     </label>
                                     <select
@@ -235,7 +243,7 @@ export default function AuthView() {
                                         onChange={(e) =>
                                             setWilaya(e.target.value)
                                         }
-                                        className='w-full px-3.5 py-2.5 text-xs rounded-md border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none focus:ring-1 focus:ring-(--text-main)'>
+                                        className='field'>
                                         {ALGERIA_WILAYAS.map((w) => (
                                             <option
                                                 key={w}
@@ -255,7 +263,7 @@ export default function AuthView() {
                                         onChange={(e) =>
                                             setCompanyName(e.target.value)
                                         }
-                                        className='w-full px-3.5 py-2.5 text-xs rounded-md border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none focus:ring-1 focus:ring-(--text-main)'
+                                        className='field'
                                     />
                                 )}
                             </>
@@ -268,7 +276,7 @@ export default function AuthView() {
                             placeholder='Email address'
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className='w-full px-3.5 py-2.5 text-sm rounded-md border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none focus:ring-1 focus:ring-(--text-main)'
+                            className='field'
                         />
                         <input
                             type='password'
@@ -283,13 +291,13 @@ export default function AuthView() {
                             }
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className='w-full px-3.5 py-2.5 text-sm rounded-md border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none focus:ring-1 focus:ring-(--text-main)'
+                            className='field'
                         />
 
                         <button
                             type='submit'
                             disabled={isLoading}
-                            className='w-full py-3 bg-(--btn-main-bg) text-(--btn-main-text) font-grotesque font-bold text-xl rounded-md hover:opacity-90 transition-opacity disabled:opacity-50'>
+                            className='btn-primary mt-2 w-full py-3.5!'>
                             {isLoading ?
                                 'Processing...'
                             : isLogin ?
@@ -298,13 +306,13 @@ export default function AuthView() {
                         </button>
                     </form>
 
-                    <div className='text-center text-xs text-(--text-sub) mt-6'>
+                    <div className='mt-7 text-center text-sm text-(--text-sub)'>
                         {isLogin ?
                             <>
                                 Don’t have an account?{' '}
                                 <button
                                     onClick={() => setIsLogin(false)}
-                                    className='text-(--text-main) font-semibold underline'>
+                                    className='font-semibold text-brand-600 underline-offset-4 hover:underline dark:text-brand-300'>
                                     Register here
                                 </button>
                             </>
@@ -312,7 +320,7 @@ export default function AuthView() {
                                 Already registered?{' '}
                                 <button
                                     onClick={() => setIsLogin(true)}
-                                    className='text-(--text-main) font-semibold underline'>
+                                    className='font-semibold text-brand-600 underline-offset-4 hover:underline dark:text-brand-300'>
                                     Log in here
                                 </button>
                             </>

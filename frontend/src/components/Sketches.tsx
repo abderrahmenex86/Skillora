@@ -251,9 +251,10 @@ export function MatchPathSketch({ className = '' }: SketchProps) {
                 x='322'
                 y='68'
                 fill='currentColor'
-                fontFamily='var(--font-grotesque)'
-                fontSize='16'
-                fontWeight='800'>
+                fontFamily='var(--font-display)'
+                fontSize='13'
+                fontWeight='800'
+                letterSpacing='-0.3'>
                 94% MATCH
             </text>
         </svg>

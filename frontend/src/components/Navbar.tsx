@@ -3,6 +3,9 @@ import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { flushSync } from 'react-dom';
 import {
     ChevronDown,
+    Menu,
+    Sparkles,
+    X,
     LayoutDashboard,
     LogOut,
     Moon,
@@ -11,15 +14,25 @@ import {
     User as UserIcon,
 } from 'lucide-react';
 import { roleHome } from '../data/routes';
+import { Logo } from './Brand';
 import { useThemeStore } from '../store/useThemeStore';
 import { useAuthStore } from '../store/useAuthStore';
 
 function navLinkClass({ isActive }: { isActive: boolean }) {
     return [
-        'relative py-1 transition-colors',
+        'relative rounded-full px-3.5 py-1.5 transition-all duration-200',
         isActive
-            ? 'text-(--text-main) after:absolute after:-bottom-1 after:left-0 after:right-0 after:h-0.5 after:rounded-full after:bg-(--text-main)'
+            ? 'bg-(--bg-elevated) text-(--text-main) shadow-sm ring-1 ring-(--border-line)'
             : 'text-(--text-sub) hover:text-(--text-main)',
+    ].join(' ');
+}
+
+function mobileLinkClass({ isActive }: { isActive: boolean }) {
+    return [
+        'block rounded-xl px-4 py-3 text-sm font-medium transition-colors',
+        isActive
+            ? 'bg-brand-500/10 text-brand-600 dark:text-brand-300'
+            : 'text-(--text-main) hover:bg-(--bg-panel)',
     ].join(' ');
 }
 
@@ -29,11 +42,21 @@ export default function Navbar() {
     const navigate = useNavigate();
     const location = useLocation();
     const [menuOpen, setMenuOpen] = useState(false);
+    const [mobileOpen, setMobileOpen] = useState(false);
+    const [scrolled, setScrolled] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         setMenuOpen(false);
+        setMobileOpen(false);
     }, [location.pathname]);
+
+    useEffect(() => {
+        const onScroll = () => setScrolled(window.scrollY > 8);
+        onScroll();
+        window.addEventListener('scroll', onScroll, { passive: true });
+        return () => window.removeEventListener('scroll', onScroll);
+    }, []);
 
     useEffect(() => {
         if (!menuOpen) return;
@@ -137,95 +160,57 @@ export default function Navbar() {
         user?.subscriptionTier !== 'PRO' &&
         user?.subscriptionTier !== 'ENTERPRISE';
 
+
+
+    const links: Array<{ to: string; label: string; end?: boolean }> =
+        !user ?
+            [
+                { to: '/', label: 'Home', end: true },
+                { to: '/how-it-works', label: 'How It Works' },
+                { to: '/pricing', label: 'Pricing' },
+                { to: '/companies', label: 'Companies' },
+                { to: '/about', label: 'About Us' },
+            ]
+        : user.role === 'APPLICANT' ?
+            [
+                { to: '/applicant/profiles', label: 'Resume Builder' },
+                { to: '/jobs', label: 'Open Positions' },
+                { to: '/applicant/insights', label: 'Insights' },
+            ]
+        :   [
+                { to: '/recruiter/positions', label: 'Positions History' },
+                { to: '/jobs', label: 'Public Jobs Preview' },
+                { to: '/pricing', label: 'Plans' },
+            ];
+
     return (
-        <header className='sticky top-0 z-50 w-full border-b border-(--border-line) bg-(--bg-canvas)/95 backdrop-blur-sm transition-colors'>
-            <div className='max-w-7xl mx-auto px-6 h-16 flex items-center justify-between'>
-                <div className='flex items-center'>
-                    <Link
-                        to='/'
-                        className='inline-flex items-center px-3 py-1 font-grotesque font-bold text-3xl tracking-tight bg-(--btn-main-bg) text-(--btn-main-text) rounded-sm transition-colors'>
-                        Skillora
-                    </Link>
-                </div>
+        <header
+            className={`sticky top-0 z-50 w-full transition-all duration-300 ${
+                scrolled ?
+                    'glass border-b border-(--border-line) shadow-[0_1px_0_0_rgb(0_0_0/0.02)]'
+                :   'border-b border-transparent'
+            }`}>
+            <div className='mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6'>
+                <Logo />
 
-                <nav className='hidden md:flex items-center space-x-8 text-sm font-medium'>
-                    {!user && (
-                        <>
-                            <NavLink
-                                to='/'
-                                end
-                                className={navLinkClass}>
-                                Home
-                            </NavLink>
-                            <NavLink
-                                to='/how-it-works'
-                                className={navLinkClass}>
-                                How It Works
-                            </NavLink>
-                            <NavLink
-                                to='/pricing'
-                                className={navLinkClass}>
-                                Pricing
-                            </NavLink>
-                            <NavLink
-                                to='/companies'
-                                className={navLinkClass}>
-                                Companies
-                            </NavLink>
-                            <NavLink
-                                to='/about'
-                                className={navLinkClass}>
-                                About Us
-                            </NavLink>
-                        </>
-                    )}
-
-                    {user?.role === 'APPLICANT' && (
-                        <>
-                            <NavLink
-                                to='/applicant/profiles'
-                                className={navLinkClass}>
-                                Resume Builder
-                            </NavLink>
-                            <NavLink
-                                to='/jobs'
-                                className={navLinkClass}>
-                                Open Positions
-                            </NavLink>
-                            <NavLink
-                                to='/applicant/insights'
-                                className={navLinkClass}>
-                                Insights
-                            </NavLink>
-                        </>
-                    )}
-
-                    {user?.role === 'RECRUITER' && (
-                        <>
-                            <NavLink
-                                to='/recruiter/positions'
-                                className={navLinkClass}>
-                                Positions History
-                            </NavLink>
-                            <NavLink
-                                to='/jobs'
-                                className={navLinkClass}>
-                                Public Jobs Preview
-                            </NavLink>
-                            <NavLink
-                                to='/pricing'
-                                className={navLinkClass}>
-                                Plans
-                            </NavLink>
-                        </>
-                    )}
+                <nav className='hidden items-center gap-1 rounded-full border border-(--border-line) bg-(--bg-panel)/70 p-1 text-sm font-medium lg:flex'>
+                    {links.map((link) => (
+                        <NavLink
+                            key={link.to + link.label}
+                            to={link.to}
+                            end={link.end}
+                            className={navLinkClass}>
+                            {link.label}
+                        </NavLink>
+                    ))}
                 </nav>
 
-                <div className='flex items-center space-x-3'>
+                <div className='flex items-center gap-2'>
                     {showUpgradeButton && (
                         <Link
                             to='/pricing'
-                            className='whitespace-nowrap rounded-md bg-(--btn-main-bg) px-3 py-2 text-xs font-semibold text-(--btn-main-text) transition-opacity hover:opacity-90 sm:px-4 sm:text-sm'>
+                            className='hidden items-center gap-1.5 whitespace-nowrap rounded-full bg-linear-to-r from-brand-600 to-violet-accent px-3.5 py-2 text-xs font-semibold text-white shadow-[0_6px_18px_-6px_rgb(99_102_241/0.7)] transition-all hover:-translate-y-px hover:brightness-110 sm:inline-flex sm:text-sm'>
+                            <Sparkles size={14} />
                             Upgrade to Pro
                         </Link>
                     )}
@@ -234,39 +219,18 @@ export default function Navbar() {
                         <>
                             <Link
                                 to='/auth?mode=login'
-                                className='px-4 py-2 text-sm font-medium rounded-md border border-(--border-line) text-(--text-main) hover:bg-(--bg-panel) transition-colors'>
+                                className='hidden rounded-full px-4 py-2 text-sm font-semibold text-(--text-main) transition-colors hover:bg-(--bg-panel) sm:inline-flex'>
                                 Login
                             </Link>
                             <Link
                                 to='/auth?mode=register'
-                                className='px-4 py-2 text-sm font-medium rounded-md bg-(--btn-main-bg) text-(--btn-main-text) hover:opacity-90 transition-opacity'>
-                                Register
+                                className='inline-flex rounded-full bg-(--text-main) px-4 py-2 text-sm font-semibold text-(--bg-canvas) shadow-sm transition-all hover:-translate-y-px hover:opacity-90'>
+                                Get started
                             </Link>
                         </>
                     :   <div
                             ref={menuRef}
-                            className='relative flex items-center gap-1 pl-3 border-l border-(--border-line)'>
-                            <button
-                                type='button'
-                                onClick={() => {
-                                    setMenuOpen(false);
-                                    navigate(roleHome[user.role]);
-                                }}
-                                aria-label='Go to dashboard'
-                                className='flex items-center space-x-2 rounded-md px-2 py-1 hover:bg-(--bg-panel) transition-colors cursor-pointer'>
-                                <div className='w-8 h-8 rounded-full bg-(--bg-panel) border border-(--border-line) flex items-center justify-center font-grotesque font-bold text-sm text-(--text-main)'>
-                                    {initials || <UserIcon size={14} />}
-                                </div>
-                                <div className='hidden sm:block text-left'>
-                                    <div className='text-xs font-semibold leading-tight text-(--text-main)'>
-                                        {displayName}
-                                    </div>
-                                    <div className='font-mono text-[10px] text-(--text-sub)'>
-                                        {wilayaDisplay}
-                                    </div>
-                                </div>
-                            </button>
-
+                            className='relative'>
                             <button
                                 type='button'
                                 onClick={() => setMenuOpen((open) => !open)}
@@ -277,10 +241,21 @@ export default function Navbar() {
                                 }
                                 aria-haspopup='menu'
                                 aria-expanded={menuOpen}
-                                className='p-1.5 rounded-md text-(--text-sub) hover:text-(--text-main) hover:bg-(--bg-panel) transition-colors cursor-pointer'>
+                                className='flex items-center gap-2 rounded-full border border-(--border-line) bg-(--bg-elevated) py-1 pl-1 pr-2.5 shadow-xs transition-colors hover:border-brand-300'>
+                                <span className='flex h-8 w-8 items-center justify-center rounded-full bg-linear-to-br from-brand-500 to-violet-accent font-display text-xs font-bold text-white'>
+                                    {initials || <UserIcon size={14} />}
+                                </span>
+                                <span className='hidden text-left sm:block'>
+                                    <span className='block max-w-[9rem] truncate text-xs font-semibold leading-tight text-(--text-main)'>
+                                        {displayName}
+                                    </span>
+                                    <span className='block text-[10px] leading-tight text-(--text-sub)'>
+                                        {wilayaDisplay}
+                                    </span>
+                                </span>
                                 <ChevronDown
-                                    size={15}
-                                    className={`transition-transform duration-200 ${menuOpen ? 'rotate-180' : ''}`}
+                                    size={14}
+                                    className={`text-(--text-sub) transition-transform duration-200 ${menuOpen ? 'rotate-180' : ''}`}
                                 />
                             </button>
 
@@ -288,16 +263,24 @@ export default function Navbar() {
                                 role='menu'
                                 aria-hidden={!menuOpen}
                                 inert={!menuOpen}
-                                className={`absolute right-0 top-full z-50 mt-2 w-56 origin-top-right rounded-md border border-(--border-line) bg-(--bg-canvas) p-1.5 shadow-lg transition-all duration-200 ease-out ${
+                                className={`absolute right-0 top-full z-50 mt-2 w-60 origin-top-right rounded-2xl border border-(--border-line) bg-(--bg-elevated) p-2 shadow-lg transition-all duration-200 ease-out ${
                                     menuOpen ?
                                         'pointer-events-auto translate-y-0 scale-100 opacity-100'
                                     :   'pointer-events-none -translate-y-1 scale-95 opacity-0'
                                 }`}>
+                                <div className='mb-1 border-b border-(--border-line) px-3 pb-2.5 pt-1.5'>
+                                    <div className='truncate text-sm font-semibold text-(--text-main)'>
+                                        {displayName}
+                                    </div>
+                                    <div className='truncate text-xs text-(--text-sub)'>
+                                        {user.email}
+                                    </div>
+                                </div>
                                 <Link
                                     to={roleHome[user.role]}
                                     role='menuitem'
                                     onClick={() => setMenuOpen(false)}
-                                    className='flex items-center gap-2 rounded px-3 py-2 text-sm text-(--text-main) transition-colors hover:bg-(--bg-panel)'>
+                                    className='flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-(--text-main) transition-colors hover:bg-(--bg-panel)'>
                                     <LayoutDashboard size={15} />
                                     Dashboard
                                 </Link>
@@ -305,7 +288,7 @@ export default function Navbar() {
                                     to='/settings/profile'
                                     role='menuitem'
                                     onClick={() => setMenuOpen(false)}
-                                    className='flex items-center gap-2 rounded px-3 py-2 text-sm text-(--text-main) transition-colors hover:bg-(--bg-panel)'>
+                                    className='flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-(--text-main) transition-colors hover:bg-(--bg-panel)'>
                                     <Pencil size={15} />
                                     Edit Profile
                                 </Link>
@@ -314,7 +297,7 @@ export default function Navbar() {
                                     type='button'
                                     role='menuitem'
                                     onClick={handleLogout}
-                                    className='flex w-full items-center gap-2 rounded px-3 py-2 text-left text-sm text-red-600 transition-colors hover:bg-red-500/10 dark:text-red-400'>
+                                    className='flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm text-red-600 transition-colors hover:bg-red-500/10 dark:text-red-400'>
                                     <LogOut size={15} />
                                     Logout
                                 </button>
@@ -330,15 +313,61 @@ export default function Navbar() {
                                 'Switch to light mode'
                             :   'Switch to dark mode'
                         }
-                        className='p-2 rounded-md border border-(--border-line) text-(--text-sub) hover:text-(--text-main) hover:bg-(--bg-panel) transition-all flex items-center justify-center cursor-pointer'>
+                        className='flex h-9 w-9 items-center justify-center rounded-full border border-(--border-line) bg-(--bg-elevated) text-(--text-sub) transition-all hover:text-(--text-main) hover:border-brand-300'>
                         {isDark ?
                             <Sun
-                                size={17}
+                                size={16}
                                 className='text-amber-400'
                             />
-                        :   <Moon size={17} />}
+                        :   <Moon size={16} />}
+                    </button>
+
+                    <button
+                        type='button'
+                        onClick={() => setMobileOpen((open) => !open)}
+                        aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+                        aria-expanded={mobileOpen}
+                        className='flex h-9 w-9 items-center justify-center rounded-full border border-(--border-line) bg-(--bg-elevated) text-(--text-main) lg:hidden'>
+                        {mobileOpen ?
+                            <X size={16} />
+                        :   <Menu size={16} />}
                     </button>
                 </div>
+            </div>
+
+            <div
+                className={`overflow-hidden border-(--border-line) transition-[max-height,opacity] duration-300 lg:hidden ${
+                    mobileOpen ?
+                        'glass max-h-[28rem] border-t opacity-100'
+                    :   'max-h-0 opacity-0'
+                }`}
+                inert={!mobileOpen}>
+                <nav className='mx-auto flex max-w-7xl flex-col gap-1 px-4 py-3'>
+                    {links.map((link) => (
+                        <NavLink
+                            key={link.to + link.label}
+                            to={link.to}
+                            end={link.end}
+                            className={mobileLinkClass}>
+                            {link.label}
+                        </NavLink>
+                    ))}
+                    {!user && (
+                        <NavLink
+                            to='/auth?mode=login'
+                            className={mobileLinkClass}>
+                            Login
+                        </NavLink>
+                    )}
+                    {showUpgradeButton && (
+                        <Link
+                            to='/pricing'
+                            className='mt-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-linear-to-r from-brand-600 to-violet-accent px-4 py-3 text-sm font-semibold text-white'>
+                            <Sparkles size={14} />
+                            Upgrade to Pro
+                        </Link>
+                    )}
+                </nav>
             </div>
         </header>
     );

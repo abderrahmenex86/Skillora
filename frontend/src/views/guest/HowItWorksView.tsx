@@ -1,87 +1,92 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, CalendarCheck, FileText, ScanSearch } from 'lucide-react';
+import { SiteFooter } from '../../components/Brand';
+
+const STEPS = [
+    {
+        icon: FileText,
+        tag: 'Tailored resumes',
+        title: 'Apply with tailored resumes',
+        text: 'Applicants set up dedicated resumes (e.g. Data Engineer, Penetration Tester, or Corporate Counsel) with role-specific summaries, selected projects, GitHub repos, and credentials. Each application evaluated reflects the exact resume you choose.',
+        accent: false,
+    },
+    {
+        icon: ScanSearch,
+        tag: 'Autonomous rubrics',
+        title: 'Evidence match across all disciplines',
+        text: 'Companies specify mandatory criteria. The agent normalizes submissions into randomized candidate cards (e.g. #DZ-308), auditing artifacts and degree credentials objectively.',
+        accent: false,
+    },
+    {
+        icon: CalendarCheck,
+        tag: 'Logistics or growth',
+        title: 'Guaranteed interview or learning path',
+        text: 'Eligible applicants receive automated calendar slots to confirm directly on their dashboard calendar. Redirected applicants receive the Cedar Amber gap analysis detailing exact steps to qualify next time.',
+        accent: true,
+    },
+];
 
 export default function HowItWorksView() {
     return (
-        <div className='flex-1 flex flex-col justify-between'>
-            <main className='max-w-5xl mx-auto px-6 py-16 w-full'>
-                <h1 className='font-grotesque font-extrabold text-5xl sm:text-6xl text-(--text-main) tracking-tight mb-6 leading-none'>
-                    How Skillora Works
-                </h1>
-                <p className='text-lg text-(--text-sub) max-w-2xl leading-relaxed mb-16'>
-                    Skillora replaces keyword filtering with verified evidence
-                    and guarantees a deterministic dual outcome: an interview
-                    invitation or an actionable gap roadmap.
-                </p>
-
-                <div className='space-y-12 border-t border-(--border-line) pt-12 mb-16'>
-                    <div className='grid grid-cols-1 md:grid-cols-12 gap-6 items-start'>
-                        <div className='md:col-span-3 font-mono text-sm text-(--text-sub)'>
-                            01 / TAILORED RESUMES
-                        </div>
-                        <div className='md:col-span-9'>
-                            <h3 className='font-grotesque font-bold text-3xl text-(--text-main) mb-2'>
-                                Apply with tailored resumes
-                            </h3>
-                            <p className='text-sm text-(--text-sub) leading-relaxed'>
-                                Applicants set up dedicated resumes (e.g. Data
-                                Engineer, Penetration Tester, or Corporate
-                                Counsel) with role-specific summaries, selected
-                                projects, GitHub repos, and credentials. Each
-                                application evaluated reflects the exact resume
-                                you choose.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className='grid grid-cols-1 md:grid-cols-12 gap-6 items-start border-t border-(--border-line) pt-8'>
-                        <div className='md:col-span-3 font-mono text-sm text-(--text-sub)'>
-                            02 / AUTONOMOUS RUBRICS
-                        </div>
-                        <div className='md:col-span-9'>
-                            <h3 className='font-grotesque font-bold text-3xl text-(--text-main) mb-2'>
-                                Evidence match across all disciplines
-                            </h3>
-                            <p className='text-sm text-(--text-sub) leading-relaxed'>
-                                Companies specify mandatory criteria. The agent
-                                normalizes submissions into randomized candidate
-                                cards (e.g. `#DZ-308`), auditing artifacts and
-                                degree credentials objectively.
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className='grid grid-cols-1 md:grid-cols-12 gap-6 items-start border-t border-(--border-line) pt-8'>
-                        <div className='md:col-span-3 font-mono text-sm text-amber-accent'>
-                            03 / LOGISTICS OR GROWTH
-                        </div>
-                        <div className='md:col-span-9'>
-                            <h3 className='font-grotesque font-bold text-3xl text-(--text-main) mb-2'>
-                                Guaranteed interview or learning path
-                            </h3>
-                            <p className='text-sm text-(--text-sub) leading-relaxed mb-4'>
-                                Eligible applicants receive automated calendar
-                                slots to confirm directly on their dashboard
-                                calendar. Redirected applicants receive the
-                                Cedar Amber gap analysis detailing exact steps
-                                to qualify next time.
-                            </p>
-                        </div>
-                    </div>
+        <div className='flex flex-1 flex-col'>
+            <main className='mx-auto w-full max-w-5xl px-6 py-16 md:py-20'>
+                <div className='animate-fade-up mx-auto max-w-3xl text-center'>
+                    <span className='eyebrow mb-5'>How it works</span>
+                    <h1 className='font-display text-5xl font-extrabold leading-[1.05] tracking-tight text-(--text-main) sm:text-6xl'>
+                        From application to{' '}
+                        <span className='text-gradient'>outcome</span>, in
+                        three steps
+                    </h1>
+                    <p className='mt-6 text-lg leading-relaxed text-(--text-sub)'>
+                        Skillora replaces keyword filtering with verified
+                        evidence and guarantees a deterministic dual outcome:
+                        an interview invitation or an actionable gap roadmap.
+                    </p>
                 </div>
 
-                <div>
+                <ol className='relative mt-16 space-y-6 before:absolute before:bottom-8 before:left-[1.85rem] before:top-8 before:hidden before:w-px before:bg-linear-to-b before:from-brand-500 before:via-violet-accent before:to-amber-accent md:before:block'>
+                    {STEPS.map((step, index) => (
+                        <li
+                            key={step.title}
+                            className='relative flex flex-col gap-5 md:flex-row md:items-start'>
+                            <span
+                                className={`relative z-10 inline-flex h-15 w-15 shrink-0 items-center justify-center rounded-2xl text-white shadow-lg ${
+                                    step.accent ?
+                                        'bg-linear-to-br from-amber-accent to-pink-accent'
+                                    :   'bg-linear-to-br from-brand-500 to-violet-accent'
+                                }`}>
+                                <step.icon size={24} />
+                            </span>
+                            <div className='card card-hover flex-1 p-7'>
+                                <div
+                                    className={`mb-2 text-xs font-semibold uppercase tracking-wider ${
+                                        step.accent ?
+                                            'text-amber-accent'
+                                        :   'text-brand-600 dark:text-brand-300'
+                                    }`}>
+                                    Step 0{index + 1} · {step.tag}
+                                </div>
+                                <h3 className='font-display text-2xl font-bold text-(--text-main)'>
+                                    {step.title}
+                                </h3>
+                                <p className='mt-3 text-sm leading-relaxed text-(--text-sub)'>
+                                    {step.text}
+                                </p>
+                            </div>
+                        </li>
+                    ))}
+                </ol>
+
+                <div className='mt-14 flex justify-center'>
                     <Link
                         to='/auth?mode=register'
-                        className='px-6 py-3.5 bg-(--btn-main-bg) text-(--btn-main-text) font-grotesque font-bold text-xl rounded-md hover:opacity-90 transition-opacity inline-flex items-center gap-2'>
+                        className='btn-primary px-6! py-3.5! text-base!'>
                         Build Your Resume <ArrowRight size={18} />
                     </Link>
                 </div>
             </main>
 
-            <footer className='border-t border-(--border-line) py-6 px-6 text-xs font-mono text-(--text-sub) max-w-7xl mx-auto w-full text-center'>
-                Skillora Architecture • Deterministic Talent Evaluation
-            </footer>
+            <SiteFooter tagline='Deterministic talent evaluation' />
         </div>
     );
 }
