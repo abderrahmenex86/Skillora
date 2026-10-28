@@ -2,11 +2,9 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../../api/apiClient';
 import {
-    CalendarSketch,
-    DossierSketch,
-} from '../../components/Sketches';
-import {
     Calendar,
+    CalendarDays,
+    FolderOpen,
     Video,
     Clock,
     CheckCircle2,
@@ -111,7 +109,12 @@ export default function ApplicantDashboardView() {
                             </div>
                         : calendarData?.length === 0 ?
                             <div className='text-xs text-(--text-sub) py-6 text-center border border-dashed border-(--border-line) rounded-lg'>
-                                <CalendarSketch className='mx-auto h-20 w-auto text-(--text-sub)' />
+                                <CalendarDays
+                                    size={40}
+                                    strokeWidth={1.25}
+                                    className='mx-auto text-(--text-sub)'
+                                    aria-hidden='true'
+                                />
                                 <p className='mt-3'>
                                     No active interview slots pending or
                                     scheduled.
@@ -335,7 +338,12 @@ export default function ApplicantDashboardView() {
                             </div>
                         : appsData?.length === 0 ?
                             <div className='text-xs text-(--text-sub) py-8 text-center border border-dashed border-(--border-line) rounded-lg'>
-                                <DossierSketch className='mx-auto h-20 w-auto text-(--text-sub)' />
+                                <FolderOpen
+                                    size={40}
+                                    strokeWidth={1.25}
+                                    className='mx-auto text-(--text-sub)'
+                                    aria-hidden='true'
+                                />
                                 <div className='mt-3 text-sm font-medium text-(--text-main)'>
                                     No applications yet
                                 </div>
