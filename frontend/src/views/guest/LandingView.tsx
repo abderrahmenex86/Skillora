@@ -107,7 +107,8 @@ export default function LandingView() {
                                     to={
                                         user?.role === 'APPLICANT' ?
                                             '/applicant/dashboard'
-                                        : user ? '/jobs'
+                                        : user ?
+                                            '/jobs'
                                         :   '/auth?mode=register'
                                     }
                                     className='text-xs font-mono text-amber-accent hover:underline block'>
@@ -115,7 +116,8 @@ export default function LandingView() {
                                         'View your feedback dossier →'
                                     : user ?
                                         'Explore open roles with rubrics →'
-                                    :   'Register to explore roles with rubrics →'}
+                                    :   'Register to explore roles with rubrics →'
+                                    }
                                 </Link>
                             </div>
                         </div>
