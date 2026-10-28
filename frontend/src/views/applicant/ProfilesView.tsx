@@ -10,17 +10,6 @@ export default function ProfilesView() {
 
     return (
         <div className='flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
-            <div className='mb-7 border-b border-(--border-line) pb-6'>
-                <h1 className='font-grotesque text-4xl font-extrabold tracking-tight text-(--text-main)'>
-                    Resume Builder
-                </h1>
-                <p className='mt-2 max-w-3xl text-sm leading-relaxed text-(--text-sub)'>
-                    Keep every diploma, project, link, and certification in one
-                    information library. Then assemble focused resumes for the
-                    roles you are targeting.
-                </p>
-            </div>
-
             <div className='mb-8 flex items-center gap-1 border-b border-(--border-line)'>
                 <button
                     type='button'
