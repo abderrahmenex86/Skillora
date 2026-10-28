@@ -25,6 +25,18 @@
     --text-sub: #555555;
     --btn-main-bg: #111111;
     --btn-main-text: #ffffff;
+
+    /* Navigation: dark glass on light pages. */
+    --nav-bg: rgba(9, 11, 10, 0.9);
+    --nav-fg: #f7f7f2;
+    --nav-muted: rgba(247, 247, 242, 0.68);
+    --nav-line: rgba(247, 247, 242, 0.16);
+    --nav-hover: rgba(247, 247, 242, 0.1);
+    --nav-logo-bg: #f7f7f2;
+    --nav-logo-fg: #090b0a;
+    --nav-grain-opacity: 0.34;
+    --nav-grain-blend: normal;
+    --nav-shadow: 0 18px 40px -28px rgba(0, 0, 0, 0.9);
 }
 
 html.dark {
@@ -35,6 +47,18 @@ html.dark {
     --text-sub: #9ca3af;
     --btn-main-bg: #ffffff;
     --btn-main-text: #111111;
+
+    /* Navigation: bright glass on dark pages. */
+    --nav-bg: rgba(249, 249, 244, 0.92);
+    --nav-fg: #0b0d0c;
+    --nav-muted: rgba(11, 13, 12, 0.64);
+    --nav-line: rgba(11, 13, 12, 0.16);
+    --nav-hover: rgba(11, 13, 12, 0.07);
+    --nav-logo-bg: #0b0d0c;
+    --nav-logo-fg: #f9f9f4;
+    --nav-grain-opacity: 0.18;
+    --nav-grain-blend: normal;
+    --nav-shadow: 0 18px 40px -30px rgba(0, 0, 0, 0.35);
 }
 
 ::view-transition-old(root) {
@@ -107,6 +131,141 @@ body {
 
 .modal-panel {
     animation: dialog-in 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/*
+ * High-contrast glass navigation with a fine film-grain texture. The grain
+ * sits above the translucent background and below the nav content.
+ */
+.nav-shell {
+    box-shadow: var(--nav-shadow);
+}
+
+.nav-shell::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: var(--nav-grain-opacity);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+    background-size: 180px 180px;
+    mix-blend-mode: var(--nav-grain-blend);
+}
+
+.nav-shell::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.12),
+        rgba(255, 255, 255, 0) 55%
+    );
+}
+
+/*
+ * Typewriter cursor. Kept in CSS so the component only owns the typed text.
+ */
+.typewriter-cursor {
+    display: inline-block;
+    width: 0.09em;
+    height: 1em;
+    margin-left: 0.12em;
+    vertical-align: -0.08em;
+    background-color: currentColor;
+    animation: cursor-blink 1.05s steps(1, end) infinite;
+}
+
+@keyframes cursor-blink {
+    0%,
+    48% {
+        opacity: 1;
+    }
+    49%,
+    100% {
+        opacity: 0;
+    }
+}
+
+/*
+ * Slow ambient glow. Two blurred radial fields drift in opposite directions
+ * behind the landing page so the canvas never feels static.
+ */
+@keyframes glow-drift-a {
+    0% {
+        transform: translate3d(-4%, -3%, 0) scale(1);
+    }
+    50% {
+        transform: translate3d(6%, 5%, 0) scale(1.08);
+    }
+    100% {
+        transform: translate3d(-4%, -3%, 0) scale(1);
+    }
+}
+
+@keyframes glow-drift-b {
+    0% {
+        transform: translate3d(4%, 4%, 0) scale(1.05);
+    }
+    50% {
+        transform: translate3d(-6%, -5%, 0) scale(0.96);
+    }
+    100% {
+        transform: translate3d(4%, 4%, 0) scale(1.05);
+    }
+}
+
+.glow-blob {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(90px);
+    will-change: transform;
+    pointer-events: none;
+}
+
+.glow-blob-a {
+    top: -10rem;
+    left: -6rem;
+    width: 36rem;
+    height: 36rem;
+    background: radial-gradient(
+        circle,
+        rgba(37, 140, 90, 0.26),
+        transparent 68%
+    );
+    animation: glow-drift-a 24s ease-in-out infinite;
+}
+
+.glow-blob-b {
+    top: 24rem;
+    right: -8rem;
+    width: 32rem;
+    height: 32rem;
+    background: radial-gradient(
+        circle,
+        rgba(194, 103, 56, 0.18),
+        transparent 68%
+    );
+    animation: glow-drift-b 30s ease-in-out infinite;
+}
+
+html.dark .glow-blob-a {
+    background: radial-gradient(
+        circle,
+        rgba(37, 140, 90, 0.22),
+        transparent 68%
+    );
+}
+
+html.dark .glow-blob-b {
+    background: radial-gradient(
+        circle,
+        rgba(194, 103, 56, 0.16),
+        transparent 68%
+    );
 }
 
 /*
@@ -187,6 +346,15 @@ body {
     .panel-snap,
     .scroll-smooth {
         scroll-behavior: auto;
+    }
+
+    .glow-blob,
+    .typewriter-cursor {
+        animation: none;
+    }
+
+    .typewriter-cursor {
+        opacity: 1;
     }
 }
 

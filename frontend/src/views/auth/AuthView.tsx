@@ -32,6 +32,12 @@ export default function AuthView() {
     const navigate = useNavigate();
 
     useEffect(() => {
+        const requestedRole = searchParams.get('role')?.toUpperCase();
+
+        if (requestedRole === 'RECRUITER' || requestedRole === 'APPLICANT') {
+            setRole(requestedRole);
+        }
+
         if (searchParams.get('mode') === 'register') {
             setIsLogin(false);
         } else {
