@@ -36,13 +36,24 @@ function createReference() {
     return `SK-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
 }
 
-function BreakdownRow({ label, value }: { label: string; value: string }) {
+function BreakdownRow({
+    label,
+    value,
+    divider,
+}: {
+    label: string;
+    value: string;
+    divider?: boolean;
+}) {
     return (
-        <div className='grid grid-cols-[7.5rem_1fr] gap-4 px-5 py-3'>
-            <dt className='font-mono text-[10px] uppercase tracking-[0.16em] text-muted'>
+        <div
+            className={`grid grid-cols-[7.5rem_1fr] gap-4 px-5 py-3 ${
+                divider ? 'border-t border-(--border-line)' : ''
+            }`}>
+            <dt className='font-mono text-[10px] uppercase tracking-[0.16em] text-(--text-sub)'>
                 {label}
             </dt>
-            <dd className='font-mono text-[11px] leading-relaxed text-ink'>
+            <dd className='font-mono text-[11px] leading-relaxed text-(--text-main)'>
                 {value}
             </dd>
         </div>
@@ -92,20 +103,20 @@ export default function ErrorScreen({
     };
 
     const primaryClass =
-        'inline-flex items-center justify-center gap-2 rounded-md bg-ink px-5 py-3 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-white transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-50';
+        'inline-flex items-center justify-center gap-2 rounded-md bg-(--btn-main-bg) px-5 py-3 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-(--btn-main-text) transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50';
     const secondaryClass =
-        'inline-flex items-center justify-center gap-2 rounded-md border border-hairline bg-white px-5 py-3 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-ink transition-colors hover:bg-chalk disabled:cursor-not-allowed disabled:opacity-50';
+        'inline-flex items-center justify-center gap-2 rounded-md border border-(--border-line) bg-(--bg-canvas) px-5 py-3 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-(--text-main) transition-colors hover:bg-(--bg-panel) disabled:cursor-not-allowed disabled:opacity-50';
 
     return (
-        <div className='min-h-dvh flex flex-col bg-white text-ink font-sans'>
-            <header className='border-b border-hairline'>
+        <div className='min-h-dvh flex flex-col bg-(--bg-canvas) text-(--text-main) font-sans'>
+            <header className='border-b border-(--border-line)'>
                 <div className='mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-6'>
                     <a
                         href='/'
-                        className='inline-flex items-center rounded-sm bg-ink px-3 py-1 font-grotesque text-3xl font-bold tracking-tight text-white'>
+                        className='inline-flex items-center rounded-sm bg-(--btn-main-bg) px-3 py-1 font-grotesque text-3xl font-bold tracking-tight text-(--btn-main-text)'>
                         Skillora
                     </a>
-                    <div className='flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted'>
+                    <div className='flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-(--text-sub)'>
                         <span className='h-1.5 w-1.5 rounded-full bg-amber-accent' />
                         System status · degraded
                     </div>
@@ -117,25 +128,25 @@ export default function ErrorScreen({
                 className='mx-auto grid w-full max-w-6xl flex-1 grid-cols-1 items-start gap-10 px-6 py-12 lg:grid-cols-12 lg:gap-16 lg:py-16'>
                 <section className='lg:col-span-7'>
                     <div className='flex flex-wrap items-center gap-3'>
-                        <span className='inline-flex items-center gap-2 border border-ink px-2.5 py-1 font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-ink'>
+                        <span className='inline-flex items-center gap-2 border border-(--text-main) px-2.5 py-1 font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-(--text-main)'>
                             <Icon
                                 size={13}
                                 strokeWidth={2.2}
                             />
                             [{context.code}]
                         </span>
-                        <span className='font-mono text-[11px] uppercase tracking-[0.18em] text-muted'>
+                        <span className='font-mono text-[11px] uppercase tracking-[0.18em] text-(--text-sub)'>
                             {context.label}
                         </span>
                     </div>
 
                     <h1
                         id='error-heading'
-                        className='mt-7 font-grotesque text-5xl font-extrabold leading-[0.95] tracking-tight text-ink sm:text-6xl xl:text-7xl'>
+                        className='mt-7 font-grotesque text-5xl font-extrabold leading-[0.95] tracking-tight text-(--text-main) sm:text-6xl xl:text-7xl'>
                         {context.heading}
                     </h1>
 
-                    <p className='mt-6 max-w-xl text-base leading-relaxed text-muted'>
+                    <p className='mt-6 max-w-xl text-base leading-relaxed text-(--text-sub)'>
                         {context.description}
                     </p>
 
@@ -165,7 +176,7 @@ export default function ErrorScreen({
                         </button>
                     </div>
 
-                    <div className='mt-12 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-hairline pt-4 font-mono text-[10px] uppercase tracking-[0.16em] text-muted'>
+                    <div className='mt-12 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-(--border-line) pt-4 font-mono text-[10px] uppercase tracking-[0.16em] text-(--text-sub)'>
                         <span>Ref {reference}</span>
                         <span className='max-w-full truncate'>
                             Route {window.location.pathname}
@@ -178,17 +189,17 @@ export default function ErrorScreen({
 
                 <aside
                     aria-label='Error breakdown'
-                    className='w-full border border-hairline lg:col-span-5'>
-                    <div className='flex items-center justify-between border-b border-hairline px-5 py-3'>
-                        <span className='font-mono text-[10px] uppercase tracking-[0.18em] text-muted'>
+                    className='w-full border border-(--border-line) lg:col-span-5'>
+                    <div className='flex items-center justify-between border-b border-(--border-line) px-5 py-3'>
+                        <span className='font-mono text-[10px] uppercase tracking-[0.18em] text-(--text-sub)'>
                             Error breakdown
                         </span>
-                        <span className='font-mono text-[10px] uppercase tracking-[0.18em] text-ink'>
+                        <span className='font-mono text-[10px] uppercase tracking-[0.18em] text-(--text-main)'>
                             {context.code}
                         </span>
                     </div>
 
-                    <dl className='divide-y divide-hairline'>
+                    <dl>
                         <BreakdownRow
                             label='Classification'
                             value={context.classification}
@@ -196,19 +207,22 @@ export default function ErrorScreen({
                         <BreakdownRow
                             label='HTTP status'
                             value={context.httpStatus}
+                            divider
                         />
                         <BreakdownRow
                             label='Impact scope'
                             value={context.scope}
+                            divider
                         />
                         <BreakdownRow
                             label='Recovery'
                             value={context.recovery}
+                            divider
                         />
                     </dl>
 
-                    <div className='border-t border-hairline px-5 py-4'>
-                        <div className='mb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted'>
+                    <div className='border-t border-(--border-line) px-5 py-4'>
+                        <div className='mb-2 font-mono text-[10px] uppercase tracking-[0.18em] text-(--text-sub)'>
                             Known failure classes
                         </div>
                         <ul className='space-y-1.5'>
@@ -220,13 +234,15 @@ export default function ErrorScreen({
                                     <li
                                         key={errorKind}
                                         className={`flex items-center gap-2 font-mono text-[11px] ${
-                                            isActive ? 'text-ink' : 'text-muted'
+                                            isActive ?
+                                                'text-(--text-main)'
+                                            :   'text-(--text-sub)'
                                         }`}>
                                         <span
                                             className={`h-1.5 w-1.5 shrink-0 rounded-full ${
                                                 isActive ?
                                                     'bg-amber-accent'
-                                                :   'bg-hairline'
+                                                :   'bg-(--border-line)'
                                             }`}
                                         />
                                         <span
@@ -239,7 +255,7 @@ export default function ErrorScreen({
                                             {entry.label}
                                         </span>
                                         {isActive && (
-                                            <span className='ml-auto text-[9px] uppercase tracking-[0.16em] text-muted'>
+                                            <span className='ml-auto text-[9px] uppercase tracking-[0.16em] text-(--text-sub)'>
                                                 active
                                             </span>
                                         )}
@@ -250,12 +266,12 @@ export default function ErrorScreen({
                     </div>
 
                     {detail && (
-                        <div className='border-t border-hairline px-5 py-4'>
-                            <div className='mb-2 flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.18em] text-muted'>
+                        <div className='border-t border-(--border-line) px-5 py-4'>
+                            <div className='mb-2 flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.18em] text-(--text-sub)'>
                                 <span>Diagnostic</span>
                                 <span>read-only</span>
                             </div>
-                            <pre className='max-h-28 overflow-auto whitespace-pre-wrap break-words border border-hairline bg-chalk p-3 font-mono text-[11px] leading-relaxed text-ink'>
+                            <pre className='max-h-28 overflow-auto whitespace-pre-wrap break-words border border-(--border-line) bg-(--bg-panel) p-3 font-mono text-[11px] leading-relaxed text-(--text-main)'>
                                 {detail}
                             </pre>
                         </div>
@@ -263,8 +279,8 @@ export default function ErrorScreen({
                 </aside>
             </main>
 
-            <footer className='border-t border-hairline'>
-                <div className='mx-auto flex w-full max-w-6xl flex-col justify-between gap-1 px-6 py-4 font-mono text-[10px] uppercase tracking-[0.16em] text-muted sm:flex-row'>
+            <footer className='border-t border-(--border-line)'>
+                <div className='mx-auto flex w-full max-w-6xl flex-col justify-between gap-1 px-6 py-4 font-mono text-[10px] uppercase tracking-[0.16em] text-(--text-sub) sm:flex-row'>
                     <span>
                         Skillora Collective · Deterministic Hiring Protocol
                     </span>
