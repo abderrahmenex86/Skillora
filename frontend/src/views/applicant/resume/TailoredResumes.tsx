@@ -891,7 +891,11 @@ export default function TailoredResumes({
                                         ({ kind, items }) => (
                                             <div
                                                 key={kind}
-                                                className='snap-start'>
+                                                className='relative'>
+                                                <span
+                                                    aria-hidden='true'
+                                                    className='snap-anchor'
+                                                />
                                                 <div className='mb-1.5 flex items-center justify-between'>
                                                     <h4 className='font-mono text-[10px] uppercase tracking-wide text-(--text-sub)'>
                                                         {INFO_LABELS[kind]}

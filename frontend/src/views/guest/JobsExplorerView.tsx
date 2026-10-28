@@ -152,11 +152,15 @@ export default function JobsExplorerView() {
                                         setAppliedSuccess(false);
                                         setApplyError('');
                                     }}
-                                    className={`snap-start p-5 rounded-md border cursor-pointer transition-all ${
+                                    className={`relative p-5 rounded-md border cursor-pointer transition-all ${
                                         isSelected ?
                                             'border-(--text-main) bg-(--bg-canvas) ring-1 ring-(--text-main)'
                                         :   'border-(--border-line) bg-(--bg-canvas) hover:border-(--text-sub)'
                                     }`}>
+                                    <span
+                                        aria-hidden='true'
+                                        className='snap-anchor'
+                                    />
                                     <div className='flex justify-between items-start mb-2'>
                                         <div>
                                             <h4 className='font-grotesque font-bold text-2xl text-(--text-main) leading-tight'>

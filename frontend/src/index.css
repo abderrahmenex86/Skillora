@@ -133,7 +133,34 @@ body {
 @utility panel-snap {
     scroll-snap-type: y proximity;
     scroll-padding-top: 0.75rem;
-    scroll-behavior: smooth;
+}
+
+/*
+ * Snap positioning is animated natively. Combining it with CSS smooth
+ * scrolling makes the two fight each other, so snap panels opt out.
+ */
+.panel-snap {
+    scroll-behavior: auto;
+}
+
+/*
+ * Chromium adds an extra end-edge snap position when a snap area is taller
+ * than the panel. A tiny anchor at the top of each card keeps every snap
+ * pinned to the card start, even for tall application cards.
+ */
+@utility snap-anchor {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+    scroll-snap-align: start;
+}
+
+/* Keep anchors flush with the card edge even inside `space-y-*` stacks. */
+.snap-anchor {
+    margin: 0 !important;
 }
 
 @utility page-frame {

@@ -228,7 +228,7 @@ export default function InformationLibrary() {
                     <div
                         ref={scrollRef}
                         onScroll={handleScroll}
-                        className='relative h-[65vh] min-h-[420px] snap-y snap-mandatory overflow-y-auto overscroll-contain scroll-smooth rounded-lg border border-(--border-line) bg-(--bg-canvas) md:h-auto md:min-h-0'>
+                        className='relative h-[65vh] min-h-[420px] snap-y snap-mandatory overflow-y-auto overscroll-contain rounded-lg border border-(--border-line) bg-(--bg-canvas) md:h-auto md:min-h-0'>
                         {sortedKinds.map((kind) => {
                             const Icon = SECTION_ICONS[kind];
                             const items = getLibraryItems(vault, kind);
@@ -239,7 +239,11 @@ export default function InformationLibrary() {
                                     ref={(node) => {
                                         sectionRefs.current[kind] = node;
                                     }}
-                                    className='snap-start scroll-mt-4 border-b border-(--border-line) last:border-b-0'>
+                                    className='relative border-b border-(--border-line) last:border-b-0'>
+                                    <span
+                                        aria-hidden='true'
+                                        className='snap-anchor'
+                                    />
                                     <div className='flex items-center justify-between gap-3 border-b border-(--border-line) px-4 py-3'>
                                         <div className='flex min-w-0 items-center gap-2'>
                                             <Icon

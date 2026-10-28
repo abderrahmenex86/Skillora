@@ -124,11 +124,15 @@ export default function ApplicantDashboardView() {
                                     return (
                                         <div
                                             key={event.id}
-                                            className={`snap-start p-4 rounded-md border ${
+                                            className={`relative p-4 rounded-md border ${
                                                 isConfirmed ?
                                                     'border-forest/40 bg-forest/5 dark:bg-forest-dark/5'
                                                 :   'border-amber-accent/50 bg-(--bg-canvas)'
                                             }`}>
+                                            <span
+                                                aria-hidden='true'
+                                                className='snap-anchor'
+                                            />
                                             <div className='flex justify-between items-start mb-2'>
                                                 <div>
                                                     <div className='font-mono text-[10px] text-(--text-sub)'>
@@ -344,7 +348,7 @@ export default function ApplicantDashboardView() {
                                 {appsData?.map((app: any) => (
                                     <div
                                         key={app.id}
-                                        className='snap-start p-5 rounded-md border border-(--border-line) bg-(--bg-canvas) space-y-3'>
+                                        className='relative p-5 rounded-md border border-(--border-line) bg-(--bg-canvas) space-y-3'>
                                         <div className='flex justify-between items-start'>
                                             <div>
                                                 <div className='font-mono text-xs text-(--text-sub)'>
@@ -387,6 +391,10 @@ export default function ApplicantDashboardView() {
                                                 </div>
                                             </div>
                                         )}
+                                        <span
+                                            aria-hidden='true'
+                                            className='snap-anchor'
+                                        />
                                     </div>
                                 ))}
                             </div>

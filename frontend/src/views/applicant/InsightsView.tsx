@@ -95,7 +95,11 @@ export default function InsightsView() {
                             (gap: any, i: number) => (
                                 <div
                                     key={i}
-                                    className='snap-start p-3 border border-(--border-line) rounded flex items-center justify-between text-xs'>
+                                    className='relative p-3 border border-(--border-line) rounded flex items-center justify-between text-xs'>
+                                    <span
+                                        aria-hidden='true'
+                                        className='snap-anchor'
+                                    />
                                     <span className='font-medium text-(--text-main)'>
                                         {gap.skill}
                                     </span>
@@ -119,7 +123,11 @@ export default function InsightsView() {
                             (rec: string, i: number) => (
                                 <div
                                     key={i}
-                                    className='snap-start text-xs text-(--text-sub) p-3 bg-(--bg-panel) rounded'>
+                                    className='relative text-xs text-(--text-sub) p-3 bg-(--bg-panel) rounded'>
+                                    <span
+                                        aria-hidden='true'
+                                        className='snap-anchor'
+                                    />
                                     • {rec}
                                 </div>
                             )

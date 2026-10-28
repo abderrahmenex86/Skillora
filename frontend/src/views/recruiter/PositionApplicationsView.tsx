@@ -186,11 +186,15 @@ export default function PositionApplicationsView() {
                                 <div
                                     key={app.id}
                                     onClick={() => setSelectedAppId(app.id)}
-                                    className={`snap-start p-4 rounded-md border cursor-pointer transition-all ${
+                                    className={`relative p-4 rounded-md border cursor-pointer transition-all ${
                                         isSelected ?
                                             'border-(--text-main) bg-(--bg-canvas) ring-1 ring-(--text-main)'
                                         :   'border-(--border-line) bg-(--bg-canvas) hover:border-(--text-sub)'
                                     }`}>
+                                    <span
+                                        aria-hidden='true'
+                                        className='snap-anchor'
+                                    />
                                     <div className='flex justify-between items-start mb-1'>
                                         <div>
                                             <h4 className='font-grotesque font-bold text-xl text-(--text-main)'>

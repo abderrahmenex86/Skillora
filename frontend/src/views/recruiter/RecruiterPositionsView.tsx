@@ -193,7 +193,11 @@ export default function RecruiterPositionsView() {
                                     <Link
                                         key={p.id}
                                         to={`/recruiter/positions/${p.id}/applications`}
-                                        className='snap-start p-5 rounded-md border border-(--border-line) bg-(--bg-canvas) hover:border-(--text-main) transition-all block group'>
+                                        className='relative p-5 rounded-md border border-(--border-line) bg-(--bg-canvas) hover:border-(--text-main) transition-all block group'>
+                                        <span
+                                            aria-hidden='true'
+                                            className='snap-anchor'
+                                        />
                                         <div className='flex justify-between items-start mb-2'>
                                             <div>
                                                 <span className='font-mono text-[10px] text-(--text-sub) uppercase'>
@@ -248,7 +252,11 @@ export default function RecruiterPositionsView() {
                                     <Link
                                         key={p.id}
                                         to={`/recruiter/positions/${p.id}/applications`}
-                                        className='snap-start p-5 rounded-md border border-(--border-line) bg-(--bg-panel) block'>
+                                        className='relative p-5 rounded-md border border-(--border-line) bg-(--bg-panel) block'>
+                                        <span
+                                            aria-hidden='true'
+                                            className='snap-anchor'
+                                        />
                                         <div className='flex justify-between items-start mb-2'>
                                             <div>
                                                 <span className='font-mono text-[10px] text-(--text-sub) uppercase'>
