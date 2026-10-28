@@ -1,4 +1,4 @@
-export type InfoKind =
+export type ResumeInfoKind =
     | 'education'
     | 'experience'
     | 'project'
@@ -6,6 +6,21 @@ export type InfoKind =
     | 'volunteering'
     | 'language'
     | 'link';
+
+export type VaultEntryKind =
+    | 'skill'
+    | 'conference'
+    | 'creative'
+    | 'driving'
+    | 'hobby'
+    | 'honour'
+    | 'network'
+    | 'publication'
+    | 'recommendation'
+    | 'social'
+    | 'other';
+
+export type InfoKind = ResumeInfoKind | VaultEntryKind;
 
 export interface VaultEducation {
     id: string;
@@ -66,6 +81,19 @@ export interface VaultLink {
     type: string;
 }
 
+export interface VaultEntry {
+    id: string;
+    section: VaultEntryKind;
+    title: string;
+    subtitle?: string | null;
+    description?: string | null;
+    date?: string | null;
+    endDate?: string | null;
+    url?: string | null;
+    tags: string[];
+    createdAt?: string;
+}
+
 export type VaultItem =
     | VaultEducation
     | VaultExperience
@@ -73,7 +101,8 @@ export type VaultItem =
     | VaultCertification
     | VaultVolunteering
     | VaultLanguage
-    | VaultLink;
+    | VaultLink
+    | VaultEntry;
 
 export interface VaultLibrary {
     education: VaultEducation[];
@@ -83,6 +112,7 @@ export interface VaultLibrary {
     volunteering: VaultVolunteering[];
     languages: VaultLanguage[];
     links: VaultLink[];
+    entries: VaultEntry[];
 }
 
 export type SelectionField =
@@ -94,7 +124,7 @@ export type SelectionField =
     | 'selectedLanguageIds'
     | 'selectedLinkIds';
 
-export type ResumeSelections = Record<InfoKind, string[]>;
+export type ResumeSelections = Record<ResumeInfoKind, string[]>;
 
 export interface TailoredResume {
     id: string;
@@ -126,7 +156,7 @@ export interface ResumeDraft {
 
 export interface DragItem {
     source: 'library' | 'resume';
-    kind: InfoKind;
+    kind: ResumeInfoKind;
     id: string;
 }
 
@@ -138,7 +168,7 @@ export interface InfoDisplay {
     url?: string;
 }
 
-export const INFO_KINDS: InfoKind[] = [
+export const RESUME_INFO_KINDS: ResumeInfoKind[] = [
     'education',
     'experience',
     'project',
@@ -148,37 +178,109 @@ export const INFO_KINDS: InfoKind[] = [
     'link',
 ];
 
+export const VAULT_ENTRY_KINDS: VaultEntryKind[] = [
+    'skill',
+    'conference',
+    'creative',
+    'driving',
+    'hobby',
+    'honour',
+    'network',
+    'publication',
+    'recommendation',
+    'social',
+    'other',
+];
+
+export const INFO_KINDS: InfoKind[] = [
+    'education',
+    'experience',
+    'skill',
+    'language',
+    'certification',
+    'conference',
+    'creative',
+    'driving',
+    'hobby',
+    'honour',
+    'network',
+    'project',
+    'publication',
+    'recommendation',
+    'social',
+    'volunteering',
+    'other',
+    'link',
+];
+
+export function isVaultEntryKind(kind: InfoKind): kind is VaultEntryKind {
+    return VAULT_ENTRY_KINDS.includes(kind as VaultEntryKind);
+}
+
 export const INFO_LABELS: Record<InfoKind, string> = {
-    education: 'Education',
-    experience: 'Experience',
-    project: 'Projects',
+    education: 'Education and training',
+    experience: 'Work experience',
+    skill: 'Skills',
+    language: 'Language skills',
     certification: 'Certifications',
+    conference: 'Conferences and seminars',
+    creative: 'Creative works',
+    driving: 'Driving Licence',
+    hobby: 'Hobbies and interests',
+    honour: 'Honours and awards',
+    network: 'Networks and memberships',
+    project: 'Projects',
+    publication: 'Publications',
+    recommendation: 'Recommendations',
+    social: 'Social and political activities',
     volunteering: 'Volunteering',
-    language: 'Languages',
+    other: 'Other (Custom section)',
     link: 'Links & Portfolios',
 };
 
 export const INFO_SINGULAR_LABELS: Record<InfoKind, string> = {
     education: 'Diploma',
     experience: 'Experience',
-    project: 'Project',
-    certification: 'Certification',
-    volunteering: 'Volunteering',
+    skill: 'Skill',
     language: 'Language',
+    certification: 'Certification',
+    conference: 'Conference',
+    creative: 'Creative work',
+    driving: 'Driving licence',
+    hobby: 'Hobby',
+    honour: 'Honour or award',
+    network: 'Network or membership',
+    project: 'Project',
+    publication: 'Publication',
+    recommendation: 'Recommendation',
+    social: 'Activity',
+    volunteering: 'Volunteering',
+    other: 'Custom entry',
     link: 'Link',
 };
 
 export const INFO_ENDPOINTS: Record<InfoKind, string> = {
     education: 'education',
     experience: 'experience',
-    project: 'projects',
-    certification: 'certifications',
-    volunteering: 'volunteering',
+    skill: 'entries',
     language: 'languages',
+    certification: 'certifications',
+    conference: 'entries',
+    creative: 'entries',
+    driving: 'entries',
+    hobby: 'entries',
+    honour: 'entries',
+    network: 'entries',
+    project: 'projects',
+    publication: 'entries',
+    recommendation: 'entries',
+    social: 'entries',
+    volunteering: 'volunteering',
+    other: 'entries',
     link: 'links',
 };
 
-export const SELECTION_FIELDS: Record<InfoKind, SelectionField> = {
+export const SELECTION_FIELDS: Record<ResumeInfoKind, SelectionField> = {
     education: 'selectedEducationIds',
     experience: 'selectedExperienceIds',
     project: 'selectedProjectIds',
@@ -196,6 +298,7 @@ export const emptyLibrary = (): VaultLibrary => ({
     volunteering: [],
     languages: [],
     links: [],
+    entries: [],
 });
 
 export const emptySelections = (): ResumeSelections => ({
@@ -234,6 +337,10 @@ export function getLibraryItems(
             return library.languages;
         case 'link':
             return library.links;
+        default:
+            return (library.entries ?? []).filter(
+                (entry) => entry.section === kind
+            );
     }
 }
 
@@ -361,6 +468,20 @@ export function describeInfo(
                 url: link.url,
             };
         }
+        default: {
+            const entry = item as VaultEntry;
+            const range = formatRange(entry.date, entry.endDate);
+            return {
+                title: entry.title,
+                subtitle: entry.subtitle || undefined,
+                description:
+                    [entry.description, range]
+                        .filter(Boolean)
+                        .join(' · ') || undefined,
+                tags: entry.tags,
+                url: entry.url || undefined,
+            };
+        }
     }
 }
 
@@ -419,7 +540,7 @@ export function draftToPayload(draft: ResumeDraft) {
 }
 
 export function countSelectedItems(draft: ResumeDraft): number {
-    return INFO_KINDS.reduce(
+    return RESUME_INFO_KINDS.reduce(
         (count, kind) => count + draft.selections[kind].length,
         0
     );

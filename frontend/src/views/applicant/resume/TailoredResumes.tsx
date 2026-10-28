@@ -25,7 +25,7 @@ import {
 } from '../../../components/Sketches';
 import { useAuthStore } from '../../../store/useAuthStore';
 import {
-    INFO_KINDS,
+    RESUME_INFO_KINDS,
     INFO_LABELS,
     countSelectedItems,
     describeInfo,
@@ -36,8 +36,8 @@ import {
     getLibraryItems,
     resumeToDraft,
     type DragItem,
-    type InfoKind,
     type ResumeDraft,
+    type ResumeInfoKind,
     type TailoredResume,
     type VaultItem,
     type VaultLibrary,
@@ -228,7 +228,7 @@ export default function TailoredResumes({
         setError('');
     };
 
-    const addItem = (kind: InfoKind, id: string) => {
+    const addItem = (kind: ResumeInfoKind, id: string) => {
         setDraft((current) => {
             if (current.selections[kind].includes(id)) return current;
             return {
@@ -242,7 +242,7 @@ export default function TailoredResumes({
         setNotice('');
     };
 
-    const removeItem = (kind: InfoKind, id: string) => {
+    const removeItem = (kind: ResumeInfoKind, id: string) => {
         setDraft((current) => ({
             ...current,
             selections: {
@@ -255,7 +255,7 @@ export default function TailoredResumes({
         setNotice('');
     };
 
-    const toggleItem = (kind: InfoKind, id: string) => {
+    const toggleItem = (kind: ResumeInfoKind, id: string) => {
         if (draft.selections[kind].includes(id)) {
             removeItem(kind, id);
         } else {
@@ -339,12 +339,12 @@ export default function TailoredResumes({
         const [source, kind, id] = serialized.split('|');
         if (
             (source === 'library' || source === 'resume') &&
-            INFO_KINDS.includes(kind as InfoKind) &&
+            RESUME_INFO_KINDS.includes(kind as ResumeInfoKind) &&
             id
         ) {
             return {
                 source,
-                kind: kind as InfoKind,
+                kind: kind as ResumeInfoKind,
                 id,
             };
         }
@@ -376,7 +376,7 @@ export default function TailoredResumes({
 
     const librarySections = useMemo(() => {
         const query = search.trim().toLowerCase();
-        return INFO_KINDS.map((kind) => {
+        return RESUME_INFO_KINDS.map((kind) => {
             const items = getLibraryItems(vault, kind);
             if (!query) return { kind, items };
             return {
@@ -401,12 +401,12 @@ export default function TailoredResumes({
     const visibleLibrarySections = librarySections.filter(
         (section) => section.items.length > 0
     );
-    const totalLibraryItems = INFO_KINDS.reduce(
+    const totalLibraryItems = RESUME_INFO_KINDS.reduce(
         (total, kind) => total + getLibraryItems(vault, kind).length,
         0
     );
 
-    const selectedSections = INFO_KINDS.map((kind) => ({
+    const selectedSections = RESUME_INFO_KINDS.map((kind) => ({
         kind,
         items: draft.selections[kind]
             .map((id) => getLibraryItem(vault, kind, id))

@@ -9,6 +9,7 @@ import {
 import {
     INFO_ENDPOINTS,
     INFO_SINGULAR_LABELS,
+    isVaultEntryKind,
     type InfoKind,
 } from './types';
 
@@ -36,6 +37,52 @@ const UNIVERSITY_OPTIONS = ALGERIA_UNIVERSITIES.map((university) => ({
     label: university.name,
     value: university.name,
 }));
+
+const GENERIC_FIELDS: FieldDef[] = [
+    {
+        name: 'title',
+        label: 'Title',
+        placeholder: 'e.g. Cloud architecture workshop',
+        required: true,
+        fullWidth: true,
+    },
+    {
+        name: 'subtitle',
+        label: 'Subtitle / Organisation',
+        placeholder: 'Optional context',
+    },
+    {
+        name: 'date',
+        label: 'Date',
+        type: 'date',
+    },
+    {
+        name: 'endDate',
+        label: 'End Date',
+        type: 'date',
+    },
+    {
+        name: 'url',
+        label: 'Link',
+        placeholder: 'https://example.com',
+        type: 'url',
+        fullWidth: true,
+    },
+    {
+        name: 'description',
+        label: 'Description',
+        placeholder: 'Add a short summary',
+        type: 'textarea',
+        fullWidth: true,
+    },
+    {
+        name: 'tags',
+        label: 'Tags',
+        placeholder: 'Comma separated',
+        fullWidth: true,
+        format: 'comma',
+    },
+];
 
 const FIELDS: Record<InfoKind, FieldDef[]> = {
     education: [
@@ -252,6 +299,17 @@ const FIELDS: Record<InfoKind, FieldDef[]> = {
             fullWidth: true,
         },
     ],
+    skill: GENERIC_FIELDS,
+    conference: GENERIC_FIELDS,
+    creative: GENERIC_FIELDS,
+    driving: GENERIC_FIELDS,
+    hobby: GENERIC_FIELDS,
+    honour: GENERIC_FIELDS,
+    network: GENERIC_FIELDS,
+    publication: GENERIC_FIELDS,
+    recommendation: GENERIC_FIELDS,
+    social: GENERIC_FIELDS,
+    other: GENERIC_FIELDS,
 };
 
 const inputClass =
@@ -322,6 +380,10 @@ export default function AddInformationModal({
         }
 
         try {
+            if (isVaultEntryKind(kind)) {
+                payload.section = kind;
+            }
+
             await apiClient.post(
                 `/applicant/vault/${INFO_ENDPOINTS[kind]}`,
                 payload

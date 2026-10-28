@@ -12,7 +12,7 @@ import {
     X,
 } from 'lucide-react';
 import {
-    INFO_KINDS,
+    RESUME_INFO_KINDS,
     INFO_LABELS,
     describeInfo,
     getLibraryItems,
@@ -474,7 +474,7 @@ export default function PositionApplicationsView() {
                                     </div>
 
                                     <div className='space-y-5 border-t border-(--border-line) pt-5'>
-                                        {INFO_KINDS.map((kind) => {
+                                        {RESUME_INFO_KINDS.map((kind) => {
                                             const items = getLibraryItems(
                                                 resumePreview,
                                                 kind
@@ -563,7 +563,7 @@ export default function PositionApplicationsView() {
                                             );
                                         })}
 
-                                        {INFO_KINDS.every(
+                                        {RESUME_INFO_KINDS.every(
                                             (kind) =>
                                                 getLibraryItems(
                                                     resumePreview,

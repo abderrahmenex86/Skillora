@@ -12,23 +12,27 @@ const HELP_ITEMS = [
     },
     {
         title: 'My Information',
-        text: 'Your master library. Add each diploma, experience, project, certification, volunteering role, language, and link once, then reuse it anywhere.',
+        text: 'Your master library. Add each item once, then reuse it in any resume. Use the left menu to jump between sections.',
     },
     {
-        title: 'Education & Experience',
-        text: 'Diplomas, training, and your work history.',
+        title: 'Education & work',
+        text: 'Education and training, work experience, skills, and language skills.',
     },
     {
-        title: 'Projects & Certifications',
-        text: 'Portfolio work, credentials, and the organisations that issued them.',
+        title: 'Credentials & recognition',
+        text: 'Certifications, conferences and seminars, honours and awards, and publications.',
     },
     {
-        title: 'Volunteering & Languages',
-        text: 'Community involvement and the languages you speak.',
+        title: 'Projects & creative work',
+        text: 'Projects, creative works, links and portfolios, and recommendations.',
     },
     {
-        title: 'Links & Portfolios',
-        text: 'GitHub, LinkedIn, personal sites, and other references.',
+        title: 'Activities & memberships',
+        text: 'Volunteering, social and political activities, networks and memberships, hobbies, and driving licence.',
+    },
+    {
+        title: 'Other',
+        text: 'Use Other (Custom section) for anything that does not fit elsewhere.',
     },
 ];
 
