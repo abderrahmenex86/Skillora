@@ -20,6 +20,18 @@ const envSchema = z.object({
     REDIS_PORT: z.string().default('6379').transform(Number),
     REDIS_PASSWORD: z.string().optional(),
     OPENAI_API_KEY: z.string().optional(),
+
+    // Multi-provider LLM configuration (Groq or a local Ollama server).
+    LLM_PROVIDER: z.enum(['groq', 'ollama']).default('groq'),
+    LLM_MODEL: z.string().trim().optional(),
+    GROQ_API_KEY: z.string().trim().optional(),
+    OLLAMA_BASE_URL: z
+        .string()
+        .url()
+        .default('http://localhost:11434/v1'),
+    OLLAMA_API_KEY: z.string().trim().optional(),
+    LLM_TEMPERATURE: z.coerce.number().min(0).max(2).default(0.2),
+    LLM_MAX_RETRIES: z.coerce.number().int().min(0).max(5).default(2),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);

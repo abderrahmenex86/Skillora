@@ -223,6 +223,28 @@ sequenceDiagram
 
 Each agent writes an `AgentExecutionLog` with its structured output, giving recruiters and operators a full audit trail.
 
+### LLM adapter
+
+All four agents resolve their model through a single factory in `backend/src/agents/model.factory.ts`, so switching providers is configuration-only:
+
+| Provider | `LLM_PROVIDER` | Credentials | Default model |
+|----------|----------------|-------------|---------------|
+| Groq | `groq` | `GROQ_API_KEY` | `openai/gpt-oss-120b` |
+| Ollama | `ollama` | `OLLAMA_BASE_URL` (OpenAI-compatible, default `http://localhost:11434/v1`) | `llama3.1:8b` |
+
+Set `LLM_MODEL` to override the default for either provider. Each agent calls `generateObject` with its Zod schema and records the model that produced the result (`llm:groq:<model>` or `llm:ollama:<model>`).
+
+- **Ingestion** strips PII, normalizes Algerian degrees and institutions, and extracts skills and verifiable artifacts from a resume-scoped dossier.
+- **Matcher** audits every mandatory criterion against evidence and returns a 0–100 score with `ELIGIBLE`, `NEEDS_REVIEW`, or `REDIRECTED`.
+- **Growth** writes the Zero-Ghosting roadmap for redirected candidates with domain-specific, artifact-producing milestones.
+- **Coordinator** proposes slots from recruiter availability and builds the Google Meet payload when a slot is confirmed.
+
+Candidate dossiers are built only from the vault entries selected on the resume. URLs are redacted before any prompt is sent, so personal handles never reach the model.
+
+Every agent also has a deterministic heuristic fallback. If the provider is not configured or the model call fails, the pipeline continues and logs `heuristic-*` or `deterministic-*` as the `modelUsed` value.
+
+> Groq's catalog changes per account. If a model such as `llama-3.3-70b-versatile` is not available, query `GET https://api.groq.com/openai/v1/models` and set `LLM_MODEL` to an available chat model.
+
 ---
 
 ## Data model
@@ -360,6 +382,7 @@ The seven resume-attachable categories are `education`, `experience`, `project`,
 | Frontend | React 19, Vite 6, React Router 7, TanStack Query 5, Zustand 5, Tailwind CSS 4, Axios, Lucide icons |
 | Backend | Node.js, Express 4, TypeScript 5.7, Prisma 6, Zod 3, JWT, bcryptjs, Helmet, CORS, cookie-parser |
 | Background jobs | BullMQ 5, ioredis, Redis |
+| AI agents | Vercel AI SDK 7 (`ai`), `@ai-sdk/groq`, `@ai-sdk/openai`, Zod structured output |
 | Database | PostgreSQL |
 | Shared contracts | `packages/shared` with Zod schemas and API types |
 | Tooling | npm, tsx, Prisma CLI, Vite |
@@ -376,6 +399,9 @@ skillora/
 │   │   └── seed.ts                # Demo users, positions, resumes, applications
 │   └── src/
 │       ├── agents/                # Ingestion, matcher, growth, coordinator, orchestrator
+│       │   ├── model.factory.ts   # Groq / Ollama model selection
+│       │   ├── dossier.ts         # Anonymized dossier builder and prompt redaction
+│       │   └── agent-log.ts       # AgentExecutionLog writer
 │       ├── config/env.ts          # Validated environment configuration
 │       ├── db/prisma.ts           # Prisma client singleton
 │       ├── middleware/            # Auth guards and error handling
@@ -484,7 +510,13 @@ Backend variables are validated at startup in `backend/src/config/env.ts`.
 | `REDIS_HOST` | No | `127.0.0.1` | Redis host for BullMQ |
 | `REDIS_PORT` | No | `6379` | Redis port |
 | `REDIS_PASSWORD` | No | — | Redis password, if enabled |
-| `OPENAI_API_KEY` | No | — | Reserved for future model-backed agents; current agents are deterministic |
+| `LLM_PROVIDER` | No | `groq` | LLM provider: `groq` or `ollama` |
+| `LLM_MODEL` | No | Provider default | Model ID override (Groq: `openai/gpt-oss-120b`; Ollama: `llama3.1:8b`) |
+| `GROQ_API_KEY` | If `LLM_PROVIDER=groq` | — | Groq API key |
+| `OLLAMA_BASE_URL` | No | `http://localhost:11434/v1` | OpenAI-compatible Ollama endpoint |
+| `OLLAMA_API_KEY` | No | `ollama` | Ollama API key placeholder, if required by your server |
+| `LLM_TEMPERATURE` | No | `0.2` | Generation temperature, 0–2 |
+| `LLM_MAX_RETRIES` | No | `2` | Retries per model call, 0–5 |
 
 Example `.env`:
 
@@ -500,6 +532,16 @@ JWT_REFRESH_SECRET=replace_with_a_random_refresh_secret_at_least_32_chars
 
 REDIS_HOST=127.0.0.1
 REDIS_PORT=6379
+
+# LLM adapter: use "groq" or "ollama"
+LLM_PROVIDER=groq
+LLM_MODEL=openai/gpt-oss-120b
+GROQ_API_KEY=your_groq_api_key
+
+# For local Ollama instead:
+# LLM_PROVIDER=ollama
+# LLM_MODEL=llama3.1:8b
+# OLLAMA_BASE_URL=http://localhost:11434/v1
 ```
 
 The frontend needs no environment file in development; Vite proxies `/api` to `http://localhost:4000`.
@@ -670,7 +712,7 @@ The UI uses a restrained editorial palette with CSS custom properties for instan
 ## Current limitations
 
 - **No payment gateway.** Upgrade endpoints activate tiers and expiry dates directly.
-- **Deterministic agents.** Ingestion, matching, growth, and coordination are rule-based and produce structured logs. `OPENAI_API_KEY` is reserved for future model-backed execution.
+- **LLM-dependent evaluation quality.** Ingestion, matching, growth, and coordination are LLM-first with deterministic fallbacks. Output quality depends on the configured model; the heuristic path is coarser but keeps the pipeline available when the provider is offline.
 - **No automated test suite.** Validation is currently manual plus TypeScript checks.
 - **Frontend TypeScript config.** The repo has no `frontend/tsconfig.json`, so use `npx vite build` for a production bundle.
 - **No Docker setup.** PostgreSQL and Redis must be provided locally or externally.

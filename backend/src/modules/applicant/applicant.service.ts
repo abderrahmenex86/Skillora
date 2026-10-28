@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from '../../db/prisma.js';
 import { AppError } from '../../middleware/errorHandler.js';
 import {
@@ -320,6 +321,7 @@ export class ApplicantService {
                         confirmedStart: true,
                         confirmedEnd: true,
                         meetingLink: true,
+                        meetingPayload: true,
                     },
                 },
             },
@@ -614,6 +616,10 @@ export class ApplicantServiceExtensions {
                 confirmedStart: new Date(selectedStart),
                 confirmedEnd: new Date(selectedEnd),
                 meetingLink: coordination.confirmedSlot?.meetingLocation,
+                meetingPayload:
+                    (coordination.meetingPayload as
+                        | Prisma.InputJsonValue
+                        | undefined) ?? undefined,
                 unmaskedAt: new Date(),
             },
         });

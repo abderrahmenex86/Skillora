@@ -3,6 +3,7 @@ import { ingestionAgent } from './ingestion.agent.js';
 import { matcherAgent } from './matcher.agent.js';
 import { growthAgent } from './growth.agent.js';
 import { coordinatorAgent } from './coordinator.agent.js';
+import { buildCandidateDossier } from './dossier.js';
 
 export class AgentOrchestrator {
     async evaluateApplication(applicationId: string) {
@@ -23,9 +24,11 @@ export class AgentOrchestrator {
             data: { status: 'EVALUATING' },
         });
 
+        const dossier = await buildCandidateDossier(application.profile);
+
         const telemetry = await ingestionAgent.run(
             applicationId,
-            application.profile,
+            dossier,
             application.anonymousId
         );
 
@@ -38,7 +41,8 @@ export class AgentOrchestrator {
         const evaluation = await matcherAgent.run(
             applicationId,
             telemetry,
-            rubric
+            rubric,
+            dossier
         );
 
         let nextStatus: 'ELIGIBLE' | 'NEEDS_REVIEW' | 'REDIRECTED' =
@@ -76,7 +80,8 @@ export class AgentOrchestrator {
                 applicationId,
                 telemetry,
                 evaluation,
-                application.position.title
+                application.position.title,
+                dossier
             );
         }
 

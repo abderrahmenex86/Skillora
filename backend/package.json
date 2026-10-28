@@ -15,7 +15,10 @@
         "seed": "tsx prisma/seed.ts"
     },
     "dependencies": {
+        "@ai-sdk/groq": "^4.0.72",
+        "@ai-sdk/openai": "^4.0.104",
         "@prisma/client": "^6.4.1",
+        "ai": "^7.0.155",
         "bcryptjs": "^3.0.2",
         "bullmq": "^5.41.0",
         "cookie-parser": "^1.4.7",

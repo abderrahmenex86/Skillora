@@ -14,10 +14,17 @@ export const IngestionOutputSchema = z.object({
                 'bar_license',
                 'certification',
                 'portfolio',
+                'degree',
+                'experience',
             ]),
             title: z.string(),
             summary: z.string(),
-            metrics: z.record(z.string(), z.any()),
+            metrics: z.array(
+                z.object({
+                    label: z.string(),
+                    value: z.string(),
+                })
+            ),
         })
     ),
 });

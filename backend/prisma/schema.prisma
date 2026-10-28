@@ -317,6 +317,7 @@ model InterviewEvent {
    confirmedStart DateTime?
    confirmedEnd   DateTime?
    meetingLink    String?
+   meetingPayload Json?
    unmaskedAt     DateTime?
    createdAt      DateTime        @default(now())
    updatedAt      DateTime        @updatedAt
