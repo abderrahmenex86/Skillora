@@ -846,7 +846,7 @@ export default function TailoredResumes({
                             </button>
                         </div>
 
-                        <div className='panel-scroll flex-1 space-y-4 p-4'>
+                        <div className='panel-scroll panel-snap flex-1 space-y-4 p-4'>
                             <div className='relative'>
                                 <Search
                                     size={14}
@@ -889,7 +889,9 @@ export default function TailoredResumes({
                             :   <div className='space-y-4'>
                                     {visibleLibrarySections.map(
                                         ({ kind, items }) => (
-                                            <div key={kind}>
+                                            <div
+                                                key={kind}
+                                                className='snap-start'>
                                                 <div className='mb-1.5 flex items-center justify-between'>
                                                     <h4 className='font-mono text-[10px] uppercase tracking-wide text-(--text-sub)'>
                                                         {INFO_LABELS[kind]}

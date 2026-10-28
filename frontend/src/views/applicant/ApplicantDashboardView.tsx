@@ -100,7 +100,7 @@ export default function ApplicantDashboardView() {
                         </span>
                     </div>
 
-                    <div className='panel-scroll flex-1 space-y-4 p-6'>
+                    <div className='panel-scroll panel-snap flex-1 space-y-4 p-6'>
                         {calLoading ?
                             <div className='flex items-center gap-2 py-4 text-xs text-(--text-sub)'>
                                 <Loader2
@@ -124,7 +124,7 @@ export default function ApplicantDashboardView() {
                                     return (
                                         <div
                                             key={event.id}
-                                            className={`p-4 rounded-md border ${
+                                            className={`snap-start p-4 rounded-md border ${
                                                 isConfirmed ?
                                                     'border-forest/40 bg-forest/5 dark:bg-forest-dark/5'
                                                 :   'border-amber-accent/50 bg-(--bg-canvas)'
@@ -320,7 +320,7 @@ export default function ApplicantDashboardView() {
                         </h3>
                     </div>
 
-                    <div className='panel-scroll flex-1 space-y-4 p-6'>
+                    <div className='panel-scroll panel-snap flex-1 space-y-4 p-6'>
                         {appsLoading ?
                             <div className='flex items-center gap-2 py-4 text-xs text-(--text-sub)'>
                                 <Loader2
@@ -344,7 +344,7 @@ export default function ApplicantDashboardView() {
                                 {appsData?.map((app: any) => (
                                     <div
                                         key={app.id}
-                                        className='p-5 rounded-md border border-(--border-line) bg-(--bg-canvas) space-y-3'>
+                                        className='snap-start p-5 rounded-md border border-(--border-line) bg-(--bg-canvas) space-y-3'>
                                         <div className='flex justify-between items-start'>
                                             <div>
                                                 <div className='font-mono text-xs text-(--text-sub)'>

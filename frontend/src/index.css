@@ -77,7 +77,36 @@ body {
 }
 
 .page-transition {
-    animation: page-enter 280ms cubic-bezier(0.22, 1, 0.36, 1);
+    animation: page-enter 320ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: opacity, transform;
+}
+
+@keyframes overlay-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes dialog-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.modal-backdrop {
+    animation: overlay-in 180ms ease-out both;
+}
+
+.modal-panel {
+    animation: dialog-in 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 /*
@@ -90,12 +119,21 @@ body {
     min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
+    scroll-behavior: smooth;
 }
 
 @utility panel-scroll {
     min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
+    scroll-behavior: smooth;
+}
+
+/* List panels glide to the next card instead of stopping mid-row. */
+@utility panel-snap {
+    scroll-snap-type: y proximity;
+    scroll-padding-top: 0.75rem;
+    scroll-behavior: smooth;
 }
 
 @utility page-frame {
@@ -107,8 +145,38 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .page-transition {
+    html {
+        scroll-behavior: auto;
+    }
+
+    .page-transition,
+    .modal-backdrop,
+    .modal-panel {
         animation: none;
+    }
+
+    .page-scroll,
+    .panel-scroll,
+    .panel-snap,
+    .scroll-smooth {
+        scroll-behavior: auto;
+    }
+}
+
+/* Every interactive element eases between states, even without utility classes. */
+@layer base {
+    @media (prefers-reduced-motion: no-preference) {
+        a,
+        button,
+        [role='button'] {
+            transition:
+                color 160ms cubic-bezier(0.22, 1, 0.36, 1),
+                background-color 160ms cubic-bezier(0.22, 1, 0.36, 1),
+                border-color 160ms cubic-bezier(0.22, 1, 0.36, 1),
+                opacity 160ms cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 160ms cubic-bezier(0.22, 1, 0.36, 1),
+                transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
+        }
     }
 }
 

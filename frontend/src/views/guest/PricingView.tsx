@@ -394,7 +394,7 @@ export default function PricingView() {
 
             {confirmPlan && (
                 <div
-                    className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
+                    className='modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
                     role='dialog'
                     aria-modal='true'
                     aria-labelledby='confirm-plan-title'
@@ -406,7 +406,7 @@ export default function PricingView() {
                     }}>
                     <div
                         onClick={(event) => event.stopPropagation()}
-                        className='max-h-[90vh] w-full max-w-lg space-y-5 overflow-y-auto rounded-lg border border-(--border-line) bg-(--bg-canvas) p-6'>
+                        className='modal-panel max-h-[90vh] w-full max-w-lg space-y-5 overflow-y-auto rounded-lg border border-(--border-line) bg-(--bg-canvas) p-6'>
                         <div className='flex items-start justify-between gap-3'>
                             <div>
                                 <span className='font-mono text-[10px] uppercase tracking-wider text-(--text-sub)'>

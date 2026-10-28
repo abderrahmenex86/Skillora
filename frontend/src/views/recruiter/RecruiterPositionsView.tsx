@@ -89,8 +89,8 @@ export default function RecruiterPositionsView() {
             </div>
 
             {showCreateModal && (
-                <div className='fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4'>
-                    <div className='bg-(--bg-canvas) border border-(--border-line) rounded-lg p-6 max-w-lg w-full space-y-4'>
+                <div className='modal-backdrop fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4'>
+                    <div className='modal-panel bg-(--bg-canvas) border border-(--border-line) rounded-lg p-6 max-w-lg w-full space-y-4'>
                         <h3 className='font-grotesque font-bold text-2xl text-(--text-main)'>
                             Create Verifiable Position
                         </h3>
@@ -176,7 +176,7 @@ export default function RecruiterPositionsView() {
                             {openPositions?.length ?? 0})
                         </h3>
 
-                        <div className='panel-scroll flex-1 min-h-0'>
+                        <div className='panel-scroll panel-snap flex-1 min-h-0'>
                         {openPositions?.length === 0 ?
                             <div className='p-8 border border-dashed border-(--border-line) text-center rounded-lg'>
                                 <DossierSketch className='mx-auto h-20 w-auto text-(--text-sub)' />
@@ -193,7 +193,7 @@ export default function RecruiterPositionsView() {
                                     <Link
                                         key={p.id}
                                         to={`/recruiter/positions/${p.id}/applications`}
-                                        className='p-5 rounded-md border border-(--border-line) bg-(--bg-canvas) hover:border-(--text-main) transition-all block group'>
+                                        className='snap-start p-5 rounded-md border border-(--border-line) bg-(--bg-canvas) hover:border-(--text-main) transition-all block group'>
                                         <div className='flex justify-between items-start mb-2'>
                                             <div>
                                                 <span className='font-mono text-[10px] text-(--text-sub) uppercase'>
@@ -241,14 +241,14 @@ export default function RecruiterPositionsView() {
                             Archived & Closed Positions (
                             {closedPositions?.length ?? 0})
                         </h3>
-                        <div className='panel-scroll flex-1 min-h-0'>
+                        <div className='panel-scroll panel-snap flex-1 min-h-0'>
                         {closedPositions?.length > 0 && (
                             <div className='grid grid-cols-1 md:grid-cols-2 gap-4 opacity-75'>
                                 {closedPositions.map((p: any) => (
                                     <Link
                                         key={p.id}
                                         to={`/recruiter/positions/${p.id}/applications`}
-                                        className='p-5 rounded-md border border-(--border-line) bg-(--bg-panel) block'>
+                                        className='snap-start p-5 rounded-md border border-(--border-line) bg-(--bg-panel) block'>
                                         <div className='flex justify-between items-start mb-2'>
                                             <div>
                                                 <span className='font-mono text-[10px] text-(--text-sub) uppercase'>

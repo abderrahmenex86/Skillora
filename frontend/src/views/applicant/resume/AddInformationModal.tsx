@@ -414,11 +414,11 @@ export default function AddInformationModal({
 
     return (
         <div
-            className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
+            className='modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
             onMouseDown={(event) => {
                 if (event.target === event.currentTarget) onClose();
             }}>
-            <div className='max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg border border-(--border-line) bg-(--bg-canvas) shadow-xl'>
+            <div className='modal-panel max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg border border-(--border-line) bg-(--bg-canvas) shadow-xl'>
                 <div className='flex items-center justify-between border-b border-(--border-line) px-6 py-4'>
                     <h2 className='font-grotesque text-2xl font-bold text-(--text-main)'>
                         Add {INFO_SINGULAR_LABELS[kind]}

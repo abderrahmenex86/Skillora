@@ -140,7 +140,7 @@ export default function JobsExplorerView() {
                         <h3 className='shrink-0 font-grotesque font-bold text-2xl text-(--text-main)'>
                             Available Jobs ({positions?.length ?? 0})
                         </h3>
-                        <div className='panel-scroll flex-1 space-y-3 md:pr-1'>
+                        <div className='panel-scroll panel-snap flex-1 space-y-3 md:pr-1'>
                         {positions?.map((job: any) => {
                             const isSelected =
                                 (selectedJobId || positions[0]?.id) === job.id;
@@ -152,7 +152,7 @@ export default function JobsExplorerView() {
                                         setAppliedSuccess(false);
                                         setApplyError('');
                                     }}
-                                    className={`p-5 rounded-md border cursor-pointer transition-all ${
+                                    className={`snap-start p-5 rounded-md border cursor-pointer transition-all ${
                                         isSelected ?
                                             'border-(--text-main) bg-(--bg-canvas) ring-1 ring-(--text-main)'
                                         :   'border-(--border-line) bg-(--bg-canvas) hover:border-(--text-sub)'
@@ -280,7 +280,7 @@ export default function JobsExplorerView() {
 
             {applyModalOpen && (
                 <div
-                    className='fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4'
+                    className='modal-backdrop fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4'
                     onClick={() => {
                         if (!applyMutation.isPending) {
                             setApplyModalOpen(false);
@@ -288,7 +288,7 @@ export default function JobsExplorerView() {
                     }}>
                     <div
                         onClick={(e) => e.stopPropagation()}
-                        className='bg-(--bg-canvas) border border-(--border-line) rounded-lg p-6 max-w-md w-full space-y-4'>
+                        className='modal-panel bg-(--bg-canvas) border border-(--border-line) rounded-lg p-6 max-w-md w-full space-y-4'>
                         <h3 className='font-grotesque font-bold text-2xl text-(--text-main)'>
                             Select a Resume for this Role
                         </h3>

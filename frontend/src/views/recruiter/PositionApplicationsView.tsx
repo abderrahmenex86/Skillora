@@ -168,7 +168,7 @@ export default function PositionApplicationsView() {
                         Received Applications ({applications?.length ?? 0})
                     </h3>
 
-                    <div className='panel-scroll flex-1 space-y-3 p-5'>
+                    <div className='panel-scroll panel-snap flex-1 space-y-3 p-5'>
                     {isLoading ?
                         <div className='text-xs text-(--text-sub)'>
                             Loading cohort submissions...
@@ -186,7 +186,7 @@ export default function PositionApplicationsView() {
                                 <div
                                     key={app.id}
                                     onClick={() => setSelectedAppId(app.id)}
-                                    className={`p-4 rounded-md border cursor-pointer transition-all ${
+                                    className={`snap-start p-4 rounded-md border cursor-pointer transition-all ${
                                         isSelected ?
                                             'border-(--text-main) bg-(--bg-canvas) ring-1 ring-(--text-main)'
                                         :   'border-(--border-line) bg-(--bg-canvas) hover:border-(--text-sub)'
@@ -417,13 +417,13 @@ export default function PositionApplicationsView() {
 
             {resumeOpen && selectedApp && (
                 <div
-                    className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
+                    className='modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
                     onMouseDown={(event) => {
                         if (event.target === event.currentTarget) {
                             setResumeOpen(false);
                         }
                     }}>
-                    <div className='max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg border border-(--border-line) bg-(--bg-canvas) shadow-xl'>
+                    <div className='modal-panel max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-lg border border-(--border-line) bg-(--bg-canvas) shadow-xl'>
                         <div className='flex items-center justify-between border-b border-(--border-line) px-6 py-4'>
                             <div>
                                 <h2 className='font-grotesque text-2xl font-bold text-(--text-main)'>

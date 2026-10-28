@@ -116,13 +116,13 @@ export default function ProfilesView() {
 
             {helpOpen && (
                 <div
-                    className='fixed inset-0 z-[60] flex items-start justify-center bg-black/40 px-4 pt-20 sm:pt-24'
+                    className='modal-backdrop fixed inset-0 z-[60] flex items-start justify-center bg-black/40 px-4 pt-20 sm:pt-24'
                     onClick={() => setHelpOpen(false)}>
                     <div
                         role='dialog'
                         aria-modal='true'
                         aria-labelledby='resume-builder-help-title'
-                        className='max-h-[80vh] w-full max-w-lg overflow-y-auto rounded-lg border border-(--border-line) bg-(--bg-canvas) p-6 shadow-xl'>
+                        className='modal-panel max-h-[80vh] w-full max-w-lg overflow-y-auto rounded-lg border border-(--border-line) bg-(--bg-canvas) p-6 shadow-xl'>
                         <div className='mb-5 flex items-start justify-between gap-4'>
                             <div>
                                 <h2

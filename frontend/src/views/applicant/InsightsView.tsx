@@ -84,7 +84,7 @@ export default function InsightsView() {
                     <h3 className='shrink-0 border-b border-(--border-line) px-6 py-4 font-grotesque font-bold text-2xl text-(--text-main)'>
                         Recurrent Unmet Criteria
                     </h3>
-                    <div className='panel-scroll flex-1 space-y-4 p-6'>
+                    <div className='panel-scroll panel-snap flex-1 space-y-4 p-6'>
                     <p className='text-xs text-(--text-sub)'>
                         These criteria appeared most frequently in your
                         redirection dossiers across all cohorts:
@@ -95,7 +95,7 @@ export default function InsightsView() {
                             (gap: any, i: number) => (
                                 <div
                                     key={i}
-                                    className='p-3 border border-(--border-line) rounded flex items-center justify-between text-xs'>
+                                    className='snap-start p-3 border border-(--border-line) rounded flex items-center justify-between text-xs'>
                                     <span className='font-medium text-(--text-main)'>
                                         {gap.skill}
                                     </span>
@@ -114,12 +114,12 @@ export default function InsightsView() {
                     <h3 className='shrink-0 border-b border-(--border-line) px-6 py-4 font-grotesque font-bold text-2xl text-(--text-main)'>
                         Targeted Recommendations
                     </h3>
-                    <div className='panel-scroll flex-1 space-y-2 p-6'>
+                    <div className='panel-scroll panel-snap flex-1 space-y-2 p-6'>
                         {insightsData?.recommendations?.map(
                             (rec: string, i: number) => (
                                 <div
                                     key={i}
-                                    className='text-xs text-(--text-sub) p-3 bg-(--bg-panel) rounded'>
+                                    className='snap-start text-xs text-(--text-sub) p-3 bg-(--bg-panel) rounded'>
                                     • {rec}
                                 </div>
                             )
