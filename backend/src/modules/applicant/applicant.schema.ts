@@ -102,6 +102,36 @@ export const UpgradePlanSchema = z.object({
     }),
 });
 
+export const VAULT_ENTRY_SECTIONS = [
+    'skill',
+    'conference',
+    'creative',
+    'driving',
+    'hobby',
+    'honour',
+    'network',
+    'publication',
+    'recommendation',
+    'social',
+    'other',
+] as const;
+
+export const AddVaultEntrySchema = z.object({
+    section: z.enum(VAULT_ENTRY_SECTIONS),
+    title: z.string().trim().min(1, 'Title is required').max(200),
+    subtitle: z.string().trim().max(200).optional().or(z.literal('')),
+    description: z.string().trim().max(5000).optional().or(z.literal('')),
+    date: z.string().trim().max(50).optional().or(z.literal('')),
+    endDate: z.string().trim().max(50).optional().or(z.literal('')),
+    url: z
+        .string()
+        .trim()
+        .url('Must be a valid URL')
+        .optional()
+        .or(z.literal('')),
+    tags: z.array(z.string().trim().min(1)).default([]),
+});
+
 export type SelectInterviewRangeInput = z.infer<
     typeof SelectInterviewRangeSchema
 >;
@@ -116,3 +146,4 @@ export type AddVolunteeringInput = z.infer<typeof AddVolunteeringSchema>;
 export type AddLanguageInput = z.infer<typeof AddLanguageSchema>;
 export type AddLinkInput = z.infer<typeof AddLinkSchema>;
 export type UpgradePlanInput = z.infer<typeof UpgradePlanSchema>;
+export type AddVaultEntryInput = z.infer<typeof AddVaultEntrySchema>;

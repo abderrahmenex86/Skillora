@@ -67,6 +67,7 @@ model User {
    vaultVolunteering   VaultVolunteering[]
    vaultLanguages      VaultLanguage[]
    vaultLinks          VaultLink[]
+   vaultEntries        VaultEntry[]
 
    profiles            ApplicantProfile[]
    applications        Application[]      @relation("CandidateApplications")
@@ -211,6 +212,25 @@ model VaultLink {
 
    @@index([userId])
    @@map("vault_links")
+}
+
+model VaultEntry {
+   id          String   @id @default(uuid())
+   userId      String
+   section     String
+   title       String
+   subtitle    String?
+   description String?
+   date        String?
+   endDate     String?
+   url         String?
+   tags        String[]
+   createdAt   DateTime @default(now())
+
+   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+   @@index([userId, section])
+   @@map("vault_entries")
 }
 
 model RefreshToken {

@@ -104,4 +104,11 @@ router.delete('/vault/links/:id', (req, res, next) =>
     applicantController.deleteVaultLink(req, res, next)
 );
 
+router.post('/vault/entries', (req, res, next) =>
+    applicantController.addVaultEntry(req, res, next)
+);
+router.delete('/vault/entries/:id', (req, res, next) =>
+    applicantController.deleteVaultEntry(req, res, next)
+);
+
 export const applicantRoutes = router;

@@ -12,6 +12,7 @@ import {
     AddLanguageInput,
     AddLinkInput,
     UpgradePlanInput,
+    AddVaultEntryInput,
 } from './applicant.schema.js';
 import { evaluationQueue } from '../../queues/queue.config.js';
 import { coordinatorAgent } from '../../agents/coordinator.agent.js';
@@ -333,6 +334,7 @@ export class ApplicantService {
             volunteering,
             languages,
             links,
+            entries,
         ] = await Promise.all([
             prisma.vaultEducation.findMany({
                 where: { userId },
@@ -362,6 +364,10 @@ export class ApplicantService {
                 where: { userId },
                 orderBy: { createdAt: 'desc' },
             }),
+            prisma.vaultEntry.findMany({
+                where: { userId },
+                orderBy: { createdAt: 'desc' },
+            }),
         ]);
 
         return {
@@ -372,6 +378,7 @@ export class ApplicantService {
             volunteering,
             languages,
             links,
+            entries,
         };
     }
 
@@ -519,6 +526,32 @@ export class ApplicantService {
             throw new AppError(404, 'Link not found');
         }
         return { message: 'Link removed' };
+    }
+
+    async addVaultEntry(userId: string, data: AddVaultEntryInput) {
+        return prisma.vaultEntry.create({
+            data: {
+                userId,
+                section: data.section,
+                title: data.title,
+                subtitle: data.subtitle || null,
+                description: data.description || null,
+                date: data.date || null,
+                endDate: data.endDate || null,
+                url: data.url || null,
+                tags: data.tags,
+            },
+        });
+    }
+
+    async deleteVaultEntry(userId: string, id: string) {
+        const result = await prisma.vaultEntry.deleteMany({
+            where: { id, userId },
+        });
+        if (result.count === 0) {
+            throw new AppError(404, 'Information entry not found');
+        }
+        return { message: 'Information entry removed' };
     }
 }
 
