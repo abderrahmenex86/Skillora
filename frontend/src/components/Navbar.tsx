@@ -132,6 +132,11 @@ export default function Navbar() {
             user.wilaya.split('-')[1].trim()
         :   user?.wilaya || user?.role || '';
 
+    const showUpgradeButton =
+        Boolean(user) &&
+        user?.subscriptionTier !== 'PRO' &&
+        user?.subscriptionTier !== 'ENTERPRISE';
+
     return (
         <header className='sticky top-0 z-50 w-full border-b border-(--border-line) bg-(--bg-canvas)/95 backdrop-blur-sm transition-colors'>
             <div className='max-w-7xl mx-auto px-6 h-16 flex items-center justify-between'>
@@ -233,6 +238,14 @@ export default function Navbar() {
                             />
                         :   <Moon size={17} />}
                     </button>
+
+                    {showUpgradeButton && (
+                        <Link
+                            to='/pricing'
+                            className='whitespace-nowrap rounded-md bg-(--btn-main-bg) px-3 py-2 text-xs font-semibold text-(--btn-main-text) transition-opacity hover:opacity-90 sm:px-4 sm:text-sm'>
+                            Upgrade to Pro
+                        </Link>
+                    )}
 
                     {!user ?
                         <>
