@@ -61,12 +61,8 @@ export function MatchPathSketch({ className = '' }: SketchProps) {
                     rx='2'
                     stroke={borderLine}
                 />
-                <path
-                    d='M146 94h16'
-                />
-                <path
-                    d='M156 89l6 5-6 5'
-                />
+                <path d='M146 94h16' />
+                <path d='M156 89l6 5-6 5' />
 
                 <rect
                     x='168'
@@ -124,9 +120,7 @@ export function MatchPathSketch({ className = '' }: SketchProps) {
                     stroke={borderLine}
                 />
 
-                <path
-                    d='M272 94h14'
-                />
+                <path d='M272 94h14' />
                 <path
                     d='M286 61v96'
                     stroke={textSub}
@@ -258,7 +252,7 @@ export function MatchPathSketch({ className = '' }: SketchProps) {
                 y='68'
                 fill='currentColor'
                 fontFamily='var(--font-grotesque)'
-                fontSize='20'
+                fontSize='16'
                 fontWeight='800'>
                 94% MATCH
             </text>
@@ -380,9 +374,7 @@ export function SearchSketch({ className = '' }: SketchProps) {
                     cy='78'
                     r='22'
                 />
-                <path
-                    d='M160 94l16 16'
-                />
+                <path d='M160 94l16 16' />
                 <path
                     d='M131 62c-12 6-18 15-18 27'
                     stroke={borderLine}
