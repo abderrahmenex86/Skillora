@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { Building2, Check, Sparkles, UserRound } from 'lucide-react';
+import { Building2, Check, UserRound } from 'lucide-react';
 import { apiClient } from '../../api/apiClient';
 import { ALGERIA_WILAYAS } from '../../data/algeria';
 import {
@@ -96,24 +96,25 @@ export default function AuthView() {
 
     return (
         <div className='flex flex-1 flex-col md:flex-row'>
-            <div className='relative w-full overflow-hidden bg-linear-to-br from-brand-700 via-violet-accent to-pink-accent p-8 text-white md:w-[42%] md:p-14 flex flex-col justify-between'>
+            <div className='panel-dark w-full p-8 md:w-[42%] md:p-14 flex flex-col justify-between'>
                 <div
                     aria-hidden='true'
-                    className='absolute inset-0 opacity-20 [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:22px_22px]'
+                    className='orbit -right-24 -top-24 h-80 w-80'
                 />
                 <div
                     aria-hidden='true'
-                    className='absolute -bottom-24 -right-24 h-80 w-80 rounded-full bg-white/20 blur-3xl'
+                    className='orbit -right-6 -top-6 h-44 w-44'
                 />
                 <div className='relative my-auto max-w-md'>
-                    <span className='mb-6 inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-semibold backdrop-blur'>
-                        <Sparkles size={13} /> Skillora promise
+                    <span className='eyebrow-pill mb-7'>
+                        Skillora promise
                     </span>
-                    <h2 className='mb-10 font-display text-4xl font-extrabold leading-[1.1] tracking-tight sm:text-5xl'>
+                    <h2 className='display mb-10 text-5xl text-white sm:text-6xl'>
                         Every applicant gets either an interview or a path to
-                        grow. Guaranteed.
+                        grow.{' '}
+                        <span className='text-emerald-brand'>Guaranteed.</span>
                     </h2>
-                    <ul className='space-y-4 text-sm text-white/90'>
+                    <ul className='space-y-4 text-sm text-sage-300'>
                         {[
                             'Zero unread PDF black holes across all 58 wilayas.',
                             'Verified state degrees (ESI, USTHB, CAPA) and real artifacts.',
@@ -122,7 +123,7 @@ export default function AuthView() {
                             <li
                                 key={item}
                                 className='flex items-start gap-3'>
-                                <span className='mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-white/20'>
+                                <span className='mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-brand text-ink'>
                                     <Check
                                         size={12}
                                         strokeWidth={3}
@@ -133,7 +134,7 @@ export default function AuthView() {
                         ))}
                     </ul>
                 </div>
-                <div className='relative mt-10 text-xs text-white/70'>
+                <div className='eyebrow relative mt-10'>
                     Algeria Talent Infrastructure · 58 wilayas
                 </div>
             </div>
@@ -165,7 +166,7 @@ export default function AuthView() {
                         </div>
                     )}
 
-                    <h3 className='mb-1.5 font-display text-3xl font-extrabold tracking-tight text-(--text-main)'>
+                    <h3 className='display mb-2 text-5xl text-(--text-main)'>
                         {isLogin ?
                             'Enter the Workspace'
                         : role === 'RECRUITER' ?
@@ -312,7 +313,7 @@ export default function AuthView() {
                                 Don’t have an account?{' '}
                                 <button
                                     onClick={() => setIsLogin(false)}
-                                    className='font-semibold text-brand-600 underline-offset-4 hover:underline dark:text-brand-300'>
+                                    className='text-accent font-semibold underline-offset-4 hover:underline'>
                                     Register here
                                 </button>
                             </>
@@ -320,7 +321,7 @@ export default function AuthView() {
                                 Already registered?{' '}
                                 <button
                                     onClick={() => setIsLogin(true)}
-                                    className='font-semibold text-brand-600 underline-offset-4 hover:underline dark:text-brand-300'>
+                                    className='text-accent font-semibold underline-offset-4 hover:underline'>
                                     Log in here
                                 </button>
                             </>

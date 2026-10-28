@@ -48,10 +48,6 @@ function PageTransition({ children }: { children: React.ReactNode }) {
 function AppLayout() {
     return (
         <div className='relative isolate min-h-dvh flex flex-col bg-(--bg-canvas) text-(--text-main)'>
-            <div
-                aria-hidden='true'
-                className='pointer-events-none absolute inset-x-0 top-0 -z-10 h-[38rem] bg-app-glow'
-            />
             <Navbar />
             <PageTransition>
                 <Outlet />

@@ -37,19 +37,19 @@ function PlanCard({
 }: PlanCardProps) {
     return (
         <article
-            className={`relative flex flex-col justify-between rounded-3xl p-7 transition-all duration-300 hover:-translate-y-1 ${
+            className={`relative flex flex-col justify-between p-7 transition-all duration-300 hover:-translate-y-1 ${
                 plan.recommended ?
-                    'border border-brand-400/70 bg-(--bg-elevated) ring-4 ring-brand-500/10 shadow-[0_24px_60px_-24px_rgb(99_102_241/0.55)]'
-                :   'border border-(--border-line) bg-(--bg-elevated) shadow-sm hover:shadow-lg'
+                    'card-dark border-t-4 border-emerald-brand'
+                :   'card hover:shadow-lg'
             }`}>
             {plan.recommended && (
-                <span className='absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-linear-to-r from-brand-600 to-violet-accent px-3 py-1 text-[11px] font-semibold text-white shadow-md'>
+                <span className='absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-emerald-brand px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-ink shadow-md'>
                     Most popular
                 </span>
             )}
             <div>
                 <div className='flex items-start justify-between gap-3'>
-                    <span className='font-display text-lg font-bold text-(--text-main)'>
+                    <span className='eyebrow'>
                         {plan.label}
                     </span>
                     {plan.savingsPercent > 0 && (
@@ -59,7 +59,7 @@ function PlanCard({
                     )}
                 </div>
 
-                <div className='mt-5 font-display text-4xl font-extrabold tracking-tight text-(--text-main)'>
+                <div className='display mt-5 text-6xl text-(--text-main)'>
                     {formatDzd(plan.price)}
                 </div>
                 <div className='mt-1 text-sm text-(--text-sub)'>
@@ -80,7 +80,7 @@ function PlanCard({
                         <li
                             key={feature}
                             className='flex items-start gap-2.5'>
-                            <span className='mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-500/10 text-brand-600 dark:text-brand-300'>
+                            <span className='mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-brand/15 text-accent'>
                                 <Check
                                     size={12}
                                     strokeWidth={3}
@@ -221,10 +221,10 @@ export default function PricingView() {
         <div className='flex flex-1 flex-col'>
             <main className='mx-auto w-full max-w-6xl px-6 py-16 md:py-20'>
                 <div className='animate-fade-up mx-auto mb-14 max-w-3xl text-center'>
-                <span className='eyebrow mb-5'>Pricing</span>
-                <h1 className='font-display text-5xl font-extrabold tracking-tight text-(--text-main) sm:text-6xl'>
+                <span className='eyebrow'>Pricing</span>
+                <h1 className='display mt-3 text-6xl text-(--text-main) sm:text-7xl'>
                     Simple plans for{' '}
-                    <span className='text-gradient'>candidates & companies</span>
+                    <span className='text-accent'>candidates & companies.</span>
                 </h1>
                 <p className='mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-(--text-sub)'>
                     Buy access in packs that match your search. Candidates
@@ -248,10 +248,10 @@ export default function PricingView() {
                 <section className='mb-20'>
                     <div className='mb-10 flex flex-wrap items-end justify-between gap-3'>
                         <div>
-                            <div className='mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-300'>
+                            <div className='eyebrow mb-2 flex! items-center gap-2'>
                                 <UserRound size={14} /> Candidate Packs
                             </div>
-                            <h2 className='font-display text-3xl font-extrabold tracking-tight text-(--text-main) md:text-4xl'>
+                            <h2 className='display text-5xl text-(--text-main)'>
                                 Unlimited access, bought as a pack
                             </h2>
                         </div>
@@ -295,7 +295,7 @@ export default function PricingView() {
                         {!user && (
                             <Link
                                 to='/auth?mode=register'
-                                className='font-semibold text-brand-600 underline-offset-4 hover:underline dark:text-brand-300'>
+                                className='text-accent font-semibold underline-offset-4 hover:underline'>
                                 Create a free account
                             </Link>
                         )}
@@ -305,10 +305,10 @@ export default function PricingView() {
                 <section>
                     <div className='mb-10 flex flex-wrap items-end justify-between gap-3'>
                         <div>
-                            <div className='mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-300'>
+                            <div className='eyebrow mb-2 flex! items-center gap-2'>
                                 <Building2 size={14} /> Company Plans
                             </div>
-                            <h2 className='font-display text-3xl font-extrabold tracking-tight text-(--text-main) md:text-4xl'>
+                            <h2 className='display text-5xl text-(--text-main)'>
                                 A verified pipeline for hiring teams
                             </h2>
                         </div>
