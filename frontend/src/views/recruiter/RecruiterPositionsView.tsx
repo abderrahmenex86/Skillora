@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../../api/apiClient';
+import { DossierSketch } from '../../components/Sketches';
 import { Link } from 'react-router-dom';
-import { Plus, Users, Clock, ArrowRight, FolderOpen } from 'lucide-react';
+import { Plus, Users, Clock, ArrowRight } from 'lucide-react';
 
 export default function RecruiterPositionsView() {
     const queryClient = useQueryClient();
@@ -178,12 +179,7 @@ export default function RecruiterPositionsView() {
                         <div className='panel-scroll panel-snap flex-1 min-h-0'>
                         {openPositions?.length === 0 ?
                             <div className='p-8 border border-dashed border-(--border-line) text-center rounded-lg'>
-                                <FolderOpen
-                                    size={40}
-                                    strokeWidth={1.25}
-                                    className='mx-auto text-(--text-sub)'
-                                    aria-hidden='true'
-                                />
+                                <DossierSketch className='mx-auto h-20 w-auto text-(--text-sub)' />
                                 <div className='mt-3 text-sm font-medium text-(--text-main)'>
                                     No active openings
                                 </div>

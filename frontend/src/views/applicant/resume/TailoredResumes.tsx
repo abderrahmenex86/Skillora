@@ -9,8 +9,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
     Check,
     FileText,
-    Files,
-    FolderOpen,
     GripVertical,
     Plus,
     Save,
@@ -20,6 +18,11 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { apiClient } from '../../../api/apiClient';
+import {
+    DossierSketch,
+    ResumeStackSketch,
+    SearchSketch,
+} from '../../../components/Sketches';
 import { useAuthStore } from '../../../store/useAuthStore';
 import {
     RESUME_INFO_KINDS,
@@ -508,12 +511,7 @@ export default function TailoredResumes({
 
             {!editingId ?
                 <div className='flex flex-1 min-h-0 flex-col items-center justify-center overflow-y-auto rounded-lg border border-dashed border-(--border-line) bg-(--bg-canvas) px-6 py-16 text-center'>
-                    <Files
-                        size={48}
-                        strokeWidth={1.25}
-                        className='mx-auto text-(--text-sub)'
-                        aria-hidden='true'
-                    />
+                    <ResumeStackSketch className='mx-auto h-24 w-auto text-(--text-sub)' />
                     <h3 className='mt-3 font-grotesque text-2xl font-bold text-(--text-main)'>
                         {profiles.length === 0 ?
                             'Create your first tailored resume'
@@ -872,12 +870,7 @@ export default function TailoredResumes({
 
                             {totalLibraryItems === 0 ?
                                 <div className='rounded-md border border-dashed border-(--border-line) px-4 py-10 text-center'>
-                                    <FolderOpen
-                                        size={32}
-                                        strokeWidth={1.25}
-                                        className='mx-auto mb-2 text-(--text-sub)'
-                                        aria-hidden='true'
-                                    />
+                                    <DossierSketch className='mx-auto mb-2 h-16 w-auto text-(--text-sub)' />
                                     <p className='text-xs text-(--text-sub)'>
                                         Your information library is empty.
                                     </p>
@@ -890,12 +883,7 @@ export default function TailoredResumes({
                                 </div>
                             : visibleLibrarySections.length === 0 ?
                                 <div className='rounded-md border border-dashed border-(--border-line) px-4 py-8 text-center text-xs text-(--text-sub)'>
-                                    <Search
-                                        size={28}
-                                        strokeWidth={1.25}
-                                        className='mx-auto mb-2 text-(--text-sub)'
-                                        aria-hidden='true'
-                                    />
+                                    <SearchSketch className='mx-auto mb-2 h-14 w-auto text-(--text-sub)' />
                                     No information matches "{search}".
                                 </div>
                             :   <div className='space-y-4'>

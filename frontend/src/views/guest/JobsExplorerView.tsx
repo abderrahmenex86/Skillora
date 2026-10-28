@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../../api/apiClient';
+import { SearchSketch } from '../../components/Sketches';
 import { useAuthStore } from '../../store/useAuthStore';
 import { Search, ArrowRight, Check, Lock, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -126,12 +127,7 @@ export default function JobsExplorerView() {
                 </div>
             : positions?.length === 0 ?
                 <div className='p-8 border border-dashed border-(--border-line) text-center rounded-lg'>
-                    <Search
-                        size={48}
-                        strokeWidth={1.25}
-                        className='mx-auto text-(--text-sub)'
-                        aria-hidden='true'
-                    />
+                    <SearchSketch className='mx-auto h-24 w-auto text-(--text-sub)' />
                     <div className='mt-4 text-sm font-medium text-(--text-main)'>
                         No active jobs found
                     </div>

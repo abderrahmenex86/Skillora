@@ -2,13 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../../api/apiClient';
+import { DossierSketch } from '../../components/Sketches';
 import {
     ArrowLeft,
     Check,
     AlertTriangle,
     ExternalLink,
     FileText,
-    FolderOpen,
     X,
 } from 'lucide-react';
 import {
@@ -175,12 +175,7 @@ export default function PositionApplicationsView() {
                         </div>
                     : applications?.length === 0 ?
                         <div className='text-xs text-(--text-sub) text-center py-8'>
-                            <FolderOpen
-                                size={32}
-                                strokeWidth={1.25}
-                                className='mx-auto mb-2 text-(--text-sub)'
-                                aria-hidden='true'
-                            />
+                            <DossierSketch className='mx-auto mb-2 h-16 w-auto text-(--text-sub)' />
                             No applications received for this position yet.
                         </div>
                     :   applications?.map((app: any) => {

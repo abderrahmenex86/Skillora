@@ -18,8 +18,8 @@ function navLinkClass({ isActive }: { isActive: boolean }) {
     return [
         'relative py-1 transition-colors',
         isActive
-            ? 'text-(--nav-fg) after:absolute after:-bottom-1 after:left-0 after:right-0 after:h-0.5 after:rounded-full after:bg-(--nav-fg)'
-            : 'text-(--nav-muted) hover:text-(--nav-fg)',
+            ? 'text-(--text-main) after:absolute after:-bottom-1 after:left-0 after:right-0 after:h-0.5 after:rounded-full after:bg-(--text-main)'
+            : 'text-(--text-sub) hover:text-(--text-main)',
     ].join(' ');
 }
 
@@ -138,12 +138,12 @@ export default function Navbar() {
         user?.subscriptionTier !== 'ENTERPRISE';
 
     return (
-        <header className='nav-shell relative z-50 w-full shrink-0 border-b border-(--nav-line) bg-(--nav-bg) text-(--nav-fg) backdrop-blur-xl backdrop-saturate-150 transition-colors'>
-            <div className='relative z-10 mx-auto flex h-16 max-w-7xl items-center justify-between px-6'>
+        <header className='sticky top-0 z-50 w-full shrink-0 border-b border-(--border-line) bg-(--bg-canvas)/95 backdrop-blur-sm transition-colors'>
+            <div className='max-w-7xl mx-auto px-6 h-16 flex items-center justify-between'>
                 <div className='flex items-center'>
                     <Link
                         to='/'
-                        className='inline-flex items-center rounded-sm bg-(--nav-logo-bg) px-3 py-1 font-grotesque text-3xl font-bold tracking-tight text-(--nav-logo-fg) transition-transform hover:-translate-y-0.5'>
+                        className='inline-flex items-center px-3 py-1 font-grotesque font-bold text-3xl tracking-tight bg-(--btn-main-bg) text-(--btn-main-text) rounded-sm transition-colors'>
                         Skillora
                     </Link>
                 </div>
@@ -225,7 +225,7 @@ export default function Navbar() {
                     {showUpgradeButton && (
                         <Link
                             to='/pricing'
-                            className='whitespace-nowrap rounded-md bg-(--nav-logo-bg) px-3 py-2 text-xs font-semibold text-(--nav-logo-fg) transition-opacity hover:opacity-90 sm:px-4 sm:text-sm'>
+                            className='whitespace-nowrap rounded-md bg-(--btn-main-bg) px-3 py-2 text-xs font-semibold text-(--btn-main-text) transition-opacity hover:opacity-90 sm:px-4 sm:text-sm'>
                             {user?.role === 'RECRUITER' ?
                                 'Upgrade Plan'
                             :   'Upgrade to Pro'}
@@ -236,18 +236,18 @@ export default function Navbar() {
                         <>
                             <Link
                                 to='/auth?mode=login'
-                                className='px-4 py-2 text-sm font-medium rounded-md border border-(--nav-line) text-(--nav-fg) hover:bg-(--nav-hover) transition-colors'>
+                                className='px-4 py-2 text-sm font-medium rounded-md border border-(--border-line) text-(--text-main) hover:bg-(--bg-panel) transition-colors'>
                                 Login
                             </Link>
                             <Link
                                 to='/auth?mode=register'
-                                className='px-4 py-2 text-sm font-medium rounded-md bg-(--nav-logo-bg) text-(--nav-logo-fg) hover:opacity-90 transition-opacity'>
+                                className='px-4 py-2 text-sm font-medium rounded-md bg-(--btn-main-bg) text-(--btn-main-text) hover:opacity-90 transition-opacity'>
                                 Register
                             </Link>
                         </>
                     :   <div
                             ref={menuRef}
-                            className='relative flex items-center gap-1 pl-3 border-l border-(--nav-line)'>
+                            className='relative flex items-center gap-1 pl-3 border-l border-(--border-line)'>
                             <button
                                 type='button'
                                 onClick={() => {
@@ -255,15 +255,15 @@ export default function Navbar() {
                                     navigate(roleHome[user.role]);
                                 }}
                                 aria-label='Go to dashboard'
-                                className='flex items-center space-x-2 rounded-md px-2 py-1 hover:bg-(--nav-hover) transition-colors cursor-pointer'>
-                                <div className='w-8 h-8 rounded-full bg-(--nav-hover) border border-(--nav-line) flex items-center justify-center font-grotesque font-bold text-sm text-(--nav-fg)'>
+                                className='flex items-center space-x-2 rounded-md px-2 py-1 hover:bg-(--bg-panel) transition-colors cursor-pointer'>
+                                <div className='w-8 h-8 rounded-full bg-(--bg-panel) border border-(--border-line) flex items-center justify-center font-grotesque font-bold text-sm text-(--text-main)'>
                                     {initials || <UserIcon size={14} />}
                                 </div>
                                 <div className='hidden sm:block text-left'>
-                                    <div className='text-xs font-semibold leading-tight text-(--nav-fg)'>
+                                    <div className='text-xs font-semibold leading-tight text-(--text-main)'>
                                         {displayName}
                                     </div>
-                                    <div className='font-mono text-[10px] text-(--nav-muted)'>
+                                    <div className='font-mono text-[10px] text-(--text-sub)'>
                                         {wilayaDisplay}
                                     </div>
                                 </div>
@@ -279,7 +279,7 @@ export default function Navbar() {
                                 }
                                 aria-haspopup='menu'
                                 aria-expanded={menuOpen}
-                                className='p-1.5 rounded-md text-(--nav-muted) hover:text-(--nav-fg) hover:bg-(--nav-hover) transition-colors cursor-pointer'>
+                                className='p-1.5 rounded-md text-(--text-sub) hover:text-(--text-main) hover:bg-(--bg-panel) transition-colors cursor-pointer'>
                                 <ChevronDown
                                     size={15}
                                     className={`transition-transform duration-200 ${menuOpen ? 'rotate-180' : ''}`}
@@ -332,17 +332,13 @@ export default function Navbar() {
                                 'Switch to light mode'
                             :   'Switch to dark mode'
                         }
-                        className='p-2 rounded-md border border-(--nav-line) text-(--nav-muted) hover:text-(--nav-fg) hover:bg-(--nav-hover) transition-all flex items-center justify-center cursor-pointer'>
+                        className='p-2 rounded-md border border-(--border-line) text-(--text-sub) hover:text-(--text-main) hover:bg-(--bg-panel) transition-all flex items-center justify-center cursor-pointer'>
                         {isDark ?
                             <Sun
                                 size={17}
-                                className='text-amber-500'
+                                className='text-amber-400'
                             />
-                        :   <Moon
-                                size={17}
-                                className='text-sky-200'
-                            />
-                        }
+                        :   <Moon size={17} />}
                     </button>
                 </div>
             </div>
