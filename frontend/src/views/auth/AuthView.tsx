@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { apiClient } from '../../api/apiClient';
 import { ALGERIA_WILAYAS } from '../../data/algeria';
+import {
+    consumeStoredRedirect,
+    normalizeRedirect,
+    redirectFromLocationState,
+} from '../../lib/redirect';
 import { useAuthStore } from '../../store/useAuthStore';
 
 export default function AuthView() {
     const [searchParams] = useSearchParams();
+    const location = useLocation();
     const [role, setRole] = useState<'APPLICANT' | 'RECRUITER'>('APPLICANT');
     const [isLogin, setIsLogin] = useState(true);
 
@@ -59,10 +65,17 @@ export default function AuthView() {
             const { data } = await apiClient.post(endpoint, payload);
             setTokens(data.accessToken, data.user);
 
-            if (data.user.role === 'RECRUITER') {
-                navigate('/recruiter/positions');
+            const redirect =
+                normalizeRedirect(searchParams.get('redirect')) ??
+                normalizeRedirect(redirectFromLocationState(location.state)) ??
+                normalizeRedirect(consumeStoredRedirect());
+
+            if (redirect) {
+                navigate(redirect, { replace: true });
+            } else if (data.user.role === 'RECRUITER') {
+                navigate('/recruiter/positions', { replace: true });
             } else {
-                navigate('/applicant/dashboard');
+                navigate('/applicant/dashboard', { replace: true });
             }
         } catch (err: any) {
             if (err.response?.data?.issues) {
@@ -119,32 +132,36 @@ export default function AuthView() {
 
             <div className='w-full md:w-[58%] p-8 md:p-14 flex flex-col justify-center items-center'>
                 <div className='w-full max-w-lg'>
-                    <div className='bg-(--bg-panel) p-1 rounded-md border border-(--border-line) flex mb-6'>
-                        <button
-                            type='button'
-                            onClick={() => setRole('APPLICANT')}
-                            className={`flex-1 py-2 text-xs font-medium rounded transition-colors ${
-                                role === 'APPLICANT' ?
-                                    'bg-(--bg-canvas) text-(--text-main) font-semibold shadow-xs'
-                                :   'text-(--text-sub)'
-                            }`}>
-                            Seeking Roles (Candidate)
-                        </button>
-                        <button
-                            type='button'
-                            onClick={() => setRole('RECRUITER')}
-                            className={`flex-1 py-2 text-xs font-medium rounded transition-colors ${
-                                role === 'RECRUITER' ?
-                                    'bg-(--bg-canvas) text-(--text-main) font-semibold shadow-xs'
-                                :   'text-(--text-sub)'
-                            }`}>
-                            Hiring Talent (Recruiter)
-                        </button>
-                    </div>
+                    {!isLogin && (
+                        <div className='bg-(--bg-panel) p-1 rounded-md border border-(--border-line) flex mb-6'>
+                            <button
+                                type='button'
+                                onClick={() => setRole('APPLICANT')}
+                                className={`flex-1 py-2 text-xs font-medium rounded transition-colors ${
+                                    role === 'APPLICANT' ?
+                                        'bg-(--bg-canvas) text-(--text-main) font-semibold shadow-xs'
+                                    :   'text-(--text-sub)'
+                                }`}>
+                                Seeking Roles (Candidate)
+                            </button>
+                            <button
+                                type='button'
+                                onClick={() => setRole('RECRUITER')}
+                                className={`flex-1 py-2 text-xs font-medium rounded transition-colors ${
+                                    role === 'RECRUITER' ?
+                                        'bg-(--bg-canvas) text-(--text-main) font-semibold shadow-xs'
+                                    :   'text-(--text-sub)'
+                                }`}>
+                                Hiring Talent (Recruiter)
+                            </button>
+                        </div>
+                    )}
 
                     <h3 className='font-grotesque font-bold text-3xl tracking-tight mb-1 text-(--text-main)'>
                         {isLogin ?
                             'Enter the Workspace'
+                        : role === 'RECRUITER' ?
+                            'Create Recruiter Profile'
                         :   'Create Candidate Profile'}
                     </h3>
                     <p className='text-xs text-(--text-sub) mb-6'>
@@ -247,6 +264,7 @@ export default function AuthView() {
                         <input
                             type='email'
                             required
+                            autoComplete='email'
                             placeholder='Email address'
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
@@ -255,7 +273,14 @@ export default function AuthView() {
                         <input
                             type='password'
                             required
-                            placeholder='Password (minimum 8 characters)'
+                            autoComplete={
+                                isLogin ? 'current-password' : 'new-password'
+                            }
+                            placeholder={
+                                isLogin ?
+                                    'Password'
+                                :   'Password (minimum 8 characters)'
+                            }
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             className='w-full px-3.5 py-2.5 text-sm rounded-md border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none focus:ring-1 focus:ring-(--text-main)'

@@ -71,10 +71,13 @@ function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
 
 function SignedInRoute({ children }: { children: React.ReactNode }) {
     const user = useAuthStore((state) => state.user);
+    const location = useLocation();
+
     if (!user) {
         return (
             <Navigate
                 to='/auth?mode=login'
+                state={{ from: location }}
                 replace
             />
         );
@@ -90,10 +93,13 @@ function ProtectedRoute({
     allowedRole: 'APPLICANT' | 'RECRUITER';
 }) {
     const user = useAuthStore((state) => state.user);
+    const location = useLocation();
+
     if (!user) {
         return (
             <Navigate
                 to='/auth?mode=login'
+                state={{ from: location }}
                 replace
             />
         );
