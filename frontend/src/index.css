@@ -1,5 +1,7 @@
 @import 'tailwindcss';
 
+@custom-variant tall (@media (min-height: 900px));
+
 @theme {
     --font-grotesque:
         'Darker Grotesque', -apple-system, BlinkMacSystemFont, sans-serif;

@@ -132,7 +132,7 @@ export default function App() {
     return (
         <QueryClientProvider client={queryClient}>
             <Router>
-                <div className='min-h-screen flex flex-col bg-(--bg-canvas) text-(--text-main)'>
+                <div className='min-h-dvh flex flex-col bg-(--bg-canvas) text-(--text-main)'>
                     <Navbar />
                     <PageTransition>
                         <Routes>

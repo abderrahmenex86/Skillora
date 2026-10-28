@@ -35,11 +35,11 @@ export default function PricingView() {
 
     return (
         <div className='flex-1 flex flex-col justify-between'>
-            <main className='max-w-6xl mx-auto px-6 py-16 w-full'>
+            <main className='max-w-6xl mx-auto px-6 pt-8 pb-4 tall:py-16 w-full'>
                 <h1 className='font-grotesque font-extrabold text-5xl sm:text-6xl text-(--text-main) tracking-tight mb-4'>
                     Plans for Applicants and Employers
                 </h1>
-                <p className='text-lg text-(--text-sub) max-w-2xl leading-relaxed mb-10'>
+                <p className='text-lg text-(--text-sub) max-w-2xl leading-relaxed mb-6 tall:mb-10'>
                     Affordable subscription tiers for candidates to unlock
                     multiple resumes and cross-round insights, alongside
                     verified pipeline plans for hiring teams.
@@ -51,24 +51,24 @@ export default function PricingView() {
                     </div>
                 )}
 
-                <div className='grid grid-cols-1 md:grid-cols-3 gap-8 mb-16'>
+                <div className='grid grid-cols-1 md:grid-cols-3 gap-8 mb-6 tall:mb-16'>
                     {/* Candidate Free */}
-                    <div className='border border-(--border-line) rounded-lg p-6 bg-(--bg-canvas) flex flex-col justify-between'>
+                    <div className='border border-(--border-line) rounded-lg p-5 tall:p-6 bg-(--bg-canvas) flex flex-col justify-between'>
                         <div>
                             <span className='font-mono text-xs text-(--text-sub) uppercase'>
                                 Candidate Free
                             </span>
-                            <div className='font-grotesque font-extrabold text-4xl text-(--text-main) my-4'>
+                            <div className='font-grotesque font-extrabold text-4xl text-(--text-main) my-3 tall:my-4'>
                                 0 DZD{' '}
                                 <span className='text-sm font-sans font-normal text-(--text-sub)'>
                                     / mo
                                 </span>
                             </div>
-                            <p className='text-xs text-(--text-sub) mb-6'>
+                            <p className='text-xs text-(--text-sub) mb-4 tall:mb-6'>
                                 For candidates starting their job hunt with a
                                 single focused resume.
                             </p>
-                            <ul className='space-y-3 text-xs text-(--text-main) font-mono mb-8'>
+                            <ul className='space-y-2.5 tall:space-y-3 text-xs text-(--text-main) font-mono mb-5 tall:mb-8'>
                                 <li className='flex items-center gap-2'>
                                     <Check size={14} /> Exactly 1 Active Resume
                                 </li>
@@ -99,7 +99,7 @@ export default function PricingView() {
                     </div>
 
                     {/* Candidate Pro */}
-                    <div className='border-2 border-(--text-main) rounded-lg p-6 bg-(--bg-canvas) flex flex-col justify-between shadow-xs'>
+                    <div className='border-2 border-(--text-main) rounded-lg p-5 tall:p-6 bg-(--bg-canvas) flex flex-col justify-between shadow-xs'>
                         <div>
                             <div className='flex justify-between items-center'>
                                 <span className='font-mono text-xs text-(--text-sub) uppercase'>
@@ -109,17 +109,17 @@ export default function PricingView() {
                                     RECOMMENDED
                                 </span>
                             </div>
-                            <div className='font-grotesque font-extrabold text-4xl text-(--text-main) my-4'>
+                            <div className='font-grotesque font-extrabold text-4xl text-(--text-main) my-3 tall:my-4'>
                                 1,200 DZD{' '}
                                 <span className='text-sm font-sans font-normal text-(--text-sub)'>
                                     / mo
                                 </span>
                             </div>
-                            <p className='text-xs text-(--text-sub) mb-6'>
+                            <p className='text-xs text-(--text-sub) mb-4 tall:mb-6'>
                                 For multi-disciplinary candidates applying
                                 across multiple domains.
                             </p>
-                            <ul className='space-y-3 text-xs text-(--text-main) font-mono mb-8'>
+                            <ul className='space-y-2.5 tall:space-y-3 text-xs text-(--text-main) font-mono mb-5 tall:mb-8'>
                                 <li className='flex items-center gap-2'>
                                     <Check size={14} /> Unlimited Active
                                     Resumes (Tech, Law, etc.)
@@ -156,22 +156,22 @@ export default function PricingView() {
                     </div>
 
                     {/* Recruiter Pipeline */}
-                    <div className='border border-(--border-line) rounded-lg p-6 bg-(--bg-canvas) flex flex-col justify-between'>
+                    <div className='border border-(--border-line) rounded-lg p-5 tall:p-6 bg-(--bg-canvas) flex flex-col justify-between'>
                         <div>
                             <span className='font-mono text-xs text-(--text-sub) uppercase'>
                                 Recruiter Pipeline
                             </span>
-                            <div className='font-grotesque font-extrabold text-4xl text-(--text-main) my-4'>
+                            <div className='font-grotesque font-extrabold text-4xl text-(--text-main) my-3 tall:my-4'>
                                 35,000 DZD{' '}
                                 <span className='text-sm font-sans font-normal text-(--text-sub)'>
                                     / role
                                 </span>
                             </div>
-                            <p className='text-xs text-(--text-sub) mb-6'>
+                            <p className='text-xs text-(--text-sub) mb-4 tall:mb-6'>
                                 First opening free. Autonomous rubric checking
                                 and interview agent included.
                             </p>
-                            <ul className='space-y-3 text-xs text-(--text-main) font-mono mb-8'>
+                            <ul className='space-y-2.5 tall:space-y-3 text-xs text-(--text-main) font-mono mb-5 tall:mb-8'>
                                 <li className='flex items-center gap-2'>
                                     <Check size={14} /> Pre-deadline manual
                                     decision override
@@ -199,7 +199,7 @@ export default function PricingView() {
                 </div>
             </main>
 
-            <footer className='border-t border-(--border-line) py-6 px-6 text-xs font-mono text-(--text-sub) max-w-7xl mx-auto w-full text-center'>
+            <footer className='border-t border-(--border-line) py-3 tall:py-6 px-6 text-xs font-mono text-(--text-sub) max-w-7xl mx-auto w-full text-center'>
                 All plans billed in Algerian Dinars (DZD) • Cancel anytime
             </footer>
         </div>
