@@ -15,8 +15,9 @@ import {
     UpgradePlanInput,
     AddVaultEntryInput,
 } from './applicant.schema.js';
-import { evaluationQueue } from '../../queues/queue.config.js';
+import { enqueueEvaluation } from '../../queues/queue.config.js';
 import { coordinatorAgent } from '../../agents/coordinator.agent.js';
+import { agentOrchestrator } from '../../agents/orchestrator.js';
 
 function extractLegacyProjectIds(value: unknown): string[] {
     if (!Array.isArray(value)) return [];
@@ -286,9 +287,20 @@ export class ApplicantService {
                 },
             },
         });
-        await evaluationQueue.add('evaluate-application', {
-            applicationId: application.id,
-        });
+        const queued = await enqueueEvaluation(application.id);
+
+        if (!queued) {
+            // Redis is optional in local development. Run the evaluation in the
+            // background so the application still progresses without a queue.
+            void agentOrchestrator
+                .evaluateApplication(application.id)
+                .catch((error) => {
+                    console.error(
+                        `[applicant] Inline evaluation failed for ${application.id}:`,
+                        error
+                    );
+                });
+        }
 
         return application;
     }

@@ -12,6 +12,7 @@ import {
     CheckCircle2,
     ChevronRight,
     AlertCircle,
+    Loader2,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -101,7 +102,11 @@ export default function ApplicantDashboardView() {
                         </div>
 
                         {calLoading ?
-                            <div className='text-xs text-(--text-sub) py-4'>
+                            <div className='flex items-center gap-2 py-4 text-xs text-(--text-sub)'>
+                                <Loader2
+                                    size={14}
+                                    className='animate-spin'
+                                />
                                 Loading calendar logistics...
                             </div>
                         : calendarData?.length === 0 ?
@@ -283,7 +288,13 @@ export default function ApplicantDashboardView() {
                                                             disabled={
                                                                 selectRangeMutation.isPending
                                                             }
-                                                            className='mt-3 w-full py-2 bg-(--btn-main-bg) text-(--btn-main-text) text-xs font-mono uppercase tracking-wider rounded font-semibold hover:opacity-90'>
+                                                            className='mt-3 w-full inline-flex items-center justify-center gap-2 py-2 bg-(--btn-main-bg) text-(--btn-main-text) text-xs font-mono uppercase tracking-wider rounded font-semibold hover:opacity-90 disabled:opacity-50'>
+                                                            {selectRangeMutation.isPending && (
+                                                                <Loader2
+                                                                    size={14}
+                                                                    className='animate-spin'
+                                                                />
+                                                            )}
                                                             {(
                                                                 selectRangeMutation.isPending
                                                             ) ?
@@ -309,7 +320,11 @@ export default function ApplicantDashboardView() {
                         </h3>
 
                         {appsLoading ?
-                            <div className='text-xs text-(--text-sub) py-4'>
+                            <div className='flex items-center gap-2 py-4 text-xs text-(--text-sub)'>
+                                <Loader2
+                                    size={14}
+                                    className='animate-spin'
+                                />
                                 Loading applications...
                             </div>
                         : appsData?.length === 0 ?

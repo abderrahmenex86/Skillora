@@ -165,7 +165,7 @@ flowchart LR
     COORD --> PG
 ```
 
-The API is stateless. The evaluation worker runs in the same Node process as the API (imported from `server.ts`), while Redis provides durable job delivery and retry semantics.
+The API is stateless. The evaluation worker runs in the same Node process as the API (imported from `server.ts`), while Redis provides durable job delivery and retry semantics. If Redis is unreachable, applications still submit immediately and the evaluation runs inline in the background so local development does not stall.
 
 ---
 
@@ -438,7 +438,7 @@ skillora/
 
 - Node.js 20 or newer
 - PostgreSQL 14 or newer
-- Redis 6 or newer (required for application evaluation)
+- Redis 6 or newer (recommended for queued evaluations; without it, evaluations run inline in the API process)
 
 ### 1. Clone the repository
 

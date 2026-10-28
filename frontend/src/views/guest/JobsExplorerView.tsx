@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../../api/apiClient';
 import { SearchSketch } from '../../components/Sketches';
 import { useAuthStore } from '../../store/useAuthStore';
-import { Search, ArrowRight, Check, Lock } from 'lucide-react';
+import { Search, ArrowRight, Check, Lock, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function JobsExplorerView() {
@@ -24,7 +24,7 @@ export default function JobsExplorerView() {
         },
     });
 
-    const { data: profiles } = useQuery({
+    const { data: profiles, isLoading: profilesLoading } = useQuery({
         queryKey: ['applicant-profiles'],
         queryFn: async () => {
             const { data } = await apiClient.get('/applicant/profiles');
@@ -32,6 +32,24 @@ export default function JobsExplorerView() {
         },
         enabled: user?.role === 'APPLICANT',
     });
+
+    const { data: myApplications } = useQuery({
+        queryKey: ['my-applications'],
+        queryFn: async () => {
+            const { data } = await apiClient.get('/applicant/applications');
+            return data.applications;
+        },
+        enabled: user?.role === 'APPLICANT',
+    });
+
+    const appliedPositionIds = new Set<string>(
+        (myApplications ?? [])
+            .map(
+                (application: any) =>
+                    application.positionId ?? application.position?.id
+            )
+            .filter(Boolean)
+    );
 
     const applyMutation = useMutation({
         mutationFn: async ({
@@ -41,18 +59,34 @@ export default function JobsExplorerView() {
             positionId: string;
             profileId: string;
         }) => {
-            const { data } = await apiClient.post('/applicant/applications', {
-                positionId,
-                profileId,
-            });
+            const { data } = await apiClient.post(
+                '/applicant/applications',
+                {
+                    positionId,
+                    profileId,
+                },
+                { timeout: 20000 }
+            );
             return data.application;
         },
         onSuccess: () => {
             setAppliedSuccess(true);
             setApplyError('');
+            setApplyModalOpen(false);
+            setSelectedProfileId('');
             queryClient.invalidateQueries({ queryKey: ['my-applications'] });
         },
         onError: (err: any) => {
+            if (err.code === 'ECONNABORTED') {
+                setApplyError(
+                    'The request timed out. Refresh the page to check whether your application was recorded before retrying.'
+                );
+                queryClient.invalidateQueries({
+                    queryKey: ['my-applications'],
+                });
+                return;
+            }
+
             setApplyError(
                 err.response?.data?.error || 'Failed to submit application'
             );
@@ -64,9 +98,14 @@ export default function JobsExplorerView() {
             (j: any) => j.id === (selectedJobId || positions[0]?.id)
         ) || positions?.[0];
 
+    const selectedJobHasApplied = Boolean(
+        selectedJob && appliedPositionIds.has(selectedJob.id)
+    );
+
     const handleApply = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!selectedJob || !selectedProfileId) return;
+        if (!selectedJob || !selectedProfileId || applyMutation.isPending)
+            return;
         applyMutation.mutate({
             positionId: selectedJob.id,
             profileId: selectedProfileId,
@@ -86,7 +125,8 @@ export default function JobsExplorerView() {
             </div>
 
             {isLoading ?
-                <div className='text-xs text-(--text-sub)'>
+                <div className='flex items-center gap-2 text-xs text-(--text-sub)'>
+                    <Loader2 size={14} className='animate-spin' />
                     Loading openings...
                 </div>
             : positions?.length === 0 ?
@@ -139,7 +179,15 @@ export default function JobsExplorerView() {
                                     </div>
 
                                     <div className='mt-3 flex items-center justify-between text-xs font-mono text-(--text-sub)'>
-                                        <span>{job.department}</span>
+                                        <div className='flex items-center gap-2'>
+                                            <span>{job.department}</span>
+                                            {appliedPositionIds.has(job.id) && (
+                                                <span className='inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-forest/10 text-forest dark:text-forest-dark'>
+                                                    <Check size={10} />
+                                                    Applied
+                                                </span>
+                                            )}
+                                        </div>
                                         <span className='text-amber-accent'>
                                             Closes:{' '}
                                             {new Date(
@@ -202,16 +250,24 @@ export default function JobsExplorerView() {
                                             applicant account to submit
                                             applications.
                                         </div>
-                                    : appliedSuccess ?
-                                        <div className='p-4 border border-forest/30 bg-forest/5 text-forest dark:text-forest-dark rounded-md text-xs font-mono flex items-center justify-center gap-2 font-semibold'>
-                                            <Check size={16} /> Application
-                                            Submitted — Evaluation in Progress
+                                    : selectedJobHasApplied || appliedSuccess ?
+                                        <div className='p-4 border border-forest/30 bg-forest/5 text-forest dark:text-forest-dark rounded-md text-xs font-mono text-center font-semibold space-y-1'>
+                                            <div className='flex items-center justify-center gap-2'>
+                                                <Check size={16} /> Application
+                                                Submitted — Evaluation in
+                                                Progress
+                                            </div>
+                                            <p className='text-[11px] font-normal opacity-80'>
+                                                You can still apply to any other
+                                                open role.
+                                            </p>
                                         </div>
                                     :   <div>
                                             <button
-                                                onClick={() =>
-                                                    setApplyModalOpen(true)
-                                                }
+                                                onClick={() => {
+                                                    setApplyError('');
+                                                    setApplyModalOpen(true);
+                                                }}
                                                 className='w-full py-3.5 bg-(--btn-main-bg) text-(--btn-main-text) font-grotesque font-bold text-xl rounded-md hover:opacity-90 transition-opacity'>
                                                 Apply with a Tailored Resume
                                             </button>
@@ -225,8 +281,16 @@ export default function JobsExplorerView() {
             }
 
             {applyModalOpen && (
-                <div className='fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4'>
-                    <div className='bg-(--bg-canvas) border border-(--border-line) rounded-lg p-6 max-w-md w-full space-y-4'>
+                <div
+                    className='fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4'
+                    onClick={() => {
+                        if (!applyMutation.isPending) {
+                            setApplyModalOpen(false);
+                        }
+                    }}>
+                    <div
+                        onClick={(e) => e.stopPropagation()}
+                        className='bg-(--bg-canvas) border border-(--border-line) rounded-lg p-6 max-w-md w-full space-y-4'>
                         <h3 className='font-grotesque font-bold text-2xl text-(--text-main)'>
                             Select a Resume for this Role
                         </h3>
@@ -237,7 +301,15 @@ export default function JobsExplorerView() {
                             </div>
                         )}
 
-                        {profiles?.length === 0 ?
+                        {profilesLoading ?
+                            <div className='flex items-center gap-2 py-2 text-xs text-(--text-sub)'>
+                                <Loader2
+                                    size={14}
+                                    className='animate-spin'
+                                />
+                                Loading your resumes...
+                            </div>
+                        : profiles?.length === 0 ?
                             <div className='text-xs text-(--text-sub) space-y-3'>
                                 <p>
                                     You haven't created any tailored resumes
@@ -258,10 +330,11 @@ export default function JobsExplorerView() {
                                 <select
                                     required
                                     value={selectedProfileId}
+                                    disabled={applyMutation.isPending}
                                     onChange={(e) =>
                                         setSelectedProfileId(e.target.value)
                                     }
-                                    className='w-full px-3 py-2 text-xs rounded border border-(--border-line) bg-(--bg-canvas) text-(--text-main)'>
+                                    className='w-full px-3 py-2 text-xs rounded border border-(--border-line) bg-(--bg-canvas) text-(--text-main) disabled:opacity-60'>
                                     <option value=''>
                                         -- Choose Resume --
                                     </option>
@@ -274,11 +347,19 @@ export default function JobsExplorerView() {
                                     ))}
                                 </select>
 
+                                <p className='text-[11px] text-(--text-sub)'>
+                                    Your resume is anonymized and evaluated
+                                    against the rubric as soon as you submit.
+                                </p>
+
                                 <div className='flex justify-end gap-2 pt-2'>
                                     <button
                                         type='button'
-                                        onClick={() => setApplyModalOpen(false)}
-                                        className='px-4 py-2 border border-(--border-line) text-xs font-semibold rounded'>
+                                        onClick={() =>
+                                            setApplyModalOpen(false)
+                                        }
+                                        disabled={applyMutation.isPending}
+                                        className='px-4 py-2 border border-(--border-line) text-xs font-semibold rounded disabled:opacity-50'>
                                         Cancel
                                     </button>
                                     <button
@@ -287,8 +368,16 @@ export default function JobsExplorerView() {
                                             applyMutation.isPending ||
                                             !selectedProfileId
                                         }
-                                        className='px-4 py-2 bg-(--btn-main-bg) text-(--btn-main-text) text-xs font-semibold rounded hover:opacity-90 disabled:opacity-50'>
-                                        Submit Application
+                                        className='inline-flex items-center justify-center gap-2 px-4 py-2 bg-(--btn-main-bg) text-(--btn-main-text) text-xs font-semibold rounded hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed'>
+                                        {applyMutation.isPending && (
+                                            <Loader2
+                                                size={14}
+                                                className='animate-spin'
+                                            />
+                                        )}
+                                        {applyMutation.isPending ?
+                                            'Submitting Application...'
+                                        :   'Submit Application'}
                                     </button>
                                 </div>
                             </form>
