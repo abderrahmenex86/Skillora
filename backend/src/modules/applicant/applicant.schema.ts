@@ -94,6 +94,14 @@ export const SelectInterviewRangeSchema = z.object({
     selectedEnd: z.string().datetime('Valid ISO 8601 end time required'),
 });
 
+export const UpgradePlanSchema = z.object({
+    months: z.union([z.literal(1), z.literal(6), z.literal(12)], {
+        errorMap: () => ({
+            message: 'Candidate packs are available for 1, 6, or 12 months',
+        }),
+    }),
+});
+
 export type SelectInterviewRangeInput = z.infer<
     typeof SelectInterviewRangeSchema
 >;
@@ -107,3 +115,4 @@ export type AddCertificationInput = z.infer<typeof AddCertificationSchema>;
 export type AddVolunteeringInput = z.infer<typeof AddVolunteeringSchema>;
 export type AddLanguageInput = z.infer<typeof AddLanguageSchema>;
 export type AddLinkInput = z.infer<typeof AddLinkSchema>;
+export type UpgradePlanInput = z.infer<typeof UpgradePlanSchema>;

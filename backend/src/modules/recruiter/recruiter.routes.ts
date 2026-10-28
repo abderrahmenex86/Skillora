@@ -35,4 +35,8 @@ router.post('/slots', (req, res, next) =>
     recruiterController.configureSlot(req, res, next)
 );
 
+router.post('/upgrade', (req, res, next) =>
+    recruiterController.upgradePlan(req, res, next)
+);
+
 export const recruiterRoutes = router;

@@ -11,6 +11,7 @@ import {
     AddVolunteeringInput,
     AddLanguageInput,
     AddLinkInput,
+    UpgradePlanInput,
 } from './applicant.schema.js';
 import { evaluationQueue } from '../../queues/queue.config.js';
 import { coordinatorAgent } from '../../agents/coordinator.agent.js';
@@ -94,18 +95,43 @@ export class ApplicantService {
         });
     }
 
-    async upgradeToPro(userId: string) {
+    async upgradeToPro(userId: string, months: UpgradePlanInput['months']) {
+        const current = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { subscriptionExpiresAt: true },
+        });
+
+        if (!current) {
+            throw new AppError(404, 'User not found');
+        }
+
+        const now = new Date();
+        const base =
+            current.subscriptionExpiresAt &&
+            current.subscriptionExpiresAt > now ?
+                current.subscriptionExpiresAt
+            :   now;
+
+        const subscriptionExpiresAt = new Date(base);
+        subscriptionExpiresAt.setMonth(
+            subscriptionExpiresAt.getMonth() + months
+        );
+
         const user = await prisma.user.update({
             where: { id: userId },
             data: {
                 subscriptionTier: 'PRO',
-                subscriptionExpiresAt: new Date(
-                    Date.now() + 30 * 24 * 60 * 60 * 1000
-                ), // 30 days
+                subscriptionExpiresAt,
             },
             select: {
                 id: true,
                 email: true,
+                firstName: true,
+                middleName: true,
+                lastName: true,
+                phone: true,
+                wilaya: true,
+                companyName: true,
                 role: true,
                 subscriptionTier: true,
                 subscriptionExpiresAt: true,

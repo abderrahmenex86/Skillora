@@ -36,6 +36,17 @@ export const ConfigureSlotSchema = z.object({
         .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Format HH:mm required'),
 });
 
+export const UpgradeCompanyPlanSchema = z.object({
+    months: z.union([z.literal(1), z.literal(12)], {
+        errorMap: () => ({
+            message: 'Company plans are available monthly or annually',
+        }),
+    }),
+});
+
 export type ConfigureSlotInput = z.infer<typeof ConfigureSlotSchema>;
 export type CreatePositionInput = z.infer<typeof CreatePositionSchema>;
 export type OverrideDecisionInput = z.infer<typeof OverrideDecisionSchema>;
+export type UpgradeCompanyPlanInput = z.infer<
+    typeof UpgradeCompanyPlanSchema
+>;

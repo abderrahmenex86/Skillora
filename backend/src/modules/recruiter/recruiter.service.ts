@@ -4,6 +4,7 @@ import {
     CreatePositionInput,
     OverrideDecisionInput,
     ConfigureSlotInput,
+    UpgradeCompanyPlanInput,
 } from './recruiter.schema.js';
 import { coordinatorAgent } from '../../agents/coordinator.agent.js';
 import { ApplicationStatus } from '@prisma/client';
@@ -337,6 +338,53 @@ export class RecruiterService {
                 dayOfWeek: input.dayOfWeek,
                 startTime: input.startTime,
                 endTime: input.endTime,
+            },
+        });
+    }
+
+    async upgradePlan(
+        recruiterId: string,
+        months: UpgradeCompanyPlanInput['months']
+    ) {
+        const current = await prisma.user.findUnique({
+            where: { id: recruiterId },
+            select: { subscriptionExpiresAt: true },
+        });
+
+        if (!current) {
+            throw new AppError(404, 'User not found');
+        }
+
+        const now = new Date();
+        const base =
+            current.subscriptionExpiresAt &&
+            current.subscriptionExpiresAt > now ?
+                current.subscriptionExpiresAt
+            :   now;
+
+        const subscriptionExpiresAt = new Date(base);
+        subscriptionExpiresAt.setMonth(
+            subscriptionExpiresAt.getMonth() + months
+        );
+
+        return prisma.user.update({
+            where: { id: recruiterId },
+            data: {
+                subscriptionTier: 'ENTERPRISE',
+                subscriptionExpiresAt,
+            },
+            select: {
+                id: true,
+                email: true,
+                firstName: true,
+                middleName: true,
+                lastName: true,
+                phone: true,
+                wilaya: true,
+                companyName: true,
+                role: true,
+                subscriptionTier: true,
+                subscriptionExpiresAt: true,
             },
         });
     }

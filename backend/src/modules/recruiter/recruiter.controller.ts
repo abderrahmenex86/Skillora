@@ -4,6 +4,7 @@ import {
     CreatePositionSchema,
     OverrideDecisionSchema,
     ConfigureSlotSchema,
+    UpgradeCompanyPlanSchema,
 } from './recruiter.schema.js';
 import { AppError } from '../../middleware/errorHandler.js';
 
@@ -140,6 +141,29 @@ export class RecruiterController {
                 input
             );
             res.status(201).json({ slot });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async upgradePlan(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            if (!req.user) throw new AppError(401, 'Unauthorized');
+            const { months } = UpgradeCompanyPlanSchema.parse(req.body);
+            const user = await recruiterService.upgradePlan(
+                req.user.sub,
+                months
+            );
+            res.json({
+                user,
+                message: `Company ${
+                    months === 12 ? 'annual' : 'monthly'
+                } plan activated successfully`,
+            });
         } catch (err) {
             next(err);
         }
