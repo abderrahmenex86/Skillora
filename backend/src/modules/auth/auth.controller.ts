@@ -4,6 +4,7 @@ import {
     RegisterSchema,
     LoginSchema,
     UpdateProfileSchema,
+    UpdatePasswordSchema,
 } from './auth.schema.js';
 import {
     setRefreshTokenCookie,
@@ -125,6 +126,27 @@ export class AuthController {
             const input = UpdateProfileSchema.parse(req.body);
             const user = await authService.updateProfile(req.user.sub, input);
             res.status(200).json({ user });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async updatePassword(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            if (!req.user) {
+                throw new AppError(401, 'Unauthorized');
+            }
+
+            const input = UpdatePasswordSchema.parse(req.body);
+            const result = await authService.updatePassword(
+                req.user.sub,
+                input
+            );
+            res.status(200).json(result);
         } catch (error) {
             next(error);
         }

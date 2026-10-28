@@ -31,6 +31,21 @@ export const UpdateProfileSchema = z.object({
     companyName: z.string().optional(),
 });
 
+export const UpdatePasswordSchema = z
+    .object({
+        currentPassword: z.string().min(1, 'Current password is required'),
+        newPassword: z
+            .string()
+            .min(8, 'New password must be at least 8 characters long')
+            .max(72, 'New password must be at most 72 characters long'),
+        confirmPassword: z.string().min(1, 'Confirm your new password'),
+    })
+    .refine((data) => data.newPassword === data.confirmPassword, {
+        message: 'New passwords do not match',
+        path: ['confirmPassword'],
+    });
+
 export type RegisterInput = z.infer<typeof RegisterSchema>;
 export type LoginInput = z.infer<typeof LoginSchema>;
 export type UpdateProfileInput = z.infer<typeof UpdateProfileSchema>;
+export type UpdatePasswordInput = z.infer<typeof UpdatePasswordSchema>;

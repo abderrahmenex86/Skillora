@@ -5,6 +5,7 @@ import {
     RegisterInput,
     LoginInput,
     UpdateProfileInput,
+    UpdatePasswordInput,
 } from './auth.schema.js';
 import {
     generateAccessToken,
@@ -255,6 +256,48 @@ export class AuthService {
                 createdAt: true,
             },
         });
+    }
+
+    async updatePassword(userId: string, input: UpdatePasswordInput) {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { id: true, passwordHash: true },
+        });
+
+        if (!user) {
+            throw new AppError(404, 'User not found');
+        }
+
+        const currentPasswordMatches = await bcrypt.compare(
+            input.currentPassword,
+            user.passwordHash
+        );
+
+        if (!currentPasswordMatches) {
+            throw new AppError(400, 'Current password is incorrect');
+        }
+
+        const passwordUnchanged = await bcrypt.compare(
+            input.newPassword,
+            user.passwordHash
+        );
+
+        if (passwordUnchanged) {
+            throw new AppError(
+                400,
+                'New password must be different from your current password'
+            );
+        }
+
+        const salt = await bcrypt.genSalt(12);
+        const passwordHash = await bcrypt.hash(input.newPassword, salt);
+
+        await prisma.user.update({
+            where: { id: userId },
+            data: { passwordHash },
+        });
+
+        return { message: 'Password updated successfully' };
     }
 }
 
