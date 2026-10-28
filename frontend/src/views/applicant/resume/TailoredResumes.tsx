@@ -509,7 +509,7 @@ export default function TailoredResumes({
                     <Link
                         to='/pricing'
                         className='font-medium text-(--text-main) underline'>
-                        Upgrade to Pro
+                        Choose a candidate pack
                     </Link>{' '}
                     to build a resume for every role.
                 </div>

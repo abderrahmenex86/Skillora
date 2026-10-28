@@ -38,7 +38,7 @@ export default function InsightsView() {
                 <Link
                     to='/pricing'
                     className='px-6 py-2.5 bg-(--btn-main-bg) text-(--btn-main-text) font-grotesque font-bold text-xl rounded-md hover:opacity-90 transition-opacity'>
-                    Upgrade to Pro for 1,200 DZD/mo
+                    Upgrade to Pro from 999 DZD
                 </Link>
             </div>
         );
