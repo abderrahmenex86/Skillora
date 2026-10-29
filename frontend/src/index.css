@@ -179,6 +179,28 @@ body {
 }
 
 /*
+ * Mermaid renders an SVG with its own inline sizing. Keep it inside the
+ * surrounding card and let wide diagrams scroll on narrow screens.
+ */
+.mermaid-diagram {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.mermaid-diagram svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin-inline: auto;
+}
+
+/*
+ * Process diagrams are easier to read at a fixed minimum width than when
+ * scaled down to a phone screen. The card scrolls horizontally instead.
+ */
+/*
  * Typewriter cursor. Kept in CSS so the component only owns the typed text.
  */
 .typewriter-cursor {

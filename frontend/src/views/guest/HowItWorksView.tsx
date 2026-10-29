@@ -9,31 +9,71 @@ import {
     ShieldCheck,
 } from 'lucide-react';
 import Footer from '../../components/Footer';
+import MermaidDiagram from '../../components/MermaidDiagram';
 
 const STEPS = [
     {
         index: '01',
         label: 'Tailored resumes',
         title: 'Apply with the resume that fits the role.',
-        description:
-            'Applicants keep dedicated resumes for each discipline — data engineering, security, corporate counsel — with role-specific summaries, projects, repos, and credentials. The version you choose is the version Skillora audits.',
         icon: FileText,
+        chart: `
+flowchart TD
+    A[Choose a role] --> B[Select evidence]
+    B --> C[Generate resume]
+    C --> D(Requirements met?)
+    D -->|Yes| E[Submit for audit]
+    D -->|No| F[Add missing proof]
+    F --> B
+    classDef accent fill:{{accent}},stroke:{{accent}},color:#ffffff;
+    classDef soft fill:{{accentSoft}},stroke:{{accent}},color:{{accentText}};
+    class E accent;
+    class D,F soft;
+`,
+        diagramLabel:
+            'Flowchart of resume tailoring: choose a role, select evidence, generate a resume, and either submit it or add missing proof before regenerating it.',
     },
     {
         index: '02',
         label: 'Evidence audit',
         title: 'Every claim is checked against the rubric.',
-        description:
-            'Companies define mandatory criteria. Skillora normalizes submissions into randomized candidate cards, then audits artifacts, public work, and degree credentials against those criteria — not keyword density.',
         icon: SearchCheck,
+        chart: `
+flowchart TD
+    A[Submission received] --> B[Parse FR / EN / AR]
+    B --> C[Normalize candidate card]
+    C --> D[Compare with rubric]
+    D --> E(Evidence verified?)
+    E -->|Yes| F[Evidence score]
+    E -->|No| G[Missing evidence logged]
+    classDef accent fill:{{accent}},stroke:{{accent}},color:#ffffff;
+    classDef soft fill:{{accentSoft}},stroke:{{accent}},color:{{accentText}};
+    class F accent;
+    class E,G soft;
+`,
+        diagramLabel:
+            'Flowchart of the evidence audit: a submission is parsed, normalized into a candidate card, compared with the mandatory rubric, and scored or logged with missing evidence.',
     },
     {
         index: '03',
         label: 'A deterministic outcome',
         title: 'An interview or a concrete next step.',
-        description:
-            'Eligible applicants receive calendar slots they can confirm from their dashboard. Redirected applicants receive a specific gap analysis with the exact proof to build before re-applying.',
         icon: Route,
+        chart: `
+flowchart TD
+    A[Audit complete] --> B(Eligible?)
+    B -->|Yes| C[Interview slots unlocked]
+    C --> D[Applicant confirms]
+    D --> E[Calendar locked]
+    B -->|No| F[Gap roadmap]
+    F --> G[Re-apply with new proof]
+    classDef accent fill:{{accent}},stroke:{{accent}},color:#ffffff;
+    classDef soft fill:{{accentSoft}},stroke:{{accent}},color:{{accentText}};
+    class C,D,E accent;
+    class F,G,H soft;
+`,
+        diagramLabel:
+            'Flowchart of the outcome: eligible applicants unlock and confirm interview slots, while redirected applicants receive a gap roadmap and can re-apply with new proof.',
     },
 ];
 
@@ -144,9 +184,12 @@ export default function HowItWorksView() {
                                         <h3 className='font-grotesque text-3xl font-bold text-(--text-main)'>
                                             {step.title}
                                         </h3>
-                                        <p className='mt-2 max-w-3xl text-sm leading-relaxed text-(--text-sub)'>
-                                            {step.description}
-                                        </p>
+                                        <div className='mt-4 rounded-xl border border-(--border-line) bg-(--bg-panel) p-4 sm:p-5'>
+                                            <MermaidDiagram
+                                                chart={step.chart}
+                                                label={step.diagramLabel}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             );
