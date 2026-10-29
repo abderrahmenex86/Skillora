@@ -478,7 +478,7 @@ export default function PricingView() {
                         </div>
 
                         {confirmError && (
-                            <div className='rounded border border-red-500/20 bg-red-500/10 p-2 text-xs text-red-600'>
+                            <div className='rounded border border-red-500/20 bg-red-500/10 p-2 text-xs text-red-600 dark:text-red-400'>
                                 {confirmError}
                             </div>
                         )}

@@ -302,7 +302,7 @@ export default function JobsExplorerView() {
                         </h3>
 
                         {applyError && (
-                            <div className='p-2 text-xs bg-red-500/10 border border-red-500/20 text-red-600 rounded'>
+                            <div className='p-2 text-xs bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 rounded'>
                                 {applyError}
                             </div>
                         )}

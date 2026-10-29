@@ -215,7 +215,16 @@ export default function PositionApplicationsView() {
                                     </div>
 
                                     <div className='flex items-center gap-2 mt-2'>
-                                        <span className='font-mono text-[10px] px-2 py-0.5 rounded border border-(--border-line) text-(--text-sub)'>
+                                        <span
+                                            className={`font-mono text-[10px] px-2 py-0.5 rounded border ${
+                                                app.status === 'REJECTED' ?
+                                                    'border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400'
+                                                : app.status === 'ELIGIBLE' ||
+                                                  app.status ===
+                                                      'INTERVIEW_SCHEDULED' ?
+                                                    'border-forest/30 bg-forest/10 text-forest dark:text-forest-dark'
+                                                :   'border-(--border-line) text-(--text-sub)'
+                                            }`}>
                                             {app.status}
                                         </span>
                                         {app.recruiterOverride && (
@@ -341,7 +350,7 @@ export default function PositionApplicationsView() {
                                 </p>
 
                                 {overrideError && (
-                                    <div className='mb-3 p-2 bg-red-500/10 border border-red-500/20 text-red-600 text-xs rounded'>
+                                    <div className='mb-3 p-2 bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs rounded'>
                                         {overrideError}
                                     </div>
                                 )}
@@ -457,7 +466,7 @@ export default function PositionApplicationsView() {
                                     Loading resume...
                                 </div>
                             : resumeError ?
-                                <div className='rounded border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-600'>
+                                <div className='rounded border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-600 dark:text-red-400'>
                                     Could not load this tailored resume.
                                 </div>
                             : resumePreview ?

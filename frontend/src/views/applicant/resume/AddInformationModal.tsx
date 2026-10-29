@@ -529,7 +529,6 @@ export default function AddInformationModal({
                                                             })
                                                         )
                                                     }
-                                                    className='accent-(--text-main)'
                                                 />
                                                 Currently in progress
                                             </label>
@@ -555,7 +554,7 @@ export default function AddInformationModal({
                     </div>
 
                     {error && (
-                        <div className='rounded border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-600'>
+                        <div className='rounded border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-600 dark:text-red-400'>
                             {error}
                         </div>
                     )}

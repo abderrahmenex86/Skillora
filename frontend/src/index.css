@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 
+@custom-variant dark (&:where(.dark, .dark *));
 @custom-variant tall (@media (min-height: 900px));
 
 @theme {
@@ -14,7 +15,9 @@
     --color-muted: #555555;
     --color-chalk: #f9f9f9;
     --color-hairline: #e5e5e5;
-    --color-amber-accent: #c26738;
+
+    /* Warning/secondary accent is neutral in the monochrome theme. */
+    --color-amber-accent: #525252;
 }
 
 :root {
@@ -37,13 +40,17 @@
 }
 
 html.dark {
-    --bg-canvas: #0c0d0e;
-    --bg-panel: #141618;
-    --border-line: #22252a;
-    --text-main: #f3f4f6;
-    --text-sub: #9ca3af;
+    --bg-canvas: #0c0c0c;
+    --bg-panel: #151515;
+    --border-line: #262626;
+    --text-main: #f5f5f5;
+    --text-sub: #a3a3a3;
     --btn-main-bg: #ffffff;
     --btn-main-text: #111111;
+
+    /* Keep the green accent readable on the dark canvas. */
+    --color-forest: #258c5a;
+    --color-amber-accent: #a3a3a3;
 
     /* Navigation: solid white on dark pages. */
     --nav-bg: #ffffff;
@@ -210,6 +217,18 @@ body {
 
 /* Every interactive element eases between states, even without utility classes. */
 @layer base {
+    :focus-visible {
+        outline: 2px solid var(--color-forest);
+        outline-offset: 2px;
+    }
+
+    input[type='checkbox'],
+    input[type='radio'],
+    input[type='range'],
+    progress {
+        accent-color: var(--color-forest);
+    }
+
     @media (prefers-reduced-motion: no-preference) {
         a,
         button,
@@ -232,7 +251,13 @@ body {
 ::-webkit-scrollbar-track {
     background: var(--bg-canvas);
 }
+
 ::-webkit-scrollbar-thumb {
     background: var(--border-line);
     border-radius: 3px;
+}
+
+::selection {
+    background: var(--color-forest);
+    color: #ffffff;
 }

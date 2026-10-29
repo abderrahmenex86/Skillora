@@ -178,7 +178,7 @@ export default function AuthView() {
                     </p>
 
                     {errorMsg && (
-                        <div className='mb-4 p-3 text-xs bg-red-500/10 border border-red-500/20 text-red-600 rounded'>
+                        <div className='mb-4 p-3 text-xs bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 rounded'>
                             {errorMsg}
                         </div>
                     )}

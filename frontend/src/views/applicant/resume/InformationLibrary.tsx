@@ -164,7 +164,7 @@ export default function InformationLibrary() {
     return (
         <div className='flex h-full min-h-0 flex-col gap-4 overflow-y-auto md:overflow-hidden'>
             {error && (
-                <div className='shrink-0 rounded border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-600'>
+                <div className='shrink-0 rounded border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-600 dark:text-red-400'>
                     {error}
                 </div>
             )}
@@ -356,7 +356,7 @@ export default function InformationLibrary() {
                                                                     deleteMutation.isPending
                                                                 }
                                                                 aria-label={`Remove ${INFO_SINGULAR_LABELS[kind]}`}
-                                                                className='rounded p-1 text-(--text-sub) opacity-0 transition-all hover:bg-red-500/10 hover:text-red-600 group-hover:opacity-100 disabled:opacity-40'>
+                                                                className='rounded p-1 text-(--text-sub) opacity-0 transition-all hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 group-hover:opacity-100 disabled:opacity-40'>
                                                                 <Trash2
                                                                     size={14}
                                                                 />

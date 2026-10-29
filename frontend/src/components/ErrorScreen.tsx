@@ -117,7 +117,7 @@ export default function ErrorScreen({
                         Skillora
                     </a>
                     <div className='flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-(--text-sub)'>
-                        <span className='h-1.5 w-1.5 rounded-full bg-amber-accent' />
+                        <span className='h-1.5 w-1.5 rounded-full bg-red-500' />
                         System status · degraded
                     </div>
                 </div>
@@ -241,7 +241,7 @@ export default function ErrorScreen({
                                         <span
                                             className={`h-1.5 w-1.5 shrink-0 rounded-full ${
                                                 isActive ?
-                                                    'bg-amber-accent'
+                                                    'bg-red-500'
                                                 :   'bg-(--border-line)'
                                             }`}
                                         />

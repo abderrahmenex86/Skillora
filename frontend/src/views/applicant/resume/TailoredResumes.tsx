@@ -460,7 +460,7 @@ export default function TailoredResumes({
                                     onClick={() => handleDelete(profile)}
                                     disabled={deleteMutation.isPending}
                                     aria-label={`Delete ${profile.title}`}
-                                    className='absolute right-2 top-2 rounded p-1 text-(--text-sub) transition-colors hover:bg-red-500/10 hover:text-red-600 disabled:opacity-40'>
+                                    className='absolute right-2 top-2 rounded p-1 text-(--text-sub) transition-colors hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 disabled:opacity-40'>
                                     <Trash2 size={13} />
                                 </button>
                             </div>
@@ -499,7 +499,7 @@ export default function TailoredResumes({
                 <div
                     className={`shrink-0 rounded border p-3 text-xs ${
                         error ?
-                            'border-red-500/20 bg-red-500/10 text-red-600'
+                            'border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400'
                         :   'border-forest/20 bg-forest/5 text-forest dark:text-forest-dark'
                     }`}>
                     {error || notice}
@@ -789,7 +789,7 @@ export default function TailoredResumes({
                                                                         }
                                                                         aria-label={`Remove ${info.title} from resume`}
                                                                         title='Remove from resume'
-                                                                        className='rounded p-1 text-(--text-sub) opacity-0 transition-all hover:bg-red-500/10 hover:text-red-600 group-hover:opacity-100'>
+                                                                        className='rounded p-1 text-(--text-sub) opacity-0 transition-all hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400 group-hover:opacity-100'>
                                                                         <X
                                                                             size={
                                                                                 13
@@ -1002,7 +1002,7 @@ export default function TailoredResumes({
                                                                     }
                                                                     className={`shrink-0 rounded p-1 transition-colors ${
                                                                         selected ?
-                                                                            'text-forest dark:text-forest-dark hover:bg-red-500/10 hover:text-red-600'
+                                                                            'text-forest dark:text-forest-dark hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400'
                                                                         :   'text-(--text-sub) hover:bg-(--bg-panel) hover:text-(--text-main)'
                                                                     }`}>
                                                                     {selected ?

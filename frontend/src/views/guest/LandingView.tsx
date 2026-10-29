@@ -127,12 +127,12 @@ const CONTACT_ITEMS = [
 const COMPANY_PREVIEW_COUNT = 12;
 
 const MONOGRAM_TONES = [
-    'bg-emerald-500/10 text-emerald-700 ring-emerald-600/20 dark:text-emerald-300 dark:ring-emerald-400/25',
-    'bg-sky-500/10 text-sky-700 ring-sky-600/20 dark:text-sky-300 dark:ring-sky-400/25',
-    'bg-amber-500/10 text-amber-700 ring-amber-600/20 dark:text-amber-300 dark:ring-amber-400/25',
-    'bg-rose-500/10 text-rose-700 ring-rose-600/20 dark:text-rose-300 dark:ring-rose-400/25',
-    'bg-violet-500/10 text-violet-700 ring-violet-600/20 dark:text-violet-300 dark:ring-violet-400/25',
-    'bg-teal-500/10 text-teal-700 ring-teal-600/20 dark:text-teal-300 dark:ring-teal-400/25',
+    'bg-neutral-900/5 text-neutral-900 ring-neutral-900/15 dark:bg-white/10 dark:text-neutral-100 dark:ring-white/20',
+    'bg-neutral-800/5 text-neutral-800 ring-neutral-800/15 dark:bg-white/[0.08] dark:text-neutral-200 dark:ring-white/15',
+    'bg-neutral-700/5 text-neutral-700 ring-neutral-700/20 dark:bg-white/[0.06] dark:text-neutral-300 dark:ring-white/10',
+    'bg-neutral-600/5 text-neutral-700 ring-neutral-600/20 dark:bg-white/5 dark:text-neutral-300 dark:ring-white/10',
+    'bg-neutral-500/5 text-neutral-700 ring-neutral-500/20 dark:bg-white/[0.04] dark:text-neutral-300 dark:ring-white/[0.08]',
+    'bg-neutral-400/10 text-neutral-800 ring-neutral-400/25 dark:bg-white/[0.03] dark:text-neutral-200 dark:ring-white/[0.06]',
 ];
 
 const PRIMARY_BUTTON =

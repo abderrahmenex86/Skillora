@@ -371,7 +371,17 @@ export default function ApplicantDashboardView() {
                                                     {app.position.location}
                                                 </div>
                                             </div>
-                                            <span className='font-mono text-xs px-2.5 py-1 rounded border border-(--border-line) bg-(--bg-panel)'>
+                                            <span
+                                                className={`font-mono text-xs px-2.5 py-1 rounded border ${
+                                                    app.status === 'REJECTED' ?
+                                                        'border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400'
+                                                    : app.status ===
+                                                          'ELIGIBLE' ||
+                                                      app.status ===
+                                                          'INTERVIEW_SCHEDULED' ?
+                                                        'border-forest/30 bg-forest/10 text-forest dark:text-forest-dark'
+                                                    :   'border-(--border-line) bg-(--bg-panel)'
+                                                }`}>
                                                 {app.status}
                                             </span>
                                         </div>

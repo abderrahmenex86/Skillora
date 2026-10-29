@@ -336,11 +336,11 @@ export default function Navbar() {
                         {isDark ?
                             <Sun
                                 size={17}
-                                className='text-amber-500'
+                                className='text-neutral-700'
                             />
                         :   <Moon
                                 size={17}
-                                className='text-sky-200'
+                                className='text-neutral-300'
                             />
                         }
                     </button>
