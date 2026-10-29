@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { apiClient } from '../../api/apiClient';
 import { ALGERIA_WILAYAS } from '../../data/algeria';
 import {
@@ -178,8 +178,15 @@ export default function AuthView() {
                     </p>
 
                     {errorMsg && (
-                        <div className='mb-4 p-3 text-xs bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 rounded'>
-                            {errorMsg}
+                        <div className='mb-4 rounded border border-red-500/20 bg-red-500/10 p-3 text-xs text-red-600 dark:text-red-400'>
+                            <p>{errorMsg}</p>
+                            {isLogin && (
+                                <Link
+                                    to='/auth/reset-password'
+                                    className='mt-1 inline-block font-semibold underline'>
+                                    Reset your password
+                                </Link>
+                            )}
                         </div>
                     )}
 
@@ -188,54 +195,75 @@ export default function AuthView() {
                         className='space-y-4'>
                         {!isLogin && (
                             <>
-                                <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
-                                    <input
-                                        type='text'
-                                        required
-                                        placeholder='Prénom (First Name)'
-                                        value={firstName}
-                                        onChange={(e) =>
-                                            setFirstName(e.target.value)
-                                        }
-                                        className='w-full px-3.5 py-2.5 text-xs rounded-md border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none focus:ring-1 focus:ring-(--text-main)'
-                                    />
-                                    <input
-                                        type='text'
-                                        required
-                                        placeholder='Nom (Last Name)'
-                                        value={lastName}
-                                        onChange={(e) =>
-                                            setLastName(e.target.value)
-                                        }
-                                        className='w-full px-3.5 py-2.5 text-xs rounded-md border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none focus:ring-1 focus:ring-(--text-main)'
-                                    />
-                                </div>
-
-                                <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
-                                    <input
-                                        type='text'
-                                        placeholder='Deuxième prénom (Middle Name, optional)'
-                                        value={middleName}
-                                        onChange={(e) =>
-                                            setMiddleName(e.target.value)
-                                        }
-                                        className='w-full px-3.5 py-2.5 text-xs rounded-md border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none focus:ring-1 focus:ring-(--text-main)'
-                                    />
-                                    <input
-                                        type='tel'
-                                        placeholder='Numéro de téléphone (+213 ...)'
-                                        value={phone}
-                                        onChange={(e) =>
-                                            setPhone(e.target.value)
-                                        }
-                                        className='w-full px-3.5 py-2.5 text-xs rounded-md border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none focus:ring-1 focus:ring-(--text-main)'
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className='block text-[11px] font-mono text-(--text-sub) mb-1'>
-                                        Wilaya de Résidence (District)
+                                <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+                                    <label className='block'>
+                                        <span className='mb-1 block font-mono text-[9px] uppercase tracking-[0.14em] text-(--text-sub)'>
+                                            First name
+                                        </span>
+                                        <input
+                                            type='text'
+                                            required
+                                            autoComplete='given-name'
+                                            placeholder='e.g. Amine'
+                                            value={firstName}
+                                            onChange={(e) =>
+                                                setFirstName(e.target.value)
+                                            }
+                                            className='w-full px-3.5 py-2.5 text-xs rounded-md border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none focus:ring-1 focus:ring-(--text-main)'
+                                        />
                                     </label>
+                                    <label className='block'>
+                                        <span className='mb-1 block font-mono text-[9px] uppercase tracking-[0.14em] text-(--text-sub)'>
+                                            Last name
+                                        </span>
+                                        <input
+                                            type='text'
+                                            required
+                                            autoComplete='family-name'
+                                            placeholder='e.g. Benali'
+                                            value={lastName}
+                                            onChange={(e) =>
+                                                setLastName(e.target.value)
+                                            }
+                                            className='w-full px-3.5 py-2.5 text-xs rounded-md border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none focus:ring-1 focus:ring-(--text-main)'
+                                        />
+                                    </label>
+                                    <label className='block'>
+                                        <span className='mb-1 block font-mono text-[9px] uppercase tracking-[0.14em] text-(--text-sub)'>
+                                            Middle name (optional)
+                                        </span>
+                                        <input
+                                            type='text'
+                                            autoComplete='additional-name'
+                                            placeholder='e.g. Karim'
+                                            value={middleName}
+                                            onChange={(e) =>
+                                                setMiddleName(e.target.value)
+                                            }
+                                            className='w-full px-3.5 py-2.5 text-xs rounded-md border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none focus:ring-1 focus:ring-(--text-main)'
+                                        />
+                                    </label>
+                                    <label className='block'>
+                                        <span className='mb-1 block font-mono text-[9px] uppercase tracking-[0.14em] text-(--text-sub)'>
+                                            Phone number (optional)
+                                        </span>
+                                        <input
+                                            type='tel'
+                                            autoComplete='tel'
+                                            placeholder='+213 550 00 00 00'
+                                            value={phone}
+                                            onChange={(e) =>
+                                                setPhone(e.target.value)
+                                            }
+                                            className='w-full px-3.5 py-2.5 text-xs rounded-md border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none focus:ring-1 focus:ring-(--text-main)'
+                                        />
+                                    </label>
+                                </div>
+
+                                <label className='block'>
+                                    <span className='mb-1 block font-mono text-[9px] uppercase tracking-[0.14em] text-(--text-sub)'>
+                                        Wilaya of residence
+                                    </span>
                                     <select
                                         value={wilaya}
                                         onChange={(e) =>
@@ -250,47 +278,80 @@ export default function AuthView() {
                                             </option>
                                         ))}
                                     </select>
-                                </div>
+                                </label>
 
                                 {role === 'RECRUITER' && (
-                                    <input
-                                        type='text'
-                                        required
-                                        placeholder="Company or Organization (e.g. Sonatrach, Banque d'Algérie)"
-                                        value={companyName}
-                                        onChange={(e) =>
-                                            setCompanyName(e.target.value)
-                                        }
-                                        className='w-full px-3.5 py-2.5 text-xs rounded-md border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none focus:ring-1 focus:ring-(--text-main)'
-                                    />
+                                    <label className='block'>
+                                        <span className='mb-1 block font-mono text-[9px] uppercase tracking-[0.14em] text-(--text-sub)'>
+                                            Company
+                                        </span>
+                                        <input
+                                            type='text'
+                                            required
+                                            autoComplete='organization'
+                                            placeholder="e.g. Sonatrach, Banque d'Algérie"
+                                            value={companyName}
+                                            onChange={(e) =>
+                                                setCompanyName(e.target.value)
+                                            }
+                                            className='w-full px-3.5 py-2.5 text-xs rounded-md border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none focus:ring-1 focus:ring-(--text-main)'
+                                        />
+                                    </label>
                                 )}
                             </>
                         )}
 
-                        <input
-                            type='email'
-                            required
-                            autoComplete='email'
-                            placeholder='Email address'
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className='w-full px-3.5 py-2.5 text-sm rounded-md border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none focus:ring-1 focus:ring-(--text-main)'
-                        />
-                        <input
-                            type='password'
-                            required
-                            autoComplete={
-                                isLogin ? 'current-password' : 'new-password'
-                            }
-                            placeholder={
-                                isLogin ?
-                                    'Password'
-                                :   'Password (minimum 8 characters)'
-                            }
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className='w-full px-3.5 py-2.5 text-sm rounded-md border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none focus:ring-1 focus:ring-(--text-main)'
-                        />
+                        <label className='block'>
+                            <span className='mb-1 block font-mono text-[9px] uppercase tracking-[0.14em] text-(--text-sub)'>
+                                Email address
+                            </span>
+                            <input
+                                type='email'
+                                required
+                                autoComplete='email'
+                                placeholder='you@example.com'
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className='w-full px-3.5 py-2.5 text-sm rounded-md border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none focus:ring-1 focus:ring-(--text-main)'
+                            />
+                        </label>
+                        <div>
+                            <div className='mb-1 flex items-center justify-between gap-3'>
+                                <label
+                                    htmlFor='auth-password'
+                                    className='font-mono text-[9px] uppercase tracking-[0.14em] text-(--text-sub)'>
+                                    Password
+                                </label>
+                                {isLogin && (
+                                    <Link
+                                        to='/auth/reset-password'
+                                        className='text-[11px] font-semibold text-(--text-main) underline'>
+                                        Forgot password?
+                                    </Link>
+                                )}
+                            </div>
+                            <input
+                                id='auth-password'
+                                type='password'
+                                required
+                                autoComplete={
+                                    isLogin ?
+                                        'current-password'
+                                    :   'new-password'
+                                }
+                                placeholder={
+                                    isLogin ? 'Password' : 'Minimum 8 characters'
+                                }
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className='w-full px-3.5 py-2.5 text-sm rounded-md border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none focus:ring-1 focus:ring-(--text-main)'
+                            />
+                            {!isLogin && (
+                                <p className='mt-1 text-[10px] text-(--text-sub)'>
+                                    At least 8 characters.
+                                </p>
+                            )}
+                        </div>
 
                         <button
                             type='submit'

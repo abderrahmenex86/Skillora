@@ -20,6 +20,7 @@ import AboutView from './views/guest/AboutView';
 import JobsExplorerView from './views/guest/JobsExplorerView';
 import NotFoundView from './views/NotFoundView';
 import AuthView from './views/auth/AuthView';
+import PasswordResetView from './views/auth/PasswordResetView';
 import EditProfileView from './views/settings/EditProfileView';
 
 import ApplicantDashboardView from './views/applicant/ApplicantDashboardView';
@@ -178,6 +179,14 @@ export default function App() {
                             element={
                                 <PublicOnlyRoute>
                                     <AuthView />
+                                </PublicOnlyRoute>
+                            }
+                        />
+                        <Route
+                            path='/auth/reset-password'
+                            element={
+                                <PublicOnlyRoute>
+                                    <PasswordResetView />
                                 </PublicOnlyRoute>
                             }
                         />

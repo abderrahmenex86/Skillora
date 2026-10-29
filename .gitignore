@@ -10,3 +10,6 @@ dist/
 frontend/dist/
 backend/dist/
 *.log
+
+# Local UX audit artifacts
+.uxui-audit-runs/

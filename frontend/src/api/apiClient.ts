@@ -21,6 +21,8 @@ apiClient.interceptors.response.use(
         const isAuthRequest = [
             '/auth/login',
             '/auth/register',
+            '/auth/forgot-password',
+            '/auth/reset-password',
             '/auth/logout',
             '/auth/refresh',
         ].some((path) => originalRequest.url?.includes(path));

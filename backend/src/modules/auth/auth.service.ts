@@ -1,5 +1,7 @@
 import bcrypt from 'bcryptjs';
+import { timingSafeEqual } from 'crypto';
 import { prisma } from '../../db/prisma.js';
+import { env } from '../../config/env.js';
 import { AppError } from '../../middleware/errorHandler.js';
 import {
     RegisterInput,
@@ -10,6 +12,9 @@ import {
 import {
     generateAccessToken,
     generateRefreshToken,
+    generatePasswordResetToken,
+    verifyPasswordResetToken,
+    passwordFingerprint,
     verifyRefreshToken,
     TokenPayload,
 } from './auth.tokens.js';
@@ -256,6 +261,91 @@ export class AuthService {
                 createdAt: true,
             },
         });
+    }
+
+    async requestPasswordReset(email: string) {
+        const user = await prisma.user.findUnique({
+            where: { email: email.toLowerCase().trim() },
+            select: { id: true, email: true, passwordHash: true },
+        });
+
+        if (!user) {
+            return { resetUrl: null };
+        }
+
+        const token = generatePasswordResetToken(user.id, user.passwordHash);
+        const resetUrl = `${env.CLIENT_URL}/auth/reset-password?token=${encodeURIComponent(token)}`;
+
+        if (env.NODE_ENV === 'production') {
+            console.warn(
+                '[auth] Password reset email delivery is not configured; the reset link was generated but not sent.'
+            );
+        } else {
+            console.info(
+                `[auth] Password reset link for ${user.email}: ${resetUrl}`
+            );
+        }
+
+        return { resetUrl };
+    }
+
+    async resetPassword(token: string, newPassword: string) {
+        let payload: ReturnType<typeof verifyPasswordResetToken>;
+
+        try {
+            payload = verifyPasswordResetToken(token);
+        } catch {
+            throw new AppError(400, 'This reset link is invalid or has expired');
+        }
+
+        const user = await prisma.user.findUnique({
+            where: { id: payload.sub },
+            select: { id: true, passwordHash: true },
+        });
+
+        if (!user) {
+            throw new AppError(400, 'This reset link is invalid or has expired');
+        }
+
+        const providedFingerprint = Buffer.from(payload.pwd);
+        const currentFingerprint = Buffer.from(
+            passwordFingerprint(user.passwordHash)
+        );
+
+        if (
+            providedFingerprint.length !== currentFingerprint.length ||
+            !timingSafeEqual(providedFingerprint, currentFingerprint)
+        ) {
+            throw new AppError(400, 'This reset link is invalid or has expired');
+        }
+
+        const passwordUnchanged = await bcrypt.compare(
+            newPassword,
+            user.passwordHash
+        );
+
+        if (passwordUnchanged) {
+            throw new AppError(
+                400,
+                'New password must be different from your current password'
+            );
+        }
+
+        const salt = await bcrypt.genSalt(12);
+        const passwordHash = await bcrypt.hash(newPassword, salt);
+
+        await prisma.$transaction([
+            prisma.user.update({
+                where: { id: user.id },
+                data: { passwordHash },
+            }),
+            prisma.refreshToken.deleteMany({ where: { userId: user.id } }),
+        ]);
+
+        return {
+            message:
+                'Password reset successfully. Sign in with your new password.',
+        };
     }
 
     async updatePassword(userId: string, input: UpdatePasswordInput) {

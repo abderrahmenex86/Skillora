@@ -1,8 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import { authService } from './auth.service.js';
+import { env } from '../../config/env.js';
 import {
     RegisterSchema,
     LoginSchema,
+    ForgotPasswordSchema,
+    ResetPasswordSchema,
     UpdateProfileSchema,
     UpdatePasswordSchema,
 } from './auth.schema.js';
@@ -51,6 +54,51 @@ export class AuthController {
                 user,
                 accessToken,
             });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async forgotPassword(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const input = ForgotPasswordSchema.parse(req.body);
+            const result = await authService.requestPasswordReset(
+                input.email
+            );
+            const delivery =
+                env.NODE_ENV === 'production' ? 'support' : 'development';
+
+            res.status(200).json({
+                message:
+                    delivery === 'support' ?
+                        'Automated reset emails are not available yet. Contact support to recover your account.'
+                    :   'If an account exists for that email, a password reset link has been sent.',
+                delivery,
+                ...(delivery === 'development' && result.resetUrl ?
+                    { devResetUrl: result.resetUrl }
+                :   {}),
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async resetPassword(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            const input = ResetPasswordSchema.parse(req.body);
+            const result = await authService.resetPassword(
+                input.token,
+                input.password
+            );
+            res.status(200).json(result);
         } catch (error) {
             next(error);
         }

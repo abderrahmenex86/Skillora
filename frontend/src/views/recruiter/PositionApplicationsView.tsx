@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../../api/apiClient';
@@ -40,6 +40,8 @@ export default function PositionApplicationsView() {
     const [deadlineModalOpen, setDeadlineModalOpen] = useState(false);
     const [newDeadline, setNewDeadline] = useState('');
     const [deadlineError, setDeadlineError] = useState('');
+    const detailRef = useRef<HTMLDivElement>(null);
+    const listRef = useRef<HTMLDivElement>(null);
 
     const { data: positionData } = useQuery({
         queryKey: ['position-detail', positionId],
@@ -110,6 +112,32 @@ export default function PositionApplicationsView() {
             setOverrideAction('PROMOTE_EXTEND_CAPACITY');
         }
     }, [isDeadlinePassed, overrideAction]);
+
+    useEffect(() => {
+        if (!selectedAppId) return;
+        if (!window.matchMedia('(max-width: 767px)').matches) return;
+
+        const reducedMotion = window.matchMedia(
+            '(prefers-reduced-motion: reduce)'
+        ).matches;
+
+        requestAnimationFrame(() => {
+            detailRef.current?.scrollIntoView({
+                behavior: reducedMotion ? 'auto' : 'smooth',
+                block: 'start',
+            });
+        });
+    }, [selectedAppId]);
+
+    const closeDetail = () => {
+        setSelectedAppId(null);
+        requestAnimationFrame(() => {
+            listRef.current?.scrollIntoView({
+                behavior: 'auto',
+                block: 'start',
+            });
+        });
+    };
 
     const extendDeadlineMutation = useMutation({
         mutationFn: async (value: string) => {
@@ -246,7 +274,11 @@ export default function PositionApplicationsView() {
             </div>
 
             <div className='grid grid-cols-1 gap-6 md:min-h-0 md:flex-1 md:grid-cols-12 md:items-stretch'>
-                <div className='flex min-h-0 flex-col rounded-lg border border-(--border-line) bg-(--bg-canvas) md:col-span-5'>
+                <div
+                    ref={listRef}
+                    className={`min-h-0 flex-col rounded-lg border border-(--border-line) bg-(--bg-canvas) md:col-span-5 md:flex ${
+                        selectedAppId ? 'hidden' : 'flex'
+                    }`}>
                     <h3 className='shrink-0 border-b border-(--border-line) px-5 py-4 font-grotesque font-bold text-2xl text-(--text-main)'>
                         Received Applications ({applications?.length ?? 0})
                     </h3>
@@ -273,7 +305,19 @@ export default function PositionApplicationsView() {
                             return (
                                 <div
                                     key={app.id}
+                                    role='button'
+                                    tabIndex={0}
+                                    aria-pressed={isSelected}
                                     onClick={() => setSelectedAppId(app.id)}
+                                    onKeyDown={(event) => {
+                                        if (
+                                            event.key === 'Enter' ||
+                                            event.key === ' '
+                                        ) {
+                                            event.preventDefault();
+                                            setSelectedAppId(app.id);
+                                        }
+                                    }}
                                     className={`relative p-4 rounded-md border cursor-pointer transition-all ${
                                         isSelected ?
                                             'border-(--text-main) bg-(--bg-canvas) ring-1 ring-(--text-main)'
@@ -328,11 +372,21 @@ export default function PositionApplicationsView() {
                     </div>
                 </div>
 
-                <div className='flex min-h-0 flex-col rounded-lg border border-(--border-line) bg-(--bg-canvas) md:col-span-7'>
+                <div
+                    ref={detailRef}
+                    className={`min-h-0 flex-col rounded-lg border border-(--border-line) bg-(--bg-canvas) md:col-span-7 md:flex ${
+                        selectedAppId ? 'flex' : 'hidden'
+                    }`}>
                     <div className='panel-scroll flex-1 space-y-6 p-6'>
+                    <button
+                        type='button'
+                        onClick={closeDetail}
+                        className='inline-flex items-center gap-1.5 text-xs font-mono text-(--text-sub) transition-colors hover:text-(--text-main) md:hidden'>
+                        <ArrowLeft size={14} /> Back to candidates
+                    </button>
                     {selectedApp ?
                         <>
-                            <div className='border-b border-(--border-line) pb-4 flex justify-between items-start'>
+                            <div className='flex flex-col gap-3 border-b border-(--border-line) pb-4 sm:flex-row sm:items-start sm:justify-between'>
                                 <div>
                                     <h2 className='font-grotesque font-extrabold text-3xl text-(--text-main)'>
                                         Candidate {selectedApp.anonymousId}

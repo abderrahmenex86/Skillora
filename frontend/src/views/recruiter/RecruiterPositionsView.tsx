@@ -139,38 +139,64 @@ export default function RecruiterPositionsView() {
                         <form
                             onSubmit={handleCreate}
                             className='space-y-3'>
-                            <input
-                                type='text'
-                                required
-                                placeholder='Company Name (e.g. Sonatrach, TechCorp DZ)'
-                                value={companyName}
-                                onChange={(e) => setCompanyName(e.target.value)}
-                                className='w-full px-3 py-2 text-xs rounded border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none'
-                            />
-                            <input
-                                type='text'
-                                required
-                                placeholder='Job Title (e.g. Junior Cloud Engineer, Corporate Counsel)'
-                                value={title}
-                                onChange={(e) => setTitle(e.target.value)}
-                                className='w-full px-3 py-2 text-xs rounded border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none'
-                            />
-                            <input
-                                type='text'
-                                required
-                                placeholder='Department (e.g. Cloud & Systems, Legal Affairs)'
-                                value={department}
-                                onChange={(e) => setDepartment(e.target.value)}
-                                className='w-full px-3 py-2 text-xs rounded border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none'
-                            />
-                            <input
-                                type='text'
-                                required
-                                placeholder='Location (e.g. Algiers Hybrid, Oran)'
-                                value={location}
-                                onChange={(e) => setLocation(e.target.value)}
-                                className='w-full px-3 py-2 text-xs rounded border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none'
-                            />
+                            <label className='block'>
+                                <span className='mb-1 block font-mono text-[9px] uppercase tracking-[0.14em] text-(--text-sub)'>
+                                    Company
+                                </span>
+                                <input
+                                    type='text'
+                                    required
+                                    placeholder='e.g. Sonatrach, TechCorp DZ'
+                                    value={companyName}
+                                    onChange={(e) =>
+                                        setCompanyName(e.target.value)
+                                    }
+                                    className='w-full px-3 py-2 text-xs rounded border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none'
+                                />
+                            </label>
+                            <label className='block'>
+                                <span className='mb-1 block font-mono text-[9px] uppercase tracking-[0.14em] text-(--text-sub)'>
+                                    Job title
+                                </span>
+                                <input
+                                    type='text'
+                                    required
+                                    placeholder='e.g. Junior Cloud Engineer, Corporate Counsel'
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                    className='w-full px-3 py-2 text-xs rounded border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none'
+                                />
+                            </label>
+                            <label className='block'>
+                                <span className='mb-1 block font-mono text-[9px] uppercase tracking-[0.14em] text-(--text-sub)'>
+                                    Department
+                                </span>
+                                <input
+                                    type='text'
+                                    required
+                                    placeholder='e.g. Cloud & Systems, Legal Affairs'
+                                    value={department}
+                                    onChange={(e) =>
+                                        setDepartment(e.target.value)
+                                    }
+                                    className='w-full px-3 py-2 text-xs rounded border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none'
+                                />
+                            </label>
+                            <label className='block'>
+                                <span className='mb-1 block font-mono text-[9px] uppercase tracking-[0.14em] text-(--text-sub)'>
+                                    Location
+                                </span>
+                                <input
+                                    type='text'
+                                    required
+                                    placeholder='e.g. Algiers (Hybrid), Oran'
+                                    value={location}
+                                    onChange={(e) =>
+                                        setLocation(e.target.value)
+                                    }
+                                    className='w-full px-3 py-2 text-xs rounded border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none'
+                                />
+                            </label>
                             <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
                                 <label className='block'>
                                     <span className='mb-1 block font-mono text-[9px] uppercase tracking-[0.14em] text-(--text-sub)'>
@@ -246,14 +272,21 @@ export default function RecruiterPositionsView() {
                                 </p>
                             )}
 
-                            <textarea
-                                rows={2}
-                                required
-                                placeholder='Mandatory Rubric Criteria (comma-separated: Docker, Linux, CI/CD)'
-                                value={criteriaStr}
-                                onChange={(e) => setCriteriaStr(e.target.value)}
-                                className='w-full px-3 py-2 text-xs rounded border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none'
-                            />
+                            <label className='block'>
+                                <span className='mb-1 block font-mono text-[9px] uppercase tracking-[0.14em] text-(--text-sub)'>
+                                    Mandatory rubric criteria
+                                </span>
+                                <textarea
+                                    rows={2}
+                                    required
+                                    placeholder='Comma-separated: Docker, Linux, CI/CD'
+                                    value={criteriaStr}
+                                    onChange={(e) =>
+                                        setCriteriaStr(e.target.value)
+                                    }
+                                    className='w-full px-3 py-2 text-xs rounded border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none'
+                                />
+                            </label>
 
                             <div className='flex justify-end gap-2 pt-2'>
                                 <button

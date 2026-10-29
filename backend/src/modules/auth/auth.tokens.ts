@@ -1,4 +1,5 @@
 import jwt, { SignOptions } from 'jsonwebtoken';
+import { createHash } from 'crypto';
 import { Response } from 'express';
 import { env } from '../../config/env.js';
 import { Role, SubscriptionTier } from '@prisma/client';
@@ -29,6 +30,51 @@ export const verifyAccessToken = (token: string): TokenPayload => {
 
 export const verifyRefreshToken = (token: string): TokenPayload => {
     return jwt.verify(token, env.JWT_REFRESH_SECRET) as TokenPayload;
+};
+
+export interface PasswordResetPayload {
+    sub: string;
+    purpose: 'password-reset';
+    pwd: string;
+}
+
+const PASSWORD_RESET_AUDIENCE = 'skillora-password-reset';
+
+export const passwordFingerprint = (passwordHash: string): string =>
+    createHash('sha256').update(passwordHash).digest('hex');
+
+export const generatePasswordResetToken = (
+    userId: string,
+    passwordHash: string
+): string => {
+    const payload: PasswordResetPayload = {
+        sub: userId,
+        purpose: 'password-reset',
+        pwd: passwordFingerprint(passwordHash),
+    };
+
+    return jwt.sign(payload, env.JWT_ACCESS_SECRET, {
+        expiresIn: '30m',
+        audience: PASSWORD_RESET_AUDIENCE,
+    });
+};
+
+export const verifyPasswordResetToken = (
+    token: string
+): PasswordResetPayload => {
+    const payload = jwt.verify(token, env.JWT_ACCESS_SECRET, {
+        audience: PASSWORD_RESET_AUDIENCE,
+    }) as PasswordResetPayload;
+
+    if (
+        payload.purpose !== 'password-reset' ||
+        !payload.sub ||
+        !payload.pwd
+    ) {
+        throw new Error('Invalid password reset token');
+    }
+
+    return payload;
 };
 
 export const REFRESH_COOKIE_NAME = 'skillora_rt';
