@@ -9,7 +9,34 @@ import {
 import Footer from '../../components/Footer';
 import MermaidDiagram from '../../components/MermaidDiagram';
 
-const PROCESS_FLOW = `
+const PROCESS_FLOW_DESKTOP = `
+flowchart LR
+    subgraph P1["01 · Resume"]
+        direction TB
+        A[Choose role] --> B[Select evidence]
+        B --> C[Generate resume]
+    end
+    subgraph P2["02 · Audit"]
+        direction TB
+        D[Submit application] --> E[Parse + normalize]
+        E --> F[Audit rubric]
+        F --> G{Verified?}
+    end
+    subgraph P3["03 · Outcome"]
+        direction TB
+        H[Interview + calendar]
+        J[Gap roadmap + re-apply]
+    end
+    C --> D
+    G -->|Yes| H
+    G -->|No| J
+    classDef accent fill:{{accent}},stroke:{{accent}},color:{{onAccent}};
+    classDef soft fill:{{accentSoft}},stroke:{{muted}},color:{{accentText}};
+    class D,H accent;
+    class G,J soft;
+`;
+
+const PROCESS_FLOW_MOBILE = `
 flowchart TD
     A[Choose a role] --> B[Select evidence]
     B --> C[Generate resume]
@@ -24,8 +51,8 @@ flowchart TD
     J --> K[Calendar locked]
     I -->|No| L[Gap roadmap]
     L --> M[Re-apply with new proof]
-    classDef accent fill:{{accent}},stroke:{{accent}},color:#ffffff;
-    classDef soft fill:{{accentSoft}},stroke:{{accent}},color:{{accentText}};
+    classDef accent fill:{{accent}},stroke:{{accent}},color:{{onAccent}};
+    classDef soft fill:{{accentSoft}},stroke:{{muted}},color:{{accentText}};
     class F,J,K accent;
     class D,E,I,L,M soft;
 `;
@@ -109,9 +136,10 @@ export default function HowItWorksView() {
                         </h2>
                     </div>
 
-                    <div className='mt-10 max-w-2xl rounded-xl border border-(--border-line) bg-(--bg-panel) p-4 sm:p-6'>
+                    <div className='mt-10 max-w-6xl rounded-xl border border-(--border-line) bg-(--bg-panel) p-4 sm:p-6'>
                         <MermaidDiagram
-                            chart={PROCESS_FLOW}
+                            chart={PROCESS_FLOW_DESKTOP}
+                            mobileChart={PROCESS_FLOW_MOBILE}
                             label='End-to-end flowchart: tailor a resume, submit it for an evidence audit, then route to interview scheduling or an actionable gap roadmap.'
                         />
                     </div>
