@@ -25,10 +25,7 @@ import {
     X,
     type LucideIcon,
 } from 'lucide-react';
-import {
-    ALGERIAN_COMPANIES,
-    type AlgerianCompany,
-} from '../../data/algerianCompanies';
+import { ALGERIAN_COMPANIES } from '../../data/algerianCompanies';
 import Typewriter from '../../components/Typewriter';
 import { useAuthStore } from '../../store/useAuthStore';
 
@@ -172,34 +169,6 @@ function normalizeSearch(value: string) {
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '')
         .toLowerCase();
-}
-
-function CompanyMark({ company }: { company: AlgerianCompany }) {
-    const [failed, setFailed] = useState(false);
-
-    if (!company.logo || failed) {
-        return (
-            <span
-                className={`flex h-12 w-20 shrink-0 items-center justify-center rounded-md font-grotesque text-lg font-bold ring-1 ${monogramTone(company.name)}`}
-                aria-hidden='true'>
-                {company.monogram}
-            </span>
-        );
-    }
-
-    return (
-        <span className='flex h-12 w-20 shrink-0 items-center justify-center rounded-md border border-(--border-line) bg-(--bg-canvas) p-1.5'>
-            <img
-                src={company.logo}
-                alt=''
-                aria-hidden='true'
-                className='max-h-full max-w-full object-contain dark:invert'
-                loading='lazy'
-                decoding='async'
-                onError={() => setFailed(true)}
-            />
-        </span>
-    );
 }
 
 function SectionHeading({
@@ -525,21 +494,7 @@ export default function LandingView() {
                             ))}
                         </div>
 
-                        <div className='space-y-4 lg:col-span-5'>
-                            <figure className='overflow-hidden rounded-xl border border-(--border-line) bg-(--bg-panel)'>
-                                <img
-                                    src='/images/applicant-review.webp'
-                                    alt='A candidate reviewing notes beside a laptop and printed documents'
-                                    className='aspect-[16/9] w-full object-cover'
-                                    loading='lazy'
-                                    decoding='async'
-                                />
-                                <figcaption className='flex items-center justify-between gap-3 border-t border-(--border-line) px-4 py-2.5 font-mono text-[9px] uppercase tracking-[0.16em] text-(--text-sub)'>
-                                    <span>Resume review</span>
-                                    <span>Evidence first</span>
-                                </figcaption>
-                            </figure>
-
+                        <div className='lg:col-span-5'>
                             <div className='overflow-hidden rounded-xl border border-(--border-line) bg-(--bg-panel)'>
                                 <div className='flex items-start justify-between gap-3 border-b border-(--border-line) px-5 py-4'>
                                     <div>
@@ -635,21 +590,7 @@ export default function LandingView() {
                     />
 
                     <div className='mt-10 grid gap-6 lg:grid-cols-12 lg:items-start'>
-                        <div className='space-y-4 lg:col-span-5'>
-                            <figure className='overflow-hidden rounded-xl border border-(--border-line) bg-(--bg-panel)'>
-                                <img
-                                    src='/images/recruiter-interview.webp'
-                                    alt='A recruiter interviewing a candidate across a table'
-                                    className='aspect-[16/9] w-full object-cover'
-                                    loading='lazy'
-                                    decoding='async'
-                                />
-                                <figcaption className='flex items-center justify-between gap-3 border-t border-(--border-line) px-4 py-2.5 font-mono text-[9px] uppercase tracking-[0.16em] text-(--text-sub)'>
-                                    <span>Interview in progress</span>
-                                    <span>Proof attached</span>
-                                </figcaption>
-                            </figure>
-
+                        <div className='lg:col-span-5'>
                             <div className='rounded-xl border border-(--border-line) bg-(--bg-panel) p-5'>
                                 <div className='flex items-start justify-between gap-3 border-b border-(--border-line) pb-4'>
                                     <div>
@@ -802,10 +743,14 @@ export default function LandingView() {
                                     <article
                                         key={company.name}
                                         className='group flex items-center gap-3 rounded-lg border border-(--border-line) bg-(--bg-canvas) p-3.5 transition-colors hover:border-(--text-sub)/40 hover:bg-(--bg-panel)'>
-                                        <CompanyMark company={company} />
+                                        <span
+                                            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md font-grotesque text-lg font-bold ring-1 ${monogramTone(company.name)}`}
+                                            aria-hidden='true'>
+                                            {company.monogram}
+                                        </span>
                                         <div className='min-w-0'>
                                             <h3
-                                                className='line-clamp-2 text-sm font-semibold leading-snug text-(--text-main)'
+                                                className='truncate text-sm font-semibold text-(--text-main)'
                                                 title={company.name}>
                                                 {company.name}
                                             </h3>
