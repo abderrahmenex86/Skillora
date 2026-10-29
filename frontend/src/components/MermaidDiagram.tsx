@@ -117,9 +117,9 @@ export default function MermaidDiagram({
                         useMaxWidth: true,
                         htmlLabels: true,
                         curve: 'basis',
-                        padding: 8,
-                        nodeSpacing: 26,
-                        rankSpacing: 28,
+                        padding: 7,
+                        nodeSpacing: 22,
+                        rankSpacing: 24,
                     },
                     sequence: {
                         useMaxWidth: true,
