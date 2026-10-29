@@ -168,7 +168,8 @@ export default function EditProfileView() {
     };
 
     return (
-        <div className='page-scroll w-full max-w-3xl mx-auto px-6 py-8'>
+        <div className='page-scroll flex flex-col'>
+            <div className='w-full max-w-3xl mx-auto px-6 py-8'>
             <Link
                 to={roleHome[user.role]}
                 className='inline-flex items-center gap-1.5 text-xs font-mono text-(--text-sub) hover:text-(--text-main) transition-colors mb-6'>
@@ -522,6 +523,7 @@ export default function EditProfileView() {
                     </form>
                 )}
             </section>
+            </div>
             <Footer />
         </div>
     );

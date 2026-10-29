@@ -300,7 +300,7 @@ export default function LandingView() {
     };
 
     return (
-        <div className='page-scroll'>
+        <div className='page-scroll flex flex-col'>
             <main className='mx-auto w-full max-w-7xl px-6'>
                 {/* 1. Hero */}
                 <section

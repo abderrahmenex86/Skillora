@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 
 export default function Footer() {
     return (
-        <footer className='shrink-0 border-t border-(--border-line) bg-(--bg-canvas)'>
+        <footer className='mt-auto shrink-0 border-t border-(--border-line) bg-(--bg-canvas)'>
             <div className='mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-1 px-6 py-3 font-mono text-[10px] uppercase tracking-[0.14em] text-(--text-sub) sm:flex-row'>
                 <span>
                     Skillora © {new Date().getFullYear()} • Multilingual parsing
