@@ -314,13 +314,22 @@ function gapFor(
 
     const unmet = position.rubric.mandatoryCriteria.slice(-2);
     const focus = unmet[0] ?? 'the missing criterion';
+    const strengths = position.rubric.mandatoryCriteria.filter(
+        (criterion) => !unmet.includes(criterion)
+    );
+    const letter = `Dear candidate,
+
+Thank you for applying for ${position.title}. Your application demonstrated relevant strengths in ${strengths.join(', ') || 'several areas'}. However, this was a competitive cohort, and other candidates demonstrated stronger coverage of the mandatory requirements for this particular role.
+
+The main gap for this posting was ${unmet.join(' and ')}. The review did not find sufficient verifiable proof of that capability in the submitted materials.
+
+To strengthen future applications, focus on producing concrete artifacts related to the missing requirement, such as the project or certification path outlined below. Once that evidence is attached to your profile, you are encouraged to apply again.
+
+Skillora Talent Team`;
 
     return {
-        badge: 'ACTIONABLE GAP ANALYSIS [ZERO GHOSTING]',
-        headlineReason: `Why this resume was not selected for ${position.title}`,
-        verifiedStrengths: position.rubric.mandatoryCriteria.filter(
-            (criterion) => !unmet.includes(criterion)
-        ),
+        letter,
+        verifiedStrengths: strengths,
         unmetMandatoryReasons: unmet.map(
             (criterion) => `Missing mandatory requirement: ${criterion}`
         ),
@@ -328,8 +337,11 @@ function gapFor(
             title: `Build verifiable proof for ${focus}`,
             actionableMilestones: [
                 `Ship a small project that demonstrates ${focus}.`,
-                'Attach the artifact to your resume and apply again.',
+                `Document the design decisions and measurable outcome in a public repository.`,
+                `Earn a recognized certification covering ${focus} if one is available, or publish a production-grade equivalent.`,
+                'Attach the artifact or credential to your resume and apply again.',
             ],
+            reapplicationReadinessMilestone: `Publish the ${focus} artifact and link it from your next application.`,
         },
     };
 }

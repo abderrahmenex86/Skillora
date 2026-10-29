@@ -100,7 +100,7 @@ flowchart TD
     F --> G{Evaluation outcome}
     G -->|Eligible| H[Rank eligible; auto-assign an interview]
     G -->|Needs review| I[Recruiter reviews the application]
-    G -->|Rejected| J[Growth agent writes a gap roadmap]
+    G -->|Rejected| J[Growth agent writes a feedback letter and roadmap]
     H --> K[Candidate can reschedule or decline]
     K --> L[Interview scheduled]
     I -->|Override: eligible| H
@@ -212,7 +212,7 @@ sequenceDiagram
     else Needs review
         O->>DB: Status NEEDS_REVIEW
     else Rejected
-        O->>O: Growth agent builds roadmap
+        O->>O: Growth agent writes formal feedback and roadmap
         O->>DB: Status REJECTED + gapAnalysis
     end
 
@@ -241,7 +241,7 @@ Set `LLM_MODEL` to override the default for either provider. Each agent calls `g
 
 - **Ingestion** strips PII, normalizes Algerian degrees and institutions, and extracts skills and verifiable artifacts from a resume-scoped dossier.
 - **Matcher** audits every mandatory criterion against evidence and returns a 0–100 score with `ELIGIBLE`, `NEEDS_REVIEW`, or a rejected outcome.
-- **Growth** writes the Zero-Ghosting roadmap for rejected candidates with domain-specific, artifact-producing milestones.
+- **Growth** writes a formal, constructive feedback letter for rejected candidates, plus domain-specific, artifact-producing milestones.
 - **Coordinator** auto-assigns the first available slot inside the recruiter's interview window and builds the Google Meet payload.
 
 Candidate dossiers are built only from the vault entries selected on the resume. URLs are redacted before any prompt is sent, so personal handles never reach the model.

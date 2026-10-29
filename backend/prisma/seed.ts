@@ -1836,9 +1836,15 @@ const applications: ApplicationSeed[] = [
         matchScore: 62,
         unmet: ['MLOps'],
         gapAnalysis: {
-            badge: 'ACTIONABLE GAP ANALYSIS [ZERO GHOSTING]',
-            headlineReason:
-                'Why this resume was not selected for Data Scientist / ML Engineer',
+            letter: `Dear candidate,
+
+Thank you for applying for Data Scientist / ML Engineer. Your application demonstrated relevant strengths in Python, SQL, Machine Learning, and data pipelines. However, this was a competitive cohort, and other candidates demonstrated stronger coverage of the mandatory requirements for this particular role.
+
+The main gap for this posting was MLOps. The review did not find sufficient verifiable proof of that capability in the submitted materials.
+
+To strengthen future applications, focus on producing concrete artifacts related to the missing requirement, such as the project or certification path outlined below. Once that evidence is attached to your profile, you are encouraged to apply again.
+
+Skillora Talent Team`,
             verifiedStrengths: [
                 'Python',
                 'SQL',

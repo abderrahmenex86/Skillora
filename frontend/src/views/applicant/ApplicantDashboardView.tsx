@@ -510,6 +510,19 @@ export default function ApplicantDashboardView() {
                                         app.status === 'INTERVIEW_SCHEDULED';
                                     const isOnHold =
                                         app.status === 'ON_HOLD';
+                                    const gapAnalysis = app.gapAnalysis;
+                                    const feedbackLetter =
+                                        gapAnalysis?.letter ??
+                                        gapAnalysis?.headlineReason;
+                                    const missingQualifications = (
+                                        gapAnalysis?.unmetMandatoryReasons ??
+                                        []
+                                    ).map((reason: string) =>
+                                        reason.replace(
+                                            /^Missing mandatory requirement:\s*/i,
+                                            ''
+                                        )
+                                    );
 
                                     return (
                                         <div
@@ -553,31 +566,105 @@ export default function ApplicantDashboardView() {
                                                 </span>
                                             </div>
 
-                                            {app.gapAnalysis && (
-                                                <div className='mt-4 p-4 border-2 border-amber-accent rounded-md bg-(--bg-canvas)'>
-                                                    <span className='font-mono text-[10px] text-amber-accent border border-amber-accent/40 px-2 py-0.5 rounded uppercase tracking-wider inline-block mb-2'>
-                                                        {
-                                                            app.gapAnalysis
-                                                                .badge
-                                                        }
-                                                    </span>
-                                                    <div className='text-xs text-(--text-main) font-medium mb-1'>
-                                                        {
-                                                            app.gapAnalysis
-                                                                .headlineReason
-                                                        }
-                                                    </div>
-                                                    <div className='bg-(--bg-panel) p-3 rounded text-xs text-(--text-sub) mt-2'>
-                                                        <span className='font-semibold text-(--text-main) block mb-0.5'>
-                                                            Recommended Bridge
-                                                            Path:
-                                                        </span>
-                                                        {
-                                                            app.gapAnalysis
+                                            {gapAnalysis && (
+                                                <div className='mt-4 rounded-lg border border-(--border-line) bg-(--bg-panel) p-5'>
+                                                    <p className='font-mono text-[9px] uppercase tracking-[0.16em] text-(--text-sub)'>
+                                                        Application feedback
+                                                    </p>
+
+                                                    {feedbackLetter && (
+                                                        <div className='mt-3 whitespace-pre-line text-sm leading-relaxed text-(--text-main)'>
+                                                            {feedbackLetter}
+                                                        </div>
+                                                    )}
+
+                                                    {missingQualifications.length >
+                                                        0 && (
+                                                        <div className='mt-4 border-t border-(--border-line) pt-3'>
+                                                            <p className='font-mono text-[9px] uppercase tracking-[0.16em] text-(--text-sub)'>
+                                                                What was missing
+                                                                for this role
+                                                            </p>
+                                                            <ul className='mt-2 space-y-1 text-xs text-(--text-sub)'>
+                                                                {missingQualifications.map(
+                                                                    (
+                                                                        qualification: string
+                                                                    ) => (
+                                                                        <li
+                                                                            key={
+                                                                                qualification
+                                                                            }
+                                                                            className='flex gap-2'>
+                                                                            <span
+                                                                                aria-hidden='true'
+                                                                                className='text-amber-accent'>
+                                                                                –
+                                                                            </span>
+                                                                            {
+                                                                                qualification
+                                                                            }
+                                                                        </li>
+                                                                    )
+                                                                )}
+                                                            </ul>
+                                                        </div>
+                                                    )}
+
+                                                    {gapAnalysis
+                                                        .recommendedBridgePath && (
+                                                        <div className='mt-4 border-t border-(--border-line) pt-3'>
+                                                            <p className='font-mono text-[9px] uppercase tracking-[0.16em] text-(--text-sub)'>
+                                                                How to strengthen
+                                                                your next
+                                                                application
+                                                            </p>
+                                                            <p className='mt-2 text-sm font-semibold text-(--text-main)'>
+                                                                {
+                                                                    gapAnalysis
+                                                                        .recommendedBridgePath
+                                                                        .title
+                                                                }
+                                                            </p>
+                                                            <ul className='mt-2 space-y-1.5 text-xs leading-relaxed text-(--text-sub)'>
+                                                                {gapAnalysis
+                                                                    .recommendedBridgePath
+                                                                    .actionableMilestones?.map(
+                                                                        (
+                                                                            milestone: string
+                                                                        ) => (
+                                                                            <li
+                                                                                key={
+                                                                                    milestone
+                                                                                }
+                                                                                className='flex gap-2'>
+                                                                                <span
+                                                                                    aria-hidden='true'
+                                                                                    className='mt-1 h-1 w-1 shrink-0 rounded-full bg-forest dark:bg-forest-dark'
+                                                                                />
+                                                                                {
+                                                                                    milestone
+                                                                                }
+                                                                            </li>
+                                                                        )
+                                                                    )}
+                                                            </ul>
+                                                            {gapAnalysis
                                                                 .recommendedBridgePath
-                                                                ?.title
-                                                        }
-                                                    </div>
+                                                                .reapplicationReadinessMilestone && (
+                                                                <p className='mt-3 rounded-md border border-(--border-line) bg-(--bg-canvas) p-3 text-xs leading-relaxed text-(--text-sub)'>
+                                                                    <span className='font-semibold text-(--text-main)'>
+                                                                        Before
+                                                                        re-applying:{' '}
+                                                                    </span>
+                                                                    {
+                                                                        gapAnalysis
+                                                                            .recommendedBridgePath
+                                                                            .reapplicationReadinessMilestone
+                                                                    }
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             )}
                                             <span

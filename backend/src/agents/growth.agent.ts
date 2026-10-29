@@ -14,8 +14,7 @@ import {
 } from './model.factory.js';
 
 export const GrowthOutputSchema = z.object({
-    badge: z.literal('ACTIONABLE GAP ANALYSIS [ZERO GHOSTING]'),
-    headlineReason: z.string(),
+    letter: z.string(),
     verifiedStrengths: z.array(z.string()),
     unmetMandatoryReasons: z.array(z.string()),
     recommendedBridgePath: z.object({
@@ -27,27 +26,24 @@ export const GrowthOutputSchema = z.object({
 
 export type GrowthOutput = z.infer<typeof GrowthOutputSchema>;
 
-const GROWTH_SYSTEM_PROMPT = `You are the Skillora Growth Agent, the "Zero-Ghosting Coach". You write for a candidate whose application was REJECTED because it did not yet meet the mandatory rubric.
+const GROWTH_SYSTEM_PROMPT = `You are the Skillora Growth Agent. You write formal, constructive feedback for a candidate whose application was rejected because it did not yet meet the mandatory rubric.
 
 Voice and ethics:
-- Be empathetic, direct, and respectful. Never blame the candidate.
+- Be empathetic, direct, respectful, and formal. Never blame the candidate or imply they are not good enough.
 - Never mention or infer protected characteristics, age, gender, nationality, religion, disability, or family status.
-- Base every statement on the supplied evaluation and telemetry. Do not invent missing requirements.
+- Base every statement on the supplied evaluation and telemetry. Never invent missing requirements, experience, or credentials.
 
-Roadmap rules:
-1. Explain the decision through the specific unmet mandatory criteria.
-2. Produce 3 to 5 practical milestones that create verifiable proof, tailored to the candidate's domain and missing criteria.
-3. Every milestone must be completable and must produce an artifact the candidate can attach to a future application (repository, deployed service, case brief, audit memo, financial model, certificate, measurable report).
-4. Domain-specific examples:
-   - Tech: containerize a service with Docker, deploy with Helm on Kubernetes, add CI with tests, publish a repository with measurable results.
-   - Legal: draft a contract compliance audit brief, map relevant Algerian jurisprudence, produce a redacted case memo.
-   - Finance/operations: build a reconciled model, document internal controls, quantify cost savings with a baseline.
-5. Never give generic advice such as "study more", "take a course", "improve your skills", or "network more".
-6. reapplicationReadinessMilestone must state the exact evidence required before re-applying.
-7. badge must be exactly "ACTIONABLE GAP ANALYSIS [ZERO GHOSTING]".
-8. The redacted dossier is supporting context. URLs are removed for privacy; build on the candidate's real domain and artifacts, but never invent experience.
-9. The response must match the provided schema exactly.`;
-
+Letter rules:
+1. The letter must begin with "Dear candidate," and end with "Skillora Talent Team".
+2. Use 3 to 5 short paragraphs and approximately 150-250 words.
+3. Acknowledge 2 to 3 verified strengths from the candidate's application.
+4. Explain that other candidates demonstrated stronger coverage of the mandatory requirements for this particular role. Make clear this is about fit for this posting, not the candidate's overall ability.
+5. Name the specific missing mandatory qualification(s) and explain what proof was not found. For example: "The main gap for this role was the absence of proven Kubernetes experience."
+6. Offer practical direction for future applications: relevant projects, artifacts, or recognized certifications that would create verifiable proof. Do not give generic advice such as "study more", "take a course", "improve your skills", or "network more".
+7. Encourage the candidate to re-apply once the suggested evidence is in place.
+8. The structured recommendedBridgePath must contain 3 to 5 practical milestones, each producing an attachable artifact. reapplicationReadinessMilestone must state the exact evidence required before re-applying.
+9. The redacted dossier is supporting context. URLs are removed for privacy; build on the candidate's real domain and artifacts.
+10. The response must match the provided schema exactly. Do not include a badge, headline, or internal status labels in the letter.`;
 function buildGrowthPrompt(
     telemetry: IngestionOutput,
     evaluation: MatcherOutput,
@@ -96,8 +92,9 @@ function buildHeuristicGrowth(
             `Implement a standalone prototype using ${primaryMissing} with automated tests.`,
             `Containerize the service with Docker and deploy it with a reproducible manifest.`,
             `Add a continuous delivery workflow (GitHub Actions) verifying your configuration.`,
+            `Earn a recognized certification covering ${primaryMissing} if one is available, or publish a production-grade equivalent.`,
         ];
-        readyMilestone = `Push to a public repository with a passing pipeline and link the verified repo on your next application.`;
+        readyMilestone = `Push to a public repository with a passing pipeline and attach any relevant certification before your next application.`;
     } else if (telemetry.domain === 'legal') {
         bridgeTitle = `Complete a practical case brief addressing ${primaryMissing}`;
         milestones = [
@@ -123,10 +120,20 @@ function buildHeuristicGrowth(
         ];
     }
 
+    const strengths = evaluation.strengths.slice(0, 3);
+    const missing = unmetList.slice(0, 2);
+    const letter = `Dear candidate,
+
+Thank you for applying for ${positionTitle}. Your application demonstrated meaningful strengths${strengths.length > 0 ? ` in ${strengths.join(', ')}` : ''}. However, this was a competitive cohort, and other candidates demonstrated stronger coverage of the mandatory requirements for this particular role.
+
+The main gap for this posting was ${missing.join(' and ')}. The review did not find sufficient verifiable proof of that capability in the submitted resume.
+
+To strengthen future applications, focus on producing concrete artifacts related to the missing requirement, such as the project or certification path outlined below. Once that evidence is attached to your profile, you are encouraged to apply again.
+
+Skillora Talent Team`;
     return {
-        badge: 'ACTIONABLE GAP ANALYSIS [ZERO GHOSTING]',
-        headlineReason: `Why your profile was not selected for this cohort (${positionTitle})`,
-        verifiedStrengths: evaluation.strengths.slice(0, 4),
+        letter,
+        verifiedStrengths: strengths,
         unmetMandatoryReasons: unmetList.map(
             (requirement) => `Missing mandatory requirement: ${requirement}`
         ),
@@ -165,12 +172,11 @@ export class GrowthAgent {
                     ),
                     temperature: Math.max(runtime.temperature, 0.3),
                     maxRetries: runtime.maxRetries,
-                    maxOutputTokens: 2500,
+                    maxOutputTokens: 3000,
                 });
 
                 const output: GrowthOutput = {
                     ...object,
-                    badge: 'ACTIONABLE GAP ANALYSIS [ZERO GHOSTING]',
                     verifiedStrengths:
                         object.verifiedStrengths.length > 0 ?
                             object.verifiedStrengths.slice(0, 6)
