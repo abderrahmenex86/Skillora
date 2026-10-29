@@ -4,7 +4,6 @@ import { flushSync } from 'react-dom';
 import {
     ChevronDown,
     Menu,
-    Sparkles,
     X,
     LayoutDashboard,
     LogOut,
@@ -20,18 +19,18 @@ import { useAuthStore } from '../store/useAuthStore';
 
 function navLinkClass({ isActive }: { isActive: boolean }) {
     return [
-        'relative rounded-full px-3.5 py-1.5 transition-all duration-200',
+        'relative py-1 text-[0.7rem] uppercase tracking-[0.2em] transition-colors duration-300 after:absolute after:-bottom-0.5 after:left-0 after:h-px after:w-full after:origin-left after:bg-(--text-main) after:transition-transform after:duration-500',
         isActive
-            ? 'bg-ink text-white shadow-sm dark:bg-emerald-brand dark:text-ink'
-            : 'text-(--text-sub) hover:text-(--text-main)',
+            ? 'text-(--text-main) after:scale-x-100'
+            : 'text-(--text-sub) hover:text-(--text-main) after:scale-x-0 hover:after:scale-x-100',
     ].join(' ');
 }
 
 function mobileLinkClass({ isActive }: { isActive: boolean }) {
     return [
-        'block rounded-xl px-4 py-3 text-sm font-medium transition-colors',
+        'block border-b border-(--border-line) px-1 py-4 font-serif text-2xl transition-colors',
         isActive
-            ? 'bg-emerald-brand/10 text-accent font-semibold'
+            ? 'italic text-(--text-main)'
             : 'text-(--text-main) hover:bg-(--bg-panel)',
     ].join(' ');
 }
@@ -187,13 +186,13 @@ export default function Navbar() {
         <header
             className={`sticky top-0 z-50 w-full transition-all duration-300 ${
                 scrolled ?
-                    'glass border-b border-(--border-line) shadow-[0_1px_0_0_rgb(0_0_0/0.02)]'
+                    'glass border-b border-(--border-line)'
                 :   'border-b border-transparent'
             }`}>
-            <div className='mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6'>
+            <div className='mx-auto flex h-[4.5rem] max-w-6xl items-center justify-between gap-4 px-6'>
                 <Logo />
 
-                <nav className='hidden items-center gap-1 rounded-full border border-(--border-line) bg-(--bg-elevated) p-1 text-sm font-medium shadow-xs lg:flex'>
+                <nav className='hidden items-center gap-9 lg:flex'>
                     {links.map((link) => (
                         <NavLink
                             key={link.to + link.label}
@@ -209,9 +208,8 @@ export default function Navbar() {
                     {showUpgradeButton && (
                         <Link
                             to='/pricing'
-                            className='hidden items-center gap-1.5 whitespace-nowrap rounded-full border border-amber-accent/40 bg-amber-accent/10 px-3.5 py-2 text-xs font-bold text-amber transition-all hover:-translate-y-px hover:bg-amber-accent/15 sm:inline-flex sm:text-sm'>
-                            <Sparkles size={14} />
-                            Upgrade to Pro
+                            className='btn-secondary hidden! px-4! py-2.5! sm:inline-flex!'>
+                                                        Upgrade to Pro
                         </Link>
                     )}
 
@@ -219,12 +217,12 @@ export default function Navbar() {
                         <>
                             <Link
                                 to='/auth?mode=login'
-                                className='hidden rounded-full px-4 py-2 text-sm font-semibold text-(--text-main) transition-colors hover:bg-(--bg-panel) sm:inline-flex'>
+                                className='link-underline hidden text-[0.7rem] uppercase tracking-[0.2em] text-(--text-main) sm:inline-flex'>
                                 Login
                             </Link>
                             <Link
                                 to='/auth?mode=register'
-                                className='btn-primary px-4! py-2! text-sm!'>
+                                className='btn-primary px-5! py-2.5!'>
                                 Get started
                             </Link>
                         </>
@@ -241,8 +239,8 @@ export default function Navbar() {
                                 }
                                 aria-haspopup='menu'
                                 aria-expanded={menuOpen}
-                                className='flex items-center gap-2 rounded-full border border-(--border-line) bg-(--bg-elevated) py-1 pl-1 pr-2.5 shadow-xs transition-colors hover:border-emerald-brand'>
-                                <span className='flex h-8 w-8 items-center justify-center rounded-full bg-emerald-brand text-xs font-bold text-ink'>
+                                className='flex items-center gap-2 rounded-full border border-(--border-line) py-1 pl-1 pr-2.5 transition-colors hover:border-(--text-main)'>
+                                <span className='flex h-8 w-8 items-center justify-center rounded-full bg-(--text-main) font-serif text-sm text-(--bg-canvas)'>
                                     {initials || <UserIcon size={14} />}
                                 </span>
                                 <span className='hidden text-left sm:block'>
@@ -263,7 +261,7 @@ export default function Navbar() {
                                 role='menu'
                                 aria-hidden={!menuOpen}
                                 inert={!menuOpen}
-                                className={`absolute right-0 top-full z-50 mt-2 w-60 origin-top-right rounded-2xl border border-(--border-line) bg-(--bg-elevated) p-2 shadow-lg transition-all duration-200 ease-out ${
+                                className={`absolute right-0 top-full z-50 mt-2 w-60 origin-top-right border border-(--border-line) bg-(--bg-elevated) p-2 shadow-lg transition-all duration-200 ease-out ${
                                     menuOpen ?
                                         'pointer-events-auto translate-y-0 scale-100 opacity-100'
                                     :   'pointer-events-none -translate-y-1 scale-95 opacity-0'
@@ -280,7 +278,7 @@ export default function Navbar() {
                                     to={roleHome[user.role]}
                                     role='menuitem'
                                     onClick={() => setMenuOpen(false)}
-                                    className='flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-(--text-main) transition-colors hover:bg-(--bg-panel)'>
+                                    className='flex items-center gap-2.5 px-3 py-2 text-sm text-(--text-main) transition-colors hover:bg-(--bg-panel)'>
                                     <LayoutDashboard size={15} />
                                     Dashboard
                                 </Link>
@@ -288,7 +286,7 @@ export default function Navbar() {
                                     to='/settings/profile'
                                     role='menuitem'
                                     onClick={() => setMenuOpen(false)}
-                                    className='flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-(--text-main) transition-colors hover:bg-(--bg-panel)'>
+                                    className='flex items-center gap-2.5 px-3 py-2 text-sm text-(--text-main) transition-colors hover:bg-(--bg-panel)'>
                                     <Pencil size={15} />
                                     Edit Profile
                                 </Link>
@@ -313,11 +311,11 @@ export default function Navbar() {
                                 'Switch to light mode'
                             :   'Switch to dark mode'
                         }
-                        className='flex h-9 w-9 items-center justify-center rounded-full border border-(--border-line) bg-(--bg-elevated) text-(--text-sub) transition-all hover:text-(--text-main) hover:border-emerald-brand'>
+                        className='flex h-9 w-9 items-center justify-center rounded-full border border-(--border-line) text-(--text-sub) transition-all hover:text-(--text-main) hover:border-(--text-main)'>
                         {isDark ?
                             <Sun
                                 size={16}
-                                className='text-amber-400'
+                                className='text-(--text-main)'
                             />
                         :   <Moon size={16} />}
                     </button>
@@ -327,7 +325,7 @@ export default function Navbar() {
                         onClick={() => setMobileOpen((open) => !open)}
                         aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
                         aria-expanded={mobileOpen}
-                        className='flex h-9 w-9 items-center justify-center rounded-full border border-(--border-line) bg-(--bg-elevated) text-(--text-main) lg:hidden'>
+                        className='flex h-9 w-9 items-center justify-center rounded-full border border-(--border-line) text-(--text-main) lg:hidden'>
                         {mobileOpen ?
                             <X size={16} />
                         :   <Menu size={16} />}
@@ -362,9 +360,8 @@ export default function Navbar() {
                     {showUpgradeButton && (
                         <Link
                             to='/pricing'
-                            className='mt-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-amber-accent/40 bg-amber-accent/10 px-4 py-3 text-sm font-bold text-amber'>
-                            <Sparkles size={14} />
-                            Upgrade to Pro
+                            className='btn-secondary mt-4'>
+                                                        Upgrade to Pro
                         </Link>
                     )}
                 </nav>

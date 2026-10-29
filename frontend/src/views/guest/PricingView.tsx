@@ -37,32 +37,30 @@ function PlanCard({
 }: PlanCardProps) {
     return (
         <article
-            className={`relative flex flex-col justify-between p-7 transition-all duration-300 hover:-translate-y-1 ${
-                plan.recommended ?
-                    'card-dark border-t-4 border-emerald-brand'
-                :   'card hover:shadow-lg'
+            className={`lift relative flex flex-col justify-between p-8 ${
+                plan.recommended ? 'card-ink' : 'card'
             }`}>
             {plan.recommended && (
-                <span className='absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-emerald-brand px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-ink shadow-md'>
+                <span className='kicker absolute right-8 top-8 font-serif text-base! normal-case! tracking-normal! italic'>
                     Most popular
                 </span>
             )}
             <div>
                 <div className='flex items-start justify-between gap-3'>
-                    <span className='eyebrow'>
+                    <span className='kicker'>
                         {plan.label}
                     </span>
                     {plan.savingsPercent > 0 && (
-                        <span className='rounded-full bg-forest/10 px-2.5 py-1 text-[11px] font-semibold text-forest dark:text-forest-dark'>
-                            Save {plan.savingsPercent}%
+                        <span className={`kicker ${plan.recommended ? 'mr-28' : ''}`}>
+                            − {plan.savingsPercent}%
                         </span>
                     )}
                 </div>
 
-                <div className='display mt-5 text-6xl text-(--text-main)'>
+                <div className='display mt-8 text-6xl text-(--text-main)'>
                     {formatDzd(plan.price)}
                 </div>
-                <div className='mt-1 text-sm text-(--text-sub)'>
+                <div className='mt-2 text-sm font-light text-(--text-sub)'>
                     {plan.months === 1 ?
                         'Billed monthly'
                     :   `Billed every ${plan.months} months`}
@@ -71,19 +69,19 @@ function PlanCard({
                     )}
                 </div>
 
-                <p className='mt-5 text-sm leading-relaxed text-(--text-sub)'>
+                <p className='mt-6 text-sm font-light leading-relaxed text-(--text-sub)'>
                     {plan.description}
                 </p>
 
-                <ul className='mb-8 mt-6 space-y-3 border-t border-(--border-line) pt-6 text-sm text-(--text-main)'>
+                <ul className='mb-10 mt-6 space-y-3 border-t border-(--border-line) pt-6 text-sm font-light text-(--text-main)'>
                     {plan.features.map((feature) => (
                         <li
                             key={feature}
                             className='flex items-start gap-2.5'>
-                            <span className='mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-brand/15 text-accent'>
+                            <span className='mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center'>
                                 <Check
-                                    size={12}
-                                    strokeWidth={3}
+                                    size={13}
+                                    strokeWidth={1.5}
                                 />
                             </span>
                             {feature}
@@ -219,14 +217,14 @@ export default function PricingView() {
 
     return (
         <div className='flex flex-1 flex-col'>
-            <main className='mx-auto w-full max-w-6xl px-6 py-16 md:py-20'>
-                <div className='animate-fade-up mx-auto mb-14 max-w-3xl text-center'>
-                <span className='eyebrow'>Pricing</span>
-                <h1 className='display mt-3 text-6xl text-(--text-main) sm:text-7xl'>
+            <main className='mx-auto w-full max-w-6xl px-6 py-20 md:py-28'>
+                <div className='animate-fade-up mx-auto mb-20 max-w-3xl text-center'>
+                <span className='kicker'>Pricing</span>
+                <h1 className='display mt-6 text-6xl text-(--text-main) sm:text-8xl'>
                     Simple plans for{' '}
-                    <span className='text-accent'>candidates & companies.</span>
+                    <em className='italic'>candidates & companies.</em>
                 </h1>
-                <p className='mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-(--text-sub)'>
+                <p className='lead mx-auto mt-8 max-w-xl'>
                     Buy access in packs that match your search. Candidates
                     unlock unlimited resumes and cross-round insights, while
                     companies get a verified hiring pipeline.
@@ -234,13 +232,13 @@ export default function PricingView() {
                 </div>
 
                 {successMsg && (
-                    <div className='mb-8 flex items-center gap-2 rounded-2xl border border-forest/30 bg-forest/10 p-4 text-sm font-medium text-forest dark:text-forest-dark'>
+                    <div className='mb-8 flex items-center gap-2 border border-(--text-main) p-4 text-sm text-(--text-main)'>
                         <CheckCircle2 size={16} /> {successMsg}
                     </div>
                 )}
 
                 {errorMsg && (
-                    <div className='mb-8 rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-600 dark:text-red-400'>
+                    <div className='mb-8 border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-600 dark:text-red-400'>
                         {errorMsg}
                     </div>
                 )}
@@ -248,28 +246,28 @@ export default function PricingView() {
                 <section className='mb-20'>
                     <div className='mb-10 flex flex-wrap items-end justify-between gap-3'>
                         <div>
-                            <div className='eyebrow mb-2 flex! items-center gap-2'>
+                            <div className='kicker mb-3 flex! items-center gap-2'>
                                 <UserRound size={14} /> Candidate Packs
                             </div>
-                            <h2 className='display text-5xl text-(--text-main)'>
+                            <h2 className='display text-5xl text-(--text-main) md:text-6xl'>
                                 Unlimited access, bought as a pack
                             </h2>
                         </div>
                         {user?.subscriptionTier === 'PRO' && (
-                            <span className='rounded-full bg-forest/10 px-3 py-1 text-xs font-semibold text-forest dark:text-forest-dark'>
+                            <span className='font-serif text-lg italic text-(--text-main)'>
                                 ACTIVE PRO PACK
                             </span>
                         )}
                     </div>
 
                     {user?.subscriptionTier === 'PRO' && (
-                        <div className='mb-8 rounded-2xl border border-(--border-line) bg-(--bg-panel) px-4 py-3 text-sm text-(--text-sub)'>
+                        <div className='mb-8 border-l-2 border-(--text-main) px-4 py-3 text-sm text-(--text-sub)'>
                             Your current pack is active. Choosing another pack
                             adds its duration from your existing expiry date.
                         </div>
                     )}
 
-                    <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
+                    <div className='grid grid-cols-1 gap-5 md:grid-cols-3'>
                         {CANDIDATE_PACKS.map((plan) => {
                             const cta = resolveCta(plan, 'candidate');
                             return (
@@ -287,7 +285,7 @@ export default function PricingView() {
                         })}
                     </div>
 
-                    <div className='mt-8 rounded-2xl border border-(--border-line) bg-(--bg-panel) px-5 py-4 text-sm text-(--text-sub)'>
+                    <div className='mt-8 border-l-2 border-(--text-main) px-5 py-4 text-sm text-(--text-sub)'>
                         New candidate accounts start free with one active
                         resume and the standard application queue. Pick a pack
                         when you need unlimited resumes and personalized
@@ -295,7 +293,7 @@ export default function PricingView() {
                         {!user && (
                             <Link
                                 to='/auth?mode=register'
-                                className='text-accent font-semibold underline-offset-4 hover:underline'>
+                                className='font-medium text-(--text-main) underline underline-offset-4'>
                                 Create a free account
                             </Link>
                         )}
@@ -305,28 +303,28 @@ export default function PricingView() {
                 <section>
                     <div className='mb-10 flex flex-wrap items-end justify-between gap-3'>
                         <div>
-                            <div className='eyebrow mb-2 flex! items-center gap-2'>
+                            <div className='kicker mb-3 flex! items-center gap-2'>
                                 <Building2 size={14} /> Company Plans
                             </div>
-                            <h2 className='display text-5xl text-(--text-main)'>
+                            <h2 className='display text-5xl text-(--text-main) md:text-6xl'>
                                 A verified pipeline for hiring teams
                             </h2>
                         </div>
                         {user?.subscriptionTier === 'ENTERPRISE' && (
-                            <span className='rounded-full bg-forest/10 px-3 py-1 text-xs font-semibold text-forest dark:text-forest-dark'>
+                            <span className='font-serif text-lg italic text-(--text-main)'>
                                 ACTIVE COMPANY PLAN
                             </span>
                         )}
                     </div>
 
                     {user?.subscriptionTier === 'ENTERPRISE' && (
-                        <div className='mb-8 rounded-2xl border border-(--border-line) bg-(--bg-panel) px-4 py-3 text-sm text-(--text-sub)'>
+                        <div className='mb-8 border-l-2 border-(--text-main) px-4 py-3 text-sm text-(--text-sub)'>
                             Your company plan is active. Choosing another plan
                             adds its duration from your existing expiry date.
                         </div>
                     )}
 
-                    <div className='mx-auto grid max-w-4xl grid-cols-1 gap-6 md:grid-cols-2'>
+                    <div className='mx-auto grid max-w-4xl grid-cols-1 gap-5 md:grid-cols-2'>
                         {COMPANY_PLANS.map((plan) => {
                             const cta = resolveCta(plan, 'company');
                             return (
@@ -344,7 +342,7 @@ export default function PricingView() {
                         })}
                     </div>
 
-                    <div className='mt-8 rounded-2xl border border-(--border-line) bg-(--bg-panel) px-5 py-4 text-sm text-(--text-sub)'>
+                    <div className='mt-8 border-l-2 border-(--text-main) px-5 py-4 text-sm text-(--text-sub)'>
                         Company plans require a recruiter account. Register as
                         a hiring team to activate a monthly or annual plan.
                     </div>

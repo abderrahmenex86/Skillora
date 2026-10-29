@@ -1,21 +1,18 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, ShieldCheck, Terminal, Users } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { ChapterHeader, SiteFooter } from '../../components/Brand';
 
 const FEATURES = [
     {
-        icon: Terminal,
-        title: 'Verifiable Rubrics',
+        title: 'Verifiable rubrics',
         text: 'Specify mandatory proofs: public commits, Docker configurations, Go/Python APIs, bar credentials, or university diplomas.',
     },
     {
-        icon: ShieldCheck,
-        title: 'Pre-Deadline Override',
+        title: 'Pre-deadline override',
         text: 'Recruiters retain full authority: manually promote or decline candidate decisions at any time prior to the position closing deadline.',
     },
     {
-        icon: Users,
-        title: 'Zero-Ghosting Brand Protection',
+        title: 'Zero-ghosting brand protection',
         text: 'Preserve your employer reputation. Applicants not selected receive courteous, actionable learning roadmaps instead of silence.',
     },
 ];
@@ -26,68 +23,59 @@ export default function CompaniesView() {
             <main className='w-full'>
                 <ChapterHeader
                     eyebrow='For hiring teams'
+                    number='Companies'
                     title='Stop screening 500 unvetted CVs'
                     accent='per opening.'>
-                    Engineering managers and HR leads lose dozens of hours every
-                    week reading inflated resumes. Skillora delivers{' '}
-                    <span className='text-white'>
-                        verified candidate dossiers
-                    </span>{' '}
-                    where claimed competencies are backed by evidence.
+                    Skillora delivers verified candidate dossiers where claimed
+                    competencies are backed by evidence.
                 </ChapterHeader>
 
-                <section className='mx-auto w-full max-w-7xl px-6 pt-20'>
-                    <span className='eyebrow'>What you get</span>
-                    <h2 className='display mt-2 text-5xl text-(--text-main) md:text-7xl'>
-                        A shortlist you can{' '}
-                        <span className='text-accent'>trust.</span>
-                    </h2>
-                    <div className='mt-10 grid grid-cols-1 gap-5 md:grid-cols-3'>
+                <section className='mx-auto w-full max-w-6xl px-6'>
+                    <div className='grid grid-cols-1 md:grid-cols-3'>
                         {FEATURES.map((feature, index) => (
                             <div
                                 key={feature.title}
-                                className={`card-hover p-8 ${index === 2 ? 'card-dark' : 'card'}`}>
-                                <span className='icon-tile'>
-                                    <feature.icon size={20} />
+                                className={`py-14 md:px-8 ${index === 0 ? 'md:pl-0' : 'md:border-l md:border-(--border-line)'} ${index === 2 ? 'md:pr-0' : ''}`}>
+                                <span className='font-serif text-xl italic text-(--text-sub)'>
+                                    {['I', 'II', 'III'][index]}.
                                 </span>
                                 <h3 className='display mt-6 text-4xl text-(--text-main)'>
                                     {feature.title}
                                 </h3>
-                                <p className='mt-2 text-sm leading-relaxed text-(--text-sub)'>
+                                <p className='mt-4 font-light leading-relaxed text-(--text-sub)'>
                                     {feature.text}
                                 </p>
                             </div>
                         ))}
                     </div>
-                </section>
 
-                <section className='mx-auto w-full max-w-7xl px-4 py-20 sm:px-6'>
-                    <div className='panel-emerald rounded-3xl px-7 py-14 sm:px-12'>
-                        <div
-                            aria-hidden='true'
-                            className='orbit -right-20 -top-20 h-80 w-80 border-ink/15!'
-                        />
-                        <div className='relative flex flex-col items-start justify-between gap-8 md:flex-row md:items-end'>
+                    <div className='card-ink relative mb-24 mt-10 overflow-hidden p-10 md:p-16'>
+                        <div className='flex flex-col items-start justify-between gap-10 md:flex-row md:items-end'>
                             <div>
-                                <h3 className='display text-5xl text-ink md:text-6xl'>
-                                    Ready to deploy your candidate cohort?
+                                <span className='kicker'>Begin</span>
+                                <h3 className='display mt-4 text-5xl md:text-6xl'>
+                                    Meet your <em className='italic'>shortlist.</em>
                                 </h3>
-                                <p className='mt-3 text-ink/75'>
-                                    First job opening completely free.
-                                    Automated calendar coordination included.
+                                <p className='mt-4 max-w-md font-light text-(--text-sub)'>
+                                    First job opening completely free. Automated
+                                    calendar coordination included.
                                 </p>
                             </div>
                             <Link
                                 to='/auth?mode=register'
-                                className='btn-ink shrink-0'>
-                                Open Recruiter Account <ArrowRight size={18} />
+                                className='btn-secondary shrink-0'>
+                                Open a recruiter account
+                                <ArrowRight
+                                    size={14}
+                                    strokeWidth={1.5}
+                                />
                             </Link>
                         </div>
                     </div>
                 </section>
             </main>
 
-            <SiteFooter tagline='Used by teams across Algiers, Oran & Constantine' />
+            <SiteFooter />
         </div>
     );
 }

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, MapPin } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { ChapterHeader, SiteFooter } from '../../components/Brand';
 
 export default function AboutView() {
@@ -8,14 +8,14 @@ export default function AboutView() {
             <main className='w-full'>
                 <ChapterHeader
                     eyebrow='Our mission'
-                    title='Why Skillora exists.'
-                    tone='amber'>
-                    Hiring is broken on both sides of the table.
-                </ChapterHeader>
+                    number='About'
+                    title='Why Skillora'
+                    accent='exists.'
+                />
 
-                <section className='mx-auto grid w-full max-w-7xl grid-cols-1 gap-12 px-6 py-20 lg:grid-cols-12'>
-                    <div className='space-y-6 text-lg leading-relaxed text-(--text-sub) lg:col-span-7'>
-                        <p>
+                <section className='mx-auto grid w-full max-w-6xl grid-cols-1 gap-16 px-6 py-20 md:grid-cols-12'>
+                    <div className='space-y-6 text-lg font-light leading-[1.85] text-(--text-sub) md:col-span-6'>
+                        <p className='dropcap'>
                             Every year, thousands of qualified graduates and
                             specialists apply to technical, legal, and
                             corporate roles across Algeria.
@@ -32,36 +32,36 @@ export default function AboutView() {
                             receive an exact breakdown of what was missing and
                             the steps to bridge the gap.
                         </p>
-                        <div className='flex flex-col items-start gap-6 border-t border-(--border-line) pt-8 sm:flex-row sm:items-center sm:justify-between'>
-                            <span className='flex items-center gap-2 text-sm'>
-                                <MapPin size={16} />
-                                Skillora Collective · Algiers, Algeria · 2026
-                            </span>
-                            <Link
-                                to='/auth?mode=register'
-                                className='btn-primary'>
-                                Join Skillora <ArrowRight size={16} />
-                            </Link>
-                        </div>
+                        <p className='kicker pt-4'>
+                            Skillora Collective — Algiers, 2026
+                        </p>
                     </div>
 
-                    <figure className='card-dark self-start p-8 md:p-10 lg:col-span-5'>
-                        <span className='eyebrow'>The promise</span>
-                        <blockquote className='display mt-4 text-5xl text-white'>
-                            Every applicant gets either an interview or a path
-                            to grow.{' '}
-                            <span className='text-emerald-brand'>
-                                Guaranteed.
-                            </span>
+                    <figure className='relative md:col-span-5 md:col-start-8'>
+                        <div
+                            aria-hidden='true'
+                            className='glow'
+                        />
+                        <div className='hairline-ink' />
+                        <blockquote className='display py-10 text-5xl text-(--text-main) md:text-6xl'>
+                            “Every applicant gets either an interview or a path
+                            to grow. <em className='italic'>Guaranteed.</em>”
                         </blockquote>
-                        <figcaption className='mt-6 text-sm text-sage-400'>
-                            The one promise Skillora was designed around.
-                        </figcaption>
+                        <div className='hairline-ink' />
+                        <Link
+                            to='/auth?mode=register'
+                            className='btn-primary mt-10'>
+                            Join Skillora
+                            <ArrowRight
+                                size={14}
+                                strokeWidth={1.5}
+                            />
+                        </Link>
                     </figure>
                 </section>
             </main>
 
-            <SiteFooter tagline='Deterministic hiring protocol for North Africa' />
+            <SiteFooter />
         </div>
     );
 }

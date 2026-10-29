@@ -1,30 +1,22 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, CalendarCheck, FileText, ScanSearch } from 'lucide-react';
-import {
-    ChapterHeader,
-    PipelineFlow,
-    SiteFooter,
-} from '../../components/Brand';
+import { ArrowRight } from 'lucide-react';
+import { ChapterHeader, SiteFooter } from '../../components/Brand';
 
 const STEPS = [
     {
-        icon: FileText,
-        tag: 'Step 01 · Tailored resumes',
+        tag: 'Tailored resumes',
         title: 'Apply with tailored resumes',
         text: 'Applicants set up dedicated resumes (e.g. Data Engineer, Penetration Tester, or Corporate Counsel) with role-specific summaries, selected projects, GitHub repos, and credentials. Each application evaluated reflects the exact resume you choose.',
     },
     {
-        icon: ScanSearch,
-        tag: 'Step 02 · Autonomous rubrics',
+        tag: 'Autonomous rubrics',
         title: 'Evidence match across all disciplines',
         text: 'Companies specify mandatory criteria. The agent normalizes submissions into randomized candidate cards (e.g. #DZ-308), auditing artifacts and degree credentials objectively.',
     },
     {
-        icon: CalendarCheck,
-        tag: 'Step 03 · Logistics or growth',
+        tag: 'Logistics or growth',
         title: 'Guaranteed interview or learning path',
-        text: 'Eligible applicants receive automated calendar slots to confirm directly on their dashboard calendar. Redirected applicants receive the Cedar Amber gap analysis detailing exact steps to qualify next time.',
-        amber: true,
+        text: 'Eligible applicants receive automated calendar slots to confirm directly on their dashboard calendar. Redirected applicants receive a gap analysis detailing exact steps to qualify next time.',
     },
 ];
 
@@ -34,66 +26,53 @@ export default function HowItWorksView() {
             <main className='w-full'>
                 <ChapterHeader
                     eyebrow='How it works'
-                    title='From PDF to interview,'
-                    accent='on autopilot.'>
+                    number='Three steps'
+                    title='From application to'
+                    accent='answer.'>
                     Skillora replaces keyword filtering with verified evidence
-                    and guarantees a deterministic dual outcome:{' '}
-                    <span className='text-white'>
-                        an interview invitation or an actionable gap roadmap.
-                    </span>
+                    and guarantees a dual outcome: an interview invitation or
+                    an actionable gap roadmap.
                 </ChapterHeader>
 
-                <section className='mx-auto w-full max-w-7xl px-6 pt-20'>
-                    <span className='eyebrow'>Three steps</span>
-                    <h2 className='display mt-2 text-5xl text-(--text-main) md:text-7xl'>
-                        One application.{' '}
-                        <span className='text-accent'>One clear outcome.</span>
-                    </h2>
-
-                    <div className='mt-10 grid grid-cols-1 gap-5 md:grid-cols-3'>
+                <section className='mx-auto w-full max-w-6xl px-6'>
+                    <ol>
                         {STEPS.map((step, index) => (
-                            <div
+                            <li
                                 key={step.title}
-                                className={`card-hover p-8 ${index === 0 ? 'card-dark' : 'card'}`}>
-                                <span
-                                    className={`icon-tile ${step.amber ? 'icon-tile-amber' : ''}`}>
-                                    <step.icon size={20} />
-                                </span>
-                                <div
-                                    className={`eyebrow mt-6 ${step.amber ? 'eyebrow-amber' : ''}`}>
-                                    {step.tag}
+                                className='group grid grid-cols-1 gap-6 border-b border-(--border-line) py-14 md:grid-cols-12'>
+                                <div className='md:col-span-3'>
+                                    <span className='display text-8xl text-(--text-main) transition-all duration-500 group-hover:italic'>
+                                        0{index + 1}
+                                    </span>
                                 </div>
-                                <h3 className='display mt-2 text-4xl text-(--text-main)'>
-                                    {step.title}
-                                </h3>
-                                <p className='mt-3 text-sm leading-relaxed text-(--text-sub)'>
-                                    {step.text}
-                                </p>
-                            </div>
+                                <div className='md:col-span-8 md:col-start-5'>
+                                    <span className='kicker'>{step.tag}</span>
+                                    <h3 className='display mt-3 text-4xl text-(--text-main) md:text-5xl'>
+                                        {step.title}
+                                    </h3>
+                                    <p className='mt-4 max-w-xl font-light leading-relaxed text-(--text-sub)'>
+                                        {step.text}
+                                    </p>
+                                </div>
+                            </li>
                         ))}
+                    </ol>
+
+                    <div className='flex justify-center py-24'>
+                        <Link
+                            to='/auth?mode=register'
+                            className='btn-primary'>
+                            Build your resume
+                            <ArrowRight
+                                size={14}
+                                strokeWidth={1.5}
+                            />
+                        </Link>
                     </div>
                 </section>
-
-                <section className='mx-auto w-full max-w-7xl px-4 pt-20 sm:px-6'>
-                    <div className='panel-dark rounded-3xl px-7 py-14 sm:px-12'>
-                        <span className='eyebrow'>Under the hood</span>
-                        <h2 className='display mb-12 mt-2 text-5xl text-white'>
-                            The multi-agent pipeline
-                        </h2>
-                        <PipelineFlow />
-                    </div>
-                </section>
-
-                <div className='flex justify-center py-20'>
-                    <Link
-                        to='/auth?mode=register'
-                        className='btn-primary px-6! py-3.5! text-base!'>
-                        Build Your Resume <ArrowRight size={18} />
-                    </Link>
-                </div>
             </main>
 
-            <SiteFooter tagline='Deterministic talent evaluation' />
+            <SiteFooter />
         </div>
     );
 }

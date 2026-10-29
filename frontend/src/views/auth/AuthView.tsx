@@ -96,25 +96,15 @@ export default function AuthView() {
 
     return (
         <div className='flex flex-1 flex-col md:flex-row'>
-            <div className='panel-dark w-full p-8 md:w-[42%] md:p-14 flex flex-col justify-between'>
-                <div
-                    aria-hidden='true'
-                    className='orbit -right-24 -top-24 h-80 w-80'
-                />
-                <div
-                    aria-hidden='true'
-                    className='orbit -right-6 -top-6 h-44 w-44'
-                />
-                <div className='relative my-auto max-w-md'>
-                    <span className='eyebrow-pill mb-7'>
-                        Skillora promise
-                    </span>
-                    <h2 className='display mb-10 text-5xl text-white sm:text-6xl'>
+            <div className='flex w-full flex-col justify-between border-(--border-line) bg-(--bg-panel)/60 p-8 md:w-[42%] md:border-r md:p-16'>
+                <div className='my-auto max-w-md'>
+                    <span className='kicker'>The Skillora promise</span>
+                    <div className='hairline-ink mt-3' />
+                    <h2 className='display mb-12 mt-10 text-5xl text-(--text-main) sm:text-6xl'>
                         Every applicant gets either an interview or a path to
-                        grow.{' '}
-                        <span className='text-emerald-brand'>Guaranteed.</span>
+                        grow. <em className='italic'>Guaranteed.</em>
                     </h2>
-                    <ul className='space-y-4 text-sm text-sage-300'>
+                    <ul className='space-y-4 text-sm text-(--text-sub)'>
                         {[
                             'Zero unread PDF black holes across all 58 wilayas.',
                             'Verified state degrees (ESI, USTHB, CAPA) and real artifacts.',
@@ -123,7 +113,7 @@ export default function AuthView() {
                             <li
                                 key={item}
                                 className='flex items-start gap-3'>
-                                <span className='mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-brand text-ink'>
+                                <span className='mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center'>
                                     <Check
                                         size={12}
                                         strokeWidth={3}
@@ -134,46 +124,43 @@ export default function AuthView() {
                         ))}
                     </ul>
                 </div>
-                <div className='eyebrow relative mt-10'>
-                    Algeria Talent Infrastructure · 58 wilayas
-                </div>
             </div>
 
             <div className='w-full md:w-[58%] p-6 py-12 md:p-14 flex flex-col justify-center items-center'>
-                <div className='card w-full max-w-lg p-7 shadow-lg sm:p-9'>
+                <div className='w-full max-w-lg'>
                     {!isLogin && (
-                        <div className='mb-7 flex rounded-full border border-(--border-line) bg-(--bg-panel) p-1'>
+                        <div className='mb-10 flex border-b border-(--border-line)'>
                             <button
                                 type='button'
                                 onClick={() => setRole('APPLICANT')}
-                                className={`flex flex-1 items-center justify-center gap-1.5 rounded-full py-2.5 text-xs font-semibold transition-all ${
+                                className={`-mb-px flex flex-1 items-center justify-center gap-2 border-b py-3 text-[0.7rem] uppercase tracking-[0.18em] transition-colors ${
                                     role === 'APPLICANT' ?
-                                        'bg-(--bg-elevated) text-(--text-main) shadow-sm ring-1 ring-(--border-line)'
-                                    :   'text-(--text-sub) hover:text-(--text-main)'
+                                        'border-(--text-main) text-(--text-main)'
+                                    :   'border-transparent text-(--text-sub) hover:text-(--text-main)'
                                 }`}>
                                 <UserRound size={14} /> Seeking Roles
                             </button>
                             <button
                                 type='button'
                                 onClick={() => setRole('RECRUITER')}
-                                className={`flex flex-1 items-center justify-center gap-1.5 rounded-full py-2.5 text-xs font-semibold transition-all ${
+                                className={`-mb-px flex flex-1 items-center justify-center gap-2 border-b py-3 text-[0.7rem] uppercase tracking-[0.18em] transition-colors ${
                                     role === 'RECRUITER' ?
-                                        'bg-(--bg-elevated) text-(--text-main) shadow-sm ring-1 ring-(--border-line)'
-                                    :   'text-(--text-sub) hover:text-(--text-main)'
+                                        'border-(--text-main) text-(--text-main)'
+                                    :   'border-transparent text-(--text-sub) hover:text-(--text-main)'
                                 }`}>
                                 <Building2 size={14} /> Hiring Talent
                             </button>
                         </div>
                     )}
 
-                    <h3 className='display mb-2 text-5xl text-(--text-main)'>
+                    <h3 className='display mb-3 text-5xl text-(--text-main) sm:text-6xl'>
                         {isLogin ?
                             'Enter the Workspace'
                         : role === 'RECRUITER' ?
                             'Create Recruiter Profile'
                         :   'Create Candidate Profile'}
                     </h3>
-                    <p className='mb-7 text-sm text-(--text-sub)'>
+                    <p className='mb-10 text-sm font-light text-(--text-sub)'>
                         {isLogin ?
                             'Access your applications, resume, or company cohorts.'
                         :   'Fill in your civil and contact information to create your verified talent account.'
@@ -236,7 +223,7 @@ export default function AuthView() {
                                 </div>
 
                                 <div>
-                                    <label className='mb-1.5 block text-xs font-medium text-(--text-sub)'>
+                                    <label className='kicker mb-1 block'>
                                         Wilaya de Résidence (District)
                                     </label>
                                     <select
@@ -298,7 +285,7 @@ export default function AuthView() {
                         <button
                             type='submit'
                             disabled={isLoading}
-                            className='btn-primary mt-2 w-full py-3.5!'>
+                            className='btn-primary mt-6 w-full'>
                             {isLoading ?
                                 'Processing...'
                             : isLogin ?
@@ -313,7 +300,7 @@ export default function AuthView() {
                                 Don’t have an account?{' '}
                                 <button
                                     onClick={() => setIsLogin(false)}
-                                    className='text-accent font-semibold underline-offset-4 hover:underline'>
+                                    className='font-medium text-(--text-main) underline underline-offset-4'>
                                     Register here
                                 </button>
                             </>
@@ -321,7 +308,7 @@ export default function AuthView() {
                                 Already registered?{' '}
                                 <button
                                     onClick={() => setIsLogin(true)}
-                                    className='text-accent font-semibold underline-offset-4 hover:underline'>
+                                    className='font-medium text-(--text-main) underline underline-offset-4'>
                                     Log in here
                                 </button>
                             </>
