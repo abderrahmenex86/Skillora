@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import {
     ArrowRight,
     ArrowUpRight,
-    BadgeCheck,
     BarChart3,
     Building2,
     CalendarCheck2,
@@ -19,13 +18,15 @@ import {
     Search,
     Send,
     ShieldCheck,
-    Sparkles,
     Target,
     Users,
     X,
     type LucideIcon,
 } from 'lucide-react';
-import { ALGERIAN_COMPANIES } from '../../data/algerianCompanies';
+import {
+    ALGERIAN_COMPANIES,
+    type AlgerianCompany,
+} from '../../data/algerianCompanies';
 import Typewriter from '../../components/Typewriter';
 import { useAuthStore } from '../../store/useAuthStore';
 
@@ -169,6 +170,34 @@ function normalizeSearch(value: string) {
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '')
         .toLowerCase();
+}
+
+function CompanyMark({ company }: { company: AlgerianCompany }) {
+    const [failed, setFailed] = useState(false);
+
+    if (!company.logo || failed) {
+        return (
+            <span
+                className={`flex h-12 w-20 shrink-0 items-center justify-center rounded-md font-grotesque text-lg font-bold ring-1 ${monogramTone(company.name)}`}
+                aria-hidden='true'>
+                {company.monogram}
+            </span>
+        );
+    }
+
+    return (
+        <span className='flex h-12 w-20 shrink-0 items-center justify-center rounded-md border border-neutral-200 bg-white p-1.5'>
+            <img
+                src={company.logo}
+                alt=''
+                aria-hidden='true'
+                className='max-h-full max-w-full object-contain'
+                loading='lazy'
+                decoding='async'
+                onError={() => setFailed(true)}
+            />
+        </span>
+    );
 }
 
 function SectionHeading({
@@ -325,150 +354,45 @@ export default function LandingView() {
                 <section
                     id='home'
                     className='flex min-h-[calc(100dvh-8rem)] flex-col justify-center py-14 md:py-20'>
-                    <div className='grid grid-cols-1 items-center gap-10 lg:grid-cols-12 lg:gap-12'>
-                        <div className='lg:col-span-7'>
-                            <div className='flex flex-wrap items-center gap-3'>
-                                <span className='inline-flex h-6 items-center gap-1.5 rounded-full border border-forest/25 bg-forest/8 px-2.5 font-mono text-[10px] uppercase tracking-[0.18em] text-forest dark:border-forest-dark/30 dark:bg-forest-dark/10 dark:text-forest-dark'>
-                                    <span className='h-1.5 w-1.5 rounded-full bg-forest motion-safe:animate-pulse dark:bg-forest-dark' />
-                                    Live in 58 wilayas
+                    <div className='max-w-4xl'>
+                        <h1 className='grid font-grotesque text-5xl font-extrabold leading-[0.95] tracking-tight text-(--text-main) sm:text-6xl md:text-7xl'>
+                            {HERO_PERSPECTIVES.map((perspective) => (
+                                <span
+                                    key={perspective}
+                                    aria-hidden='true'
+                                    className='invisible col-start-1 row-start-1'>
+                                    {`${HERO_PREFIX} ${perspective}\u00A0`}
                                 </span>
-                                <span className='font-mono text-[10px] uppercase tracking-[0.2em] text-(--text-sub)'>
-                                    Evidence-based hiring
-                                </span>
-                            </div>
+                            ))}
+                            <span className='col-start-1 row-start-1'>
+                                {HERO_PREFIX}{' '}
+                                <Typewriter
+                                    texts={HERO_PERSPECTIVES}
+                                    cursorClassName='text-forest dark:text-forest-dark'
+                                />
+                            </span>
+                        </h1>
+                        <p className='mt-6 max-w-2xl text-lg leading-relaxed text-(--text-sub) md:text-xl'>
+                            Skillora automates screening and scheduling for
+                            employers while guaranteeing actionable learning
+                            roadmaps to every applicant.
+                        </p>
 
-                            <h1 className='mt-6 grid font-grotesque text-5xl font-extrabold leading-[0.95] tracking-tight text-(--text-main) sm:text-6xl md:text-7xl'>
-                                {HERO_PERSPECTIVES.map((perspective) => (
-                                    <span
-                                        key={perspective}
-                                        aria-hidden='true'
-                                        className='invisible col-start-1 row-start-1'>
-                                        {`${HERO_PREFIX} ${perspective}\u00A0`}
-                                    </span>
-                                ))}
-                                <span className='col-start-1 row-start-1'>
-                                    {HERO_PREFIX}{' '}
-                                    <Typewriter
-                                        texts={HERO_PERSPECTIVES}
-                                        cursorClassName='text-forest dark:text-forest-dark'
-                                    />
-                                </span>
-                            </h1>
-                            <p className='mt-6 max-w-2xl text-lg leading-relaxed text-(--text-sub) md:text-xl'>
-                                Skillora automates screening and scheduling
-                                for employers while guaranteeing actionable
-                                learning roadmaps to every applicant.
-                            </p>
-
-                            <div className='mt-8 flex flex-wrap items-center gap-3'>
-                                <Link
-                                    to={heroPrimaryCta}
-                                    className={PRIMARY_BUTTON}>
-                                    {heroPrimaryLabel}
-                                    <ArrowRight
-                                        size={18}
-                                        aria-hidden='true'
-                                    />
-                                </Link>
-                                <Link
-                                    to={heroSecondaryCta}
-                                    className={SECONDARY_BUTTON}>
-                                    {heroSecondaryLabel}
-                                </Link>
-                            </div>
-
-                            <div className='mt-8 flex flex-wrap gap-x-6 gap-y-3 border-t border-(--border-line) pt-5 font-mono text-[10px] uppercase tracking-[0.16em] text-(--text-sub)'>
-                                <span className='inline-flex items-center gap-2'>
-                                    <CheckCircle2
-                                        size={13}
-                                        className='text-forest dark:text-forest-dark'
-                                        aria-hidden='true'
-                                    />
-                                    Every applicant gets a verdict
-                                </span>
-                                <span className='inline-flex items-center gap-2'>
-                                    <BadgeCheck
-                                        size={13}
-                                        className='text-forest dark:text-forest-dark'
-                                        aria-hidden='true'
-                                    />
-                                    Verified evidence
-                                </span>
-                                <span className='inline-flex items-center gap-2'>
-                                    <Sparkles
-                                        size={13}
-                                        className='text-amber-accent'
-                                        aria-hidden='true'
-                                    />
-                                    Built for 58 wilayas
-                                </span>
-                            </div>
-                        </div>
-
-                        <div className='lg:col-span-5'>
-                            <div className='rounded-lg border border-(--border-line) bg-(--bg-panel) p-5 sm:p-6'>
-                                <div className='flex items-center justify-between border-b border-(--border-line) pb-3'>
-                                    <span className='font-mono text-[10px] uppercase tracking-[0.18em] text-(--text-sub)'>
-                                        Evidence Routing
-                                    </span>
-                                    <span className='font-mono text-[10px] text-(--text-sub)'>
-                                        01 / 03
-                                    </span>
-                                </div>
-
-                                <ol className='mt-4 space-y-2.5'>
-                                    {[
-                                        {
-                                            icon: FileText,
-                                            title: 'Application received',
-                                            detail: 'Parsed across FR / EN / AR',
-                                        },
-                                        {
-                                            icon: BadgeCheck,
-                                            title: 'Rubric audit',
-                                            detail: '3 verified repos • 94% evidence match',
-                                        },
-                                        {
-                                            icon: Route,
-                                            title: 'Outcome routed',
-                                            detail: 'Interview slot or concrete growth path',
-                                        },
-                                    ].map((step, index) => {
-                                        const Icon = step.icon;
-
-                                        return (
-                                            <li
-                                                key={step.title}
-                                                className='flex items-start gap-3 rounded-md border border-(--border-line) bg-(--bg-canvas) p-3.5'>
-                                                <span className='mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-(--border-line) bg-(--bg-panel) text-(--text-main)'>
-                                                    <Icon
-                                                        size={15}
-                                                        aria-hidden='true'
-                                                    />
-                                                </span>
-                                                <div className='min-w-0 flex-1'>
-                                                    <div className='flex items-center justify-between gap-3'>
-                                                        <p className='text-sm font-semibold text-(--text-main)'>
-                                                            {step.title}
-                                                        </p>
-                                                        <span className='font-mono text-[9px] text-(--text-sub)'>
-                                                            0{index + 1}
-                                                        </span>
-                                                    </div>
-                                                    <p className='mt-0.5 text-[11px] leading-relaxed text-(--text-sub)'>
-                                                        {step.detail}
-                                                    </p>
-                                                </div>
-                                            </li>
-                                        );
-                                    })}
-                                </ol>
-
-                                <p className='mt-4 border-t border-(--border-line) pt-3 font-mono text-[10px] leading-relaxed text-(--text-sub)'>
-                                    Verified evidence sends every application
-                                    to an interview or a concrete growth path.
-                                </p>
-                            </div>
+                        <div className='mt-8 flex flex-wrap items-center gap-3'>
+                            <Link
+                                to={heroPrimaryCta}
+                                className={PRIMARY_BUTTON}>
+                                {heroPrimaryLabel}
+                                <ArrowRight
+                                    size={18}
+                                    aria-hidden='true'
+                                />
+                            </Link>
+                            <Link
+                                to={heroSecondaryCta}
+                                className={SECONDARY_BUTTON}>
+                                {heroSecondaryLabel}
+                            </Link>
                         </div>
                     </div>
                 </section>
@@ -484,7 +408,7 @@ export default function LandingView() {
                         description='No more applications disappearing into a PDF black hole. Skillora turns every submission into a decision — and every decision into a next step.'
                     />
 
-                    <div className='mt-10 grid gap-6 lg:grid-cols-12 lg:items-start'>
+                    <div className='mt-10 grid gap-6 lg:grid-cols-12 lg:items-stretch'>
                         <div className='grid gap-4 sm:grid-cols-2 lg:col-span-7'>
                             {APPLICANT_FEATURES.map((feature) => (
                                 <FeatureCard
@@ -494,7 +418,7 @@ export default function LandingView() {
                             ))}
                         </div>
 
-                        <div className='lg:col-span-5'>
+                        <div className='flex flex-col justify-between lg:col-span-5'>
                             <div className='overflow-hidden rounded-xl border border-(--border-line) bg-(--bg-panel)'>
                                 <div className='flex items-start justify-between gap-3 border-b border-(--border-line) px-5 py-4'>
                                     <div>
@@ -553,29 +477,29 @@ export default function LandingView() {
                                     </div>
                                 </div>
                             </div>
+                            <div className='mt-6 flex flex-wrap items-center gap-x-6 gap-y-3'>
+                                <Link
+                                    to={applicantPrimary}
+                                    className={PRIMARY_BUTTON}>
+                                    {applicantPrimaryLabel}
+                                    <ArrowRight
+                                        size={16}
+                                        aria-hidden='true'
+                                    />
+                                </Link>
+                                <Link
+                                    to={applicantSecondary}
+                                    className={TEXT_LINK}>
+                                    {applicantSecondaryLabel}
+                                    <ArrowUpRight
+                                        size={13}
+                                        aria-hidden='true'
+                                    />
+                                </Link>
+                            </div>
                         </div>
                     </div>
 
-                    <div className='mt-8 flex flex-wrap items-center gap-x-6 gap-y-3'>
-                        <Link
-                            to={applicantPrimary}
-                            className={PRIMARY_BUTTON}>
-                            {applicantPrimaryLabel}
-                            <ArrowRight
-                                size={16}
-                                aria-hidden='true'
-                            />
-                        </Link>
-                        <Link
-                            to={applicantSecondary}
-                            className={TEXT_LINK}>
-                            {applicantSecondaryLabel}
-                            <ArrowUpRight
-                                size={13}
-                                aria-hidden='true'
-                            />
-                        </Link>
-                    </div>
                 </section>
 
                 {/* 3. Recruiters */}
@@ -589,9 +513,9 @@ export default function LandingView() {
                         description='Stop screening on adjectives. Skillora routes candidates by verified evidence, keeps every role in one structured pipeline, and removes the scheduling drag.'
                     />
 
-                    <div className='mt-10 grid gap-6 lg:grid-cols-12 lg:items-start'>
+                    <div className='mt-10 grid gap-6 lg:grid-cols-12 lg:items-stretch'>
                         <div className='lg:col-span-5'>
-                            <div className='rounded-xl border border-(--border-line) bg-(--bg-panel) p-5'>
+                            <div className='h-full rounded-xl border border-(--border-line) bg-(--bg-panel) p-5'>
                                 <div className='flex items-start justify-between gap-3 border-b border-(--border-line) pb-4'>
                                     <div>
                                         <p className='font-mono text-[10px] uppercase tracking-[0.18em] text-(--text-sub)'>
@@ -642,36 +566,38 @@ export default function LandingView() {
                             </div>
                         </div>
 
-                        <div className='grid gap-4 sm:grid-cols-2 lg:col-span-7'>
-                            {RECRUITER_FEATURES.map((feature) => (
-                                <FeatureCard
-                                    key={feature.title}
-                                    feature={feature}
-                                />
-                            ))}
+                        <div className='flex flex-col lg:col-span-7'>
+                            <div className='grid gap-4 sm:grid-cols-2'>
+                                {RECRUITER_FEATURES.map((feature) => (
+                                    <FeatureCard
+                                        key={feature.title}
+                                        feature={feature}
+                                    />
+                                ))}
+                            </div>
+                            <div className='mt-auto flex flex-wrap items-center gap-x-6 gap-y-3 pt-6'>
+                                <Link
+                                    to={recruiterPrimary}
+                                    className={PRIMARY_BUTTON}>
+                                    {recruiterPrimaryLabel}
+                                    <ArrowRight
+                                        size={16}
+                                        aria-hidden='true'
+                                    />
+                                </Link>
+                                <Link
+                                    to='/pricing'
+                                    className={TEXT_LINK}>
+                                    See hiring plans
+                                    <ArrowUpRight
+                                        size={13}
+                                        aria-hidden='true'
+                                    />
+                                </Link>
+                            </div>
                         </div>
                     </div>
 
-                    <div className='mt-8 flex flex-wrap items-center gap-x-6 gap-y-3'>
-                        <Link
-                            to={recruiterPrimary}
-                            className={PRIMARY_BUTTON}>
-                            {recruiterPrimaryLabel}
-                            <ArrowRight
-                                size={16}
-                                aria-hidden='true'
-                            />
-                        </Link>
-                        <Link
-                            to='/pricing'
-                            className={TEXT_LINK}>
-                            See hiring plans
-                            <ArrowUpRight
-                                size={13}
-                                aria-hidden='true'
-                            />
-                        </Link>
-                    </div>
                 </section>
 
                 {/* 4. Clients */}
@@ -743,14 +669,10 @@ export default function LandingView() {
                                     <article
                                         key={company.name}
                                         className='group flex items-center gap-3 rounded-lg border border-(--border-line) bg-(--bg-canvas) p-3.5 transition-colors hover:border-(--text-sub)/40 hover:bg-(--bg-panel)'>
-                                        <span
-                                            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md font-grotesque text-lg font-bold ring-1 ${monogramTone(company.name)}`}
-                                            aria-hidden='true'>
-                                            {company.monogram}
-                                        </span>
+                                        <CompanyMark company={company} />
                                         <div className='min-w-0'>
                                             <h3
-                                                className='truncate text-sm font-semibold text-(--text-main)'
+                                                className='line-clamp-2 text-sm font-semibold leading-snug text-(--text-main)'
                                                 title={company.name}>
                                                 {company.name}
                                             </h3>
@@ -839,7 +761,7 @@ export default function LandingView() {
                 <section
                     id='contact'
                     className='scroll-mt-8 border-t border-(--border-line) py-16 md:py-24'>
-                    <div className='grid gap-10 lg:grid-cols-12 lg:items-start'>
+                    <div className='grid gap-10 lg:grid-cols-12 lg:items-stretch'>
                         <div className='lg:col-span-5'>
                             <SectionHeading
                                 index='04'
@@ -867,11 +789,37 @@ export default function LandingView() {
                                                     {item.label}
                                                 </p>
                                                 {item.label === 'Email' ?
-                                                    <a
-                                                        href='mailto:contact@skillora.dz'
-                                                        className='mt-1 block text-sm text-(--text-main) transition-colors hover:text-forest dark:hover:text-forest-dark'>
-                                                        {item.value}
-                                                    </a>
+                                                    <div className='mt-1 flex items-center gap-1.5'>
+                                                        <a
+                                                            href='mailto:contact@skillora.dz'
+                                                            className='text-sm text-(--text-main) transition-colors hover:text-forest dark:hover:text-forest-dark'>
+                                                            {item.value}
+                                                        </a>
+                                                        <button
+                                                            type='button'
+                                                            onClick={handleCopyEmail}
+                                                            aria-label={copied ? 'Email copied' : 'Copy email address'}
+                                                            title={copied ? 'Copied' : 'Copy email address'}
+                                                            className='inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-(--text-sub) transition-colors hover:bg-(--bg-panel) hover:text-(--text-main)'>
+                                                            {copied ?
+                                                                <Check
+                                                                    size={14}
+                                                                    aria-hidden='true'
+                                                                />
+                                                            :   <Copy
+                                                                    size={14}
+                                                                    aria-hidden='true'
+                                                                />
+                                                            }
+                                                        </button>
+                                                        {copied && (
+                                                            <span
+                                                                role='status'
+                                                                className='font-mono text-[9px] uppercase tracking-[0.14em] text-forest dark:text-forest-dark'>
+                                                                Copied
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 :   <p className='mt-1 text-sm text-(--text-main)'>
                                                         {item.value}
                                                     </p>
@@ -881,29 +829,12 @@ export default function LandingView() {
                                     );
                                 })}
                             </div>
-
-                            <button
-                                type='button'
-                                onClick={handleCopyEmail}
-                                className='mt-4 inline-flex items-center gap-2 rounded-md border border-(--border-line) px-4 py-2.5 text-xs font-semibold text-(--text-main) transition-colors hover:bg-(--bg-panel)'>
-                                {copied ?
-                                    <Check
-                                        size={14}
-                                        aria-hidden='true'
-                                    />
-                                :   <Copy
-                                        size={14}
-                                        aria-hidden='true'
-                                    />
-                                }
-                                {copied ? 'Email copied' : 'Copy email address'}
-                            </button>
                         </div>
 
-                        <div className='lg:col-span-7'>
+                        <div className='h-full lg:col-span-7'>
                             <form
                                 onSubmit={handleContactSubmit}
-                                className='rounded-xl border border-(--border-line) bg-(--bg-panel) p-5 sm:p-6'>
+                                className='flex h-full flex-col rounded-xl border border-(--border-line) bg-(--bg-panel) p-5 sm:p-6'>
                                 <div className='grid gap-4 sm:grid-cols-2'>
                                     <label className='block'>
                                         <span className='mb-1.5 block font-mono text-[10px] uppercase tracking-[0.16em] text-(--text-sub)'>
@@ -984,7 +915,7 @@ export default function LandingView() {
                                     />
                                 </label>
 
-                                <div className='mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+                                <div className='mt-auto flex flex-col gap-3 pt-5 sm:flex-row sm:items-center sm:justify-between'>
                                     <button
                                         type='submit'
                                         className={PRIMARY_BUTTON}>
