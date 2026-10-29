@@ -29,9 +29,10 @@ import { ALGERIAN_COMPANIES } from '../../data/algerianCompanies';
 import Typewriter from '../../components/Typewriter';
 import { useAuthStore } from '../../store/useAuthStore';
 
+const HERO_PREFIX = 'Hiring shouldn’t mean';
 const HERO_PERSPECTIVES = [
-    'Hiring shouldn’t mean waiting in silence with zero feedback.',
-    'Hiring shouldn’t mean drowning in 500 CVs with zero real proof.',
+    'waiting in silence with zero feedback.',
+    'drowning in 500 CVs with zero real proof.',
 ];
 
 type Feature = {
@@ -342,11 +343,11 @@ export default function LandingView() {
                                         key={perspective}
                                         aria-hidden='true'
                                         className='invisible col-start-1 row-start-1'>
-                                        {perspective}
-                                        {'\u00A0'}
+                                        {`${HERO_PREFIX} ${perspective}\u00A0`}
                                     </span>
                                 ))}
                                 <span className='col-start-1 row-start-1'>
+                                    {HERO_PREFIX}{' '}
                                     <Typewriter
                                         texts={HERO_PERSPECTIVES}
                                         cursorClassName='text-forest dark:text-forest-dark'
