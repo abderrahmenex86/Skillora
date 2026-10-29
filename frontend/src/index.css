@@ -28,15 +28,6 @@
     --text-sub: #555555;
     --btn-main-bg: #111111;
     --btn-main-text: #ffffff;
-
-    /* Navigation: solid black on light pages. */
-    --nav-bg: #000000;
-    --nav-fg: #ffffff;
-    --nav-muted: rgba(255, 255, 255, 0.68);
-    --nav-line: rgba(255, 255, 255, 0.18);
-    --nav-hover: rgba(255, 255, 255, 0.1);
-    --nav-logo-bg: #ffffff;
-    --nav-logo-fg: #000000;
 }
 
 html.dark {
@@ -51,15 +42,6 @@ html.dark {
     /* Keep the green accent readable on the dark canvas. */
     --color-forest: #258c5a;
     --color-amber-accent: #a3a3a3;
-
-    /* Navigation: solid white on dark pages. */
-    --nav-bg: #ffffff;
-    --nav-fg: #000000;
-    --nav-muted: rgba(0, 0, 0, 0.62);
-    --nav-line: rgba(0, 0, 0, 0.14);
-    --nav-hover: rgba(0, 0, 0, 0.06);
-    --nav-logo-bg: #000000;
-    --nav-logo-fg: #ffffff;
 }
 
 ::view-transition-old(root) {
