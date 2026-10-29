@@ -499,6 +499,56 @@ export class ApplicantController {
         }
     }
 
+    async getMessages(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            if (!req.user) throw new AppError(401, 'Unauthorized');
+            const messages = await applicantServiceExtensions.getMessages(
+                req.user.sub
+            );
+            res.json(messages);
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async markMessageRead(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            if (!req.user) throw new AppError(401, 'Unauthorized');
+            const result = await applicantServiceExtensions.markMessageRead(
+                req.user.sub,
+                String(req.params.id)
+            );
+            res.json(result);
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async markAllMessagesRead(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            if (!req.user) throw new AppError(401, 'Unauthorized');
+            const result =
+                await applicantServiceExtensions.markAllMessagesRead(
+                    req.user.sub
+                );
+            res.json(result);
+        } catch (err) {
+            next(err);
+        }
+    }
+
     async getInsights(
         req: Request,
         res: Response,

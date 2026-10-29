@@ -8,6 +8,7 @@ import {
 } from './recruiter.schema.js';
 import { coordinatorAgent } from '../../agents/coordinator.agent.js';
 import { ApplicationStatus } from '@prisma/client';
+import { notifyApplicationStatus } from '../../services/messages.js';
 
 function extractLegacyProjectIds(value: unknown): string[] {
     if (!Array.isArray(value)) return [];
@@ -36,9 +37,25 @@ function orderById<T extends { id: string }>(items: T[], ids: string[]): T[] {
 export class RecruiterService {
     async createPosition(recruiterId: string, input: CreatePositionInput) {
         const deadlineDate = new Date(input.deadline);
+        const interviewRangeStart = new Date(input.interviewRangeStart);
+        const interviewRangeEnd = new Date(input.interviewRangeEnd);
 
         if (deadlineDate <= new Date()) {
             throw new AppError(400, 'Position deadline must be a future date');
+        }
+
+        if (interviewRangeStart < deadlineDate) {
+            throw new AppError(
+                400,
+                'Interview range must start on or after the application deadline'
+            );
+        }
+
+        if (interviewRangeEnd <= interviewRangeStart) {
+            throw new AppError(
+                400,
+                'Interview range must end after it starts'
+            );
         }
 
         return prisma.position.create({
@@ -49,6 +66,9 @@ export class RecruiterService {
                 department: input.department,
                 location: input.location,
                 deadline: deadlineDate,
+                interviewCapacity: input.interviewCapacity,
+                interviewRangeStart,
+                interviewRangeEnd,
                 status: 'OPEN',
                 rubric: input.rubric,
             },
@@ -273,12 +293,44 @@ export class RecruiterService {
         let targetStatus: ApplicationStatus = input.newStatus;
 
         if (input.newStatus === ApplicationStatus.ELIGIBLE) {
+            const capacity = application.position.interviewCapacity;
+
+            if (capacity !== null) {
+                const [existingInterview, usedInterviews] = await Promise.all([
+                    prisma.interviewEvent.findUnique({
+                        where: { applicationId },
+                        select: { id: true },
+                    }),
+                    prisma.interviewEvent.count({
+                        where: {
+                            application: {
+                                positionId: application.position.id,
+                            },
+                        },
+                    }),
+                ]);
+
+                if (!existingInterview && usedInterviews >= capacity) {
+                    throw new AppError(
+                        400,
+                        `Interview capacity reached (${capacity}). Increase the capacity or redirect this candidate.`
+                    );
+                }
+            }
+
             const coordination =
                 await coordinatorAgent.proposeSlotsForCandidate(
                     application.id,
                     application.position.recruiterId,
                     application.position.id
                 );
+
+            if (coordination.proposedSlots.length === 0) {
+                throw new AppError(
+                    400,
+                    'No interview availability inside the configured range. Add recruiter slots or widen the interview range.'
+                );
+            }
 
             await prisma.interviewEvent.upsert({
                 where: { applicationId: application.id },
@@ -298,7 +350,7 @@ export class RecruiterService {
             targetStatus = ApplicationStatus.INTERVIEW_PENDING;
         }
 
-        return prisma.application.update({
+        const updated = await prisma.application.update({
             where: { id: applicationId },
             data: {
                 status: targetStatus,
@@ -306,6 +358,10 @@ export class RecruiterService {
                 overrideNotes: input.notes,
             },
         });
+
+        await notifyApplicationStatus(applicationId, updated.status);
+
+        return updated;
     }
 
     async closePosition(recruiterId: string, positionId: string) {

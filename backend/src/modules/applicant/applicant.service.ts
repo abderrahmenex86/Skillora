@@ -18,6 +18,10 @@ import {
 import { enqueueEvaluation } from '../../queues/queue.config.js';
 import { coordinatorAgent } from '../../agents/coordinator.agent.js';
 import { agentOrchestrator } from '../../agents/orchestrator.js';
+import {
+    createApplicantMessage,
+    notifyApplicationStatus,
+} from '../../services/messages.js';
 
 function extractLegacyProjectIds(value: unknown): string[] {
     if (!Array.isArray(value)) return [];
@@ -287,6 +291,8 @@ export class ApplicantService {
                 },
             },
         });
+        await notifyApplicationStatus(application.id, 'SUBMITTED');
+
         const queued = await enqueueEvaluation(application.id);
 
         if (!queued) {
@@ -641,7 +647,61 @@ export class ApplicantServiceExtensions {
             data: { status: 'INTERVIEW_SCHEDULED' },
         });
 
+        await createApplicantMessage({
+            userId,
+            applicationId: event.applicationId,
+            kind: 'INTERVIEW_SCHEDULED',
+            title: 'Interview confirmed',
+            body: `Your interview is confirmed for ${new Date(selectedStart).toLocaleString()}. Meeting details are available in your dashboard.`,
+        });
+
         return updated;
+    }
+
+    async getMessages(userId: string) {
+        const [messages, unreadCount] = await Promise.all([
+            prisma.message.findMany({
+                where: { userId },
+                orderBy: { createdAt: 'desc' },
+                take: 100,
+                select: {
+                    id: true,
+                    applicationId: true,
+                    kind: true,
+                    title: true,
+                    body: true,
+                    readAt: true,
+                    createdAt: true,
+                },
+            }),
+            prisma.message.count({
+                where: { userId, readAt: null },
+            }),
+        ]);
+
+        return { messages, unreadCount };
+    }
+
+    async markMessageRead(userId: string, messageId: string) {
+        const result = await prisma.message.updateMany({
+            where: { id: messageId, userId },
+            data: { readAt: new Date() },
+        });
+
+        if (result.count === 0) {
+            throw new AppError(404, 'Message not found');
+        }
+
+        return { message: 'Message marked as read' };
+    }
+
+    async markAllMessagesRead(userId: string) {
+        const result = await prisma.message.updateMany({
+            where: { userId, readAt: null },
+            data: { readAt: new Date() },
+        });
+
+        return { updated: result.count };
     }
 
     async getProInsights(userId: string) {

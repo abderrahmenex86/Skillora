@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { roleHome } from '../data/routes';
 import { useThemeStore } from '../store/useThemeStore';
+import MessagesMenu from './MessagesMenu';
 import { useAuthStore } from '../store/useAuthStore';
 
 function navLinkClass({ isActive }: { isActive: boolean }) {
@@ -222,6 +223,8 @@ export default function Navbar() {
                 </nav>
 
                 <div className='flex items-center space-x-3'>
+                    {user?.role === 'APPLICANT' && <MessagesMenu />}
+
                     {showUpgradeButton && (
                         <Link
                             to='/pricing'

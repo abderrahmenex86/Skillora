@@ -14,7 +14,9 @@
         "e2e:test": "tsx scripts/e2e-test-data.ts --verify",
         "db:clean": "tsx scripts/clean-database.ts",
         "db:clean:yes": "tsx scripts/clean-database.ts --yes",
-        "db:clean:dry": "tsx scripts/clean-database.ts --dry-run"
+        "db:clean:dry": "tsx scripts/clean-database.ts --dry-run",
+        "applications:reevaluate": "tsx scripts/reevaluate-pending.ts",
+        "applications:reevaluate:dry": "tsx scripts/reevaluate-pending.ts --dry-run"
     },
     "prisma": {
         "seed": "tsx prisma/seed.ts"

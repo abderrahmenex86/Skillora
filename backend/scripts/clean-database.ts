@@ -27,6 +27,7 @@ async function countRows() {
         applications,
         resumes,
         interviews,
+        messages,
     ] = await Promise.all([
         prisma.user.count(),
         prisma.user.count({ where: { role: 'RECRUITER' } }),
@@ -35,9 +36,19 @@ async function countRows() {
         prisma.application.count(),
         prisma.applicantProfile.count(),
         prisma.interviewEvent.count(),
+        prisma.message.count(),
     ]);
 
-    return { users, recruiters, applicants, positions, applications, resumes, interviews };
+    return {
+        users,
+        recruiters,
+        applicants,
+        positions,
+        applications,
+        resumes,
+        interviews,
+        messages,
+    };
 }
 
 function printCounts(counts: Awaited<ReturnType<typeof countRows>>) {
@@ -48,6 +59,7 @@ function printCounts(counts: Awaited<ReturnType<typeof countRows>>) {
     console.log(`Applications:  ${counts.applications}`);
     console.log(`Resumes:       ${counts.resumes}`);
     console.log(`Interviews:    ${counts.interviews}`);
+    console.log(`Messages:      ${counts.messages}`);
     console.log('------------------------------------------------------------');
 }
 
@@ -96,6 +108,7 @@ async function main(): Promise<void> {
     await prisma.$transaction([
         prisma.interviewEvent.deleteMany(),
         prisma.agentExecutionLog.deleteMany(),
+        prisma.message.deleteMany(),
         prisma.application.deleteMany(),
         prisma.recruiterSlot.deleteMany(),
         prisma.position.deleteMany(),

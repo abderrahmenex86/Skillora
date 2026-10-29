@@ -13,6 +13,7 @@ import {
     Loader2,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { formatApplicationStatus } from '../../lib/applicationStatus';
 
 export default function ApplicantDashboardView() {
     const queryClient = useQueryClient();
@@ -382,7 +383,7 @@ export default function ApplicantDashboardView() {
                                                         'border-forest/30 bg-forest/10 text-forest dark:text-forest-dark'
                                                     :   'border-(--border-line) bg-(--bg-panel)'
                                                 }`}>
-                                                {app.status}
+                                                {formatApplicationStatus(app.status)}
                                             </span>
                                         </div>
 

@@ -21,6 +21,9 @@ router.get('/positions', requireAuth, async (_req, res, next) => {
                 department: true,
                 location: true,
                 deadline: true,
+                interviewCapacity: true,
+                interviewRangeStart: true,
+                interviewRangeEnd: true,
                 rubric: true,
                 createdAt: true,
             },
@@ -35,7 +38,7 @@ router.get('/positions', requireAuth, async (_req, res, next) => {
 router.get('/positions/:id', requireAuth, async (req, res, next) => {
     try {
         const position = await prisma.position.findUnique({
-            where: { id: req.params.id },
+            where: { id: String(req.params.id) },
             select: {
                 id: true,
                 companyName: true,
@@ -44,6 +47,9 @@ router.get('/positions/:id', requireAuth, async (req, res, next) => {
                 location: true,
                 deadline: true,
                 status: true,
+                interviewCapacity: true,
+                interviewRangeStart: true,
+                interviewRangeEnd: true,
                 rubric: true,
                 createdAt: true,
             },

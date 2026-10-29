@@ -31,6 +31,16 @@ router.get('/applications', (req, res, next) =>
 router.get('/calendar', (req, res, next) =>
     applicantController.getCalendarEvents(req, res, next)
 );
+
+router.get('/messages', (req, res, next) =>
+    applicantController.getMessages(req, res, next)
+);
+router.patch('/messages/:id/read', (req, res, next) =>
+    applicantController.markMessageRead(req, res, next)
+);
+router.post('/messages/read-all', (req, res, next) =>
+    applicantController.markAllMessagesRead(req, res, next)
+);
 router.post('/interviews/select-range', (req, res, next) =>
     applicantController.selectInterviewRange(req, res, next)
 );

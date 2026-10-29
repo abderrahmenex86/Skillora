@@ -75,6 +75,7 @@ model User {
    interviewEvents     InterviewEvent[]   @relation("CandidateInterviews")
    recruiterInterviews InterviewEvent[]   @relation("RecruiterInterviews")
    refreshTokens       RefreshToken[]
+   messages            Message[]
 
    @@map("users")
 }
@@ -254,6 +255,9 @@ model Position {
    department  String
    location    String
    deadline    DateTime
+   interviewCapacity    Int?
+   interviewRangeStart  DateTime?
+   interviewRangeEnd    DateTime?
    status      PositionStatus @default(OPEN)
    rubric      Json
    createdAt   DateTime       @default(now())
@@ -300,6 +304,7 @@ model Application {
    profile        ApplicantProfile    @relation(fields: [profileId], references: [id], onDelete: Cascade)
    interviewEvent InterviewEvent?
    agentLogs      AgentExecutionLog[]
+   messages       Message[]
 
    @@unique([positionId, applicantId])
    @@index([positionId, status])
@@ -346,4 +351,23 @@ model AgentExecutionLog {
 
    @@index([applicationId, agentType])
    @@map("agent_execution_logs")
+}
+
+
+model Message {
+   id            String   @id @default(uuid())
+   userId        String
+   applicationId String?
+   kind          String
+   title         String
+   body          String
+   readAt        DateTime?
+   createdAt     DateTime @default(now())
+
+   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+   application Application? @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+   @@index([userId, readAt, createdAt])
+   @@index([applicationId])
+   @@map("messages")
 }

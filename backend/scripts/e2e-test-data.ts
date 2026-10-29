@@ -1,7 +1,9 @@
+import 'dotenv/config';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import dotenv from 'dotenv';
 import bcrypt from 'bcryptjs';
+import { notifyApplicationStatus } from '../src/services/messages.js';
 import {
     ApplicationStatus,
     InterviewStatus,
@@ -250,9 +252,7 @@ function planStatuses(count: number): ApplicationStatus[] {
     const interviews = count >= 15 ? 3 : 2;
     const eligible = Math.ceil(count * 0.2);
     const needsReview = Math.ceil(count * 0.2);
-    const submitted = 1;
-    const redirected =
-        count - interviews - eligible - needsReview - submitted;
+    const redirected = count - interviews - eligible - needsReview;
 
     return [
         ...Array<ApplicationStatus>(interviews).fill(
@@ -261,9 +261,6 @@ function planStatuses(count: number): ApplicationStatus[] {
         ...Array<ApplicationStatus>(eligible).fill(ApplicationStatus.ELIGIBLE),
         ...Array<ApplicationStatus>(needsReview).fill(
             ApplicationStatus.NEEDS_REVIEW
-        ),
-        ...Array<ApplicationStatus>(submitted).fill(
-            ApplicationStatus.SUBMITTED
         ),
         ...Array<ApplicationStatus>(redirected).fill(
             ApplicationStatus.REDIRECTED
@@ -515,6 +512,13 @@ async function seed(): Promise<{
     const expiresAt = new Date(
         now.getTime() + deadlineMinutes * 60 * 1000
     );
+    const interviewRangeStart = new Date(
+        now.getTime() + 24 * 60 * 60 * 1000
+    );
+    const interviewRangeEnd = new Date(
+        now.getTime() + 6 * 24 * 60 * 60 * 1000
+    );
+    const interviewCapacities = [6, 4, 8];
     const positions: CreatedPosition[] = [];
 
     for (let index = 0; index < POSITIONS.length; index += 1) {
@@ -529,6 +533,9 @@ async function seed(): Promise<{
                 location: seedPosition.location,
                 createdAt: now,
                 deadline: expiresAt,
+                interviewCapacity: interviewCapacities[index],
+                interviewRangeStart,
+                interviewRangeEnd,
                 status: PositionStatus.OPEN,
                 rubric: seedPosition.rubric,
             },
@@ -617,6 +624,8 @@ async function seed(): Promise<{
                     },
                 });
             }
+
+            await notifyApplicationStatus(application.id, status);
         }
 
         console.log(

@@ -13,6 +13,10 @@ export default function RecruiterPositionsView() {
     const [department, setDepartment] = useState('');
     const [location, setLocation] = useState('Algiers (Hybrid)');
     const [deadline, setDeadline] = useState('');
+    const [interviewCapacity, setInterviewCapacity] = useState('10');
+    const [interviewRangeStart, setInterviewRangeStart] = useState('');
+    const [interviewRangeEnd, setInterviewRangeEnd] = useState('');
+    const [formError, setFormError] = useState('');
     const [criteriaStr, setCriteriaStr] = useState('');
 
     const { data: positions, isLoading } = useQuery({
@@ -39,23 +43,62 @@ export default function RecruiterPositionsView() {
             setCompanyName('');
             setTitle('');
             setDepartment('');
+            setDeadline('');
+            setInterviewCapacity('10');
+            setInterviewRangeStart('');
+            setInterviewRangeEnd('');
             setCriteriaStr('');
+            setFormError('');
         },
     });
 
     const handleCreate = (e: React.FormEvent) => {
         e.preventDefault();
+        setFormError('');
+
         const mandatoryCriteria = criteriaStr
             .split(',')
             .map((c) => c.trim())
             .filter(Boolean);
+
+        if (!deadline || !interviewRangeStart || !interviewRangeEnd) {
+            setFormError(
+                'Application deadline and interview range are required.'
+            );
+            return;
+        }
+
+        const deadlineDate = new Date(deadline);
+        const rangeStart = new Date(interviewRangeStart);
+        const rangeEnd = new Date(interviewRangeEnd);
+        const capacity = Number(interviewCapacity);
+
+        if (rangeStart < deadlineDate) {
+            setFormError(
+                'Interviews cannot start before applications close.'
+            );
+            return;
+        }
+
+        if (rangeEnd <= rangeStart) {
+            setFormError('The interview range must end after it starts.');
+            return;
+        }
+
+        if (!Number.isInteger(capacity) || capacity < 1) {
+            setFormError('Interview capacity must be at least 1.');
+            return;
+        }
 
         createPositionMutation.mutate({
             companyName,
             title,
             department,
             location,
-            deadline: new Date(deadline).toISOString(),
+            deadline: deadlineDate.toISOString(),
+            interviewCapacity: capacity,
+            interviewRangeStart: rangeStart.toISOString(),
+            interviewRangeEnd: rangeEnd.toISOString(),
             rubric: {
                 mandatoryCriteria,
                 preferredCriteria: [],
@@ -89,7 +132,7 @@ export default function RecruiterPositionsView() {
 
             {showCreateModal && (
                 <div className='modal-backdrop fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4'>
-                    <div className='modal-panel bg-(--bg-canvas) border border-(--border-line) rounded-lg p-6 max-w-lg w-full space-y-4'>
+                    <div className='modal-panel bg-(--bg-canvas) border border-(--border-line) rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto space-y-4'>
                         <h3 className='font-grotesque font-bold text-2xl text-(--text-main)'>
                             Create Verifiable Position
                         </h3>
@@ -128,13 +171,81 @@ export default function RecruiterPositionsView() {
                                 onChange={(e) => setLocation(e.target.value)}
                                 className='w-full px-3 py-2 text-xs rounded border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none'
                             />
-                            <input
-                                type='datetime-local'
-                                required
-                                value={deadline}
-                                onChange={(e) => setDeadline(e.target.value)}
-                                className='w-full px-3 py-2 text-xs rounded border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none'
-                            />
+                            <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
+                                <label className='block'>
+                                    <span className='mb-1 block font-mono text-[9px] uppercase tracking-[0.14em] text-(--text-sub)'>
+                                        Applications close
+                                    </span>
+                                    <input
+                                        type='datetime-local'
+                                        required
+                                        value={deadline}
+                                        onChange={(e) =>
+                                            setDeadline(e.target.value)
+                                        }
+                                        className='w-full px-3 py-2 text-xs rounded border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none'
+                                    />
+                                </label>
+                                <label className='block'>
+                                    <span className='mb-1 block font-mono text-[9px] uppercase tracking-[0.14em] text-(--text-sub)'>
+                                        Interview capacity
+                                    </span>
+                                    <input
+                                        type='number'
+                                        min={1}
+                                        max={500}
+                                        required
+                                        value={interviewCapacity}
+                                        onChange={(e) =>
+                                            setInterviewCapacity(
+                                                e.target.value
+                                            )
+                                        }
+                                        className='w-full px-3 py-2 text-xs rounded border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none'
+                                    />
+                                </label>
+                                <label className='block'>
+                                    <span className='mb-1 block font-mono text-[9px] uppercase tracking-[0.14em] text-(--text-sub)'>
+                                        Interviews from
+                                    </span>
+                                    <input
+                                        type='datetime-local'
+                                        required
+                                        value={interviewRangeStart}
+                                        onChange={(e) =>
+                                            setInterviewRangeStart(
+                                                e.target.value
+                                            )
+                                        }
+                                        className='w-full px-3 py-2 text-xs rounded border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none'
+                                    />
+                                </label>
+                                <label className='block'>
+                                    <span className='mb-1 block font-mono text-[9px] uppercase tracking-[0.14em] text-(--text-sub)'>
+                                        Interviews until
+                                    </span>
+                                    <input
+                                        type='datetime-local'
+                                        required
+                                        value={interviewRangeEnd}
+                                        onChange={(e) =>
+                                            setInterviewRangeEnd(
+                                                e.target.value
+                                            )
+                                        }
+                                        className='w-full px-3 py-2 text-xs rounded border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none'
+                                    />
+                                </label>
+                            </div>
+
+                            {formError && (
+                                <p
+                                    role='alert'
+                                    className='text-xs text-red-600 dark:text-red-400'>
+                                    {formError}
+                                </p>
+                            )}
+
                             <textarea
                                 rows={2}
                                 required
@@ -216,6 +327,24 @@ export default function RecruiterPositionsView() {
                                                 size={18}
                                                 className='text-(--text-sub) group-hover:text-(--text-main)'
                                             />
+                                        </div>
+
+                                        <div className='mt-3 flex flex-wrap gap-x-4 gap-y-1 border-t border-(--border-line) pt-3 font-mono text-[10px] uppercase tracking-[0.08em] text-(--text-sub)'>
+                                            <span>
+                                                {p.interviewCapacity ??
+                                                    '—'}{' '}
+                                                interview seats
+                                            </span>
+                                            <span>
+                                                {p.interviewRangeStart &&
+                                                p.interviewRangeEnd ?
+                                                    `${new Date(
+                                                        p.interviewRangeStart
+                                                    ).toLocaleDateString()} – ${new Date(
+                                                        p.interviewRangeEnd
+                                                    ).toLocaleDateString()}`
+                                                :   'Interview range not set'}
+                                            </span>
                                         </div>
 
                                         <div className='flex items-center justify-between pt-3 border-t border-(--border-line) text-xs font-mono text-(--text-sub)'>

@@ -73,10 +73,27 @@ interface SlotDefinition {
     endTime: string;
 }
 
-const DEFAULT_SLOTS: SlotDefinition[] = [
-    { dayOfWeek: 2, startTime: '14:00', endTime: '15:00' },
-    { dayOfWeek: 4, startTime: '10:30', endTime: '11:30' },
-];
+/**
+ * When a recruiter has not configured weekly availability, offer one-hour
+ * weekday windows across the position's interview range. The range and total
+ * capacity are the recruiter-facing constraints; these windows are the
+ * candidate-facing options.
+ */
+function defaultSlots(): SlotDefinition[] {
+    const slots: SlotDefinition[] = [];
+
+    for (let dayOfWeek = 1; dayOfWeek <= 5; dayOfWeek += 1) {
+        for (let hour = 9; hour < 18; hour += 1) {
+            slots.push({
+                dayOfWeek,
+                startTime: `${String(hour).padStart(2, '0')}:00`,
+                endTime: `${String(hour + 1).padStart(2, '0')}:00`,
+            });
+        }
+    }
+
+    return slots;
+}
 
 const PROPOSE_SYSTEM_PROMPT = `You are the Skillora Coordinator Agent. You propose interview slots from a recruiter's real availability and prepare the logistics hand-off.
 
@@ -107,15 +124,36 @@ Rules:
 
 function buildAvailability(
     configuredSlots: SlotDefinition[],
-    now: Date
+    now: Date,
+    rangeStart?: Date | null,
+    rangeEnd?: Date | null
 ): AvailabilityWindow[] {
     const source =
-        configuredSlots.length > 0 ? configuredSlots : DEFAULT_SLOTS;
+        configuredSlots.length > 0 ? configuredSlots : defaultSlots();
+    const earliest =
+        rangeStart && rangeStart > now ? new Date(rangeStart) : new Date(now);
+    const latest =
+        rangeEnd ?
+            new Date(rangeEnd)
+        :   new Date(earliest.getTime() + HORIZON_DAYS * 86_400_000);
+
+    if (latest <= earliest) return [];
+
+    const horizonDays = Math.min(
+        60,
+        Math.max(
+            1,
+            Math.ceil(
+                (latest.getTime() - earliest.getTime()) / 86_400_000
+            ) + 1
+        )
+    );
+
     const windows: AvailabilityWindow[] = [];
 
-    for (let offset = 0; offset < HORIZON_DAYS; offset += 1) {
-        const date = new Date(now);
-        date.setDate(now.getDate() + offset);
+    for (let offset = 0; offset < horizonDays; offset += 1) {
+        const date = new Date(earliest);
+        date.setDate(earliest.getDate() + offset);
 
         for (const slot of source) {
             if (date.getDay() !== slot.dayOfWeek) continue;
@@ -132,6 +170,7 @@ function buildAvailability(
             end.setHours(endHour, endMinute, 0, 0);
 
             if (start <= now || end <= start) continue;
+            if (start < earliest || end > latest) continue;
 
             windows.push({
                 startTime: start.toISOString(),
@@ -322,13 +361,24 @@ export class CoordinatorAgent {
                 where: { id: applicationId },
                 select: {
                     anonymousId: true,
-                    position: { select: { title: true } },
+                    position: {
+                        select: {
+                            title: true,
+                            interviewRangeStart: true,
+                            interviewRangeEnd: true,
+                        },
+                    },
                 },
             }),
         ]);
 
         const now = new Date();
-        const availability = buildAvailability(configuredSlots, now);
+        const availability = buildAvailability(
+            configuredSlots,
+            now,
+            application?.position.interviewRangeStart,
+            application?.position.interviewRangeEnd
+        );
         const anonymousId = application?.anonymousId ?? 'anonymous';
         const positionTitle =
             application?.position.title ?? 'the advertised position';
@@ -338,6 +388,11 @@ export class CoordinatorAgent {
             recruiterId,
             positionId,
             timezone: INTERVIEW_TIMEZONE,
+            interviewRangeStart:
+                application?.position.interviewRangeStart?.toISOString() ??
+                null,
+            interviewRangeEnd:
+                application?.position.interviewRangeEnd?.toISOString() ?? null,
             availability,
         };
 

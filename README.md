@@ -62,13 +62,14 @@ Skillora is built around three principles:
 - **Tailored resumes** assembled from saved items, with per-role titles, summaries, and skill sets. The seven core categories are attachable to resumes; the extended sections live in the library.
 - **Job explorer** with open positions, rubrics, deadlines, and required evidence.
 - **Application dashboard** showing anonymous candidate IDs, statuses, match scores, and gap analyses.
+- **Notification inbox** for application updates, interview-slot proposals, and confirmations.
 - **Interview logistics**: confirm an agent-proposed slot directly from the dashboard calendar.
 - **Pro insights**: recurrent unmet criteria, department benchmarks, and targeted recommendations across application rounds.
 - **Profile and security settings**: edit personal details, change password, and switch between light and dark themes.
 
 ### For recruiters
 
-- **Position management** with mandatory criteria, preferred criteria, a minimum score threshold, and an application deadline.
+- **Position management** with mandatory criteria, preferred criteria, a minimum score threshold, an application deadline, interview capacity, and an interview window.
 - **Anonymized candidate pipeline** ranked by match score, with full resume previews built from selected candidate sections.
 - **Manual decision override** before the deadline, with required reviewer notes.
 - **Interview slot configuration** by weekday and time range.
@@ -565,6 +566,8 @@ The frontend needs no environment file in development; Vite proxies `/api` to `h
 | `npm run db:clean` | Delete all users and dependent data after interactive confirmation |
 | `npm run db:clean:yes` | Delete all users and dependent data without prompting |
 | `npm run db:clean:dry` | Print database counts without deleting anything |
+| `npm run applications:reevaluate` | Re-run evaluation for applications stuck in `SUBMITTED` or `EVALUATING` |
+| `npm run applications:reevaluate:dry` | Preview applications that need re-evaluation |
 
 #### E2E dataset
 
@@ -576,11 +579,17 @@ All generated accounts use the `.test` domain and password `password123`.
 - **Job deadline:** 5 minutes after creation (configurable with `--deadline-minutes=N`)
 
 Because 45 applications are distributed across 35 applicants, applicants 16–25 each
-apply to two positions. The backend must be running for `npm run e2e:test`.
+apply to two positions. Seeded applications use completed evaluation statuses and
+include notification messages, so none remain permanently `SUBMITTED`.
+The backend must be running for `npm run e2e:test`.
 Use `npm run e2e:seed -- --dry-run` to preview the dataset without writing.
 
+If a real application is interrupted mid-evaluation and remains `SUBMITTED` or
+`EVALUATING`, run `npm run applications:reevaluate` to process it through the
+same agent pipeline and generate its notifications.
+
 > `npm run db:clean` is destructive. It removes every user and all dependent
-> positions, applications, resumes, vault entries, interviews, and refresh tokens.
+> positions, applications, resumes, vault entries, interviews, messages, and refresh tokens.
 
 ### Frontend (`frontend/package.json`)
 
@@ -624,6 +633,9 @@ All routes except registration and login require a bearer access token. Applican
 | `GET` | `/applicant/applications` | List the candidate's applications |
 | `GET` | `/applicant/calendar` | List interview events and proposed slots |
 | `POST` | `/applicant/interviews/select-range` | Confirm an interview slot |
+| `GET` | `/applicant/messages` | List the notification inbox |
+| `PATCH` | `/applicant/messages/:id/read` | Mark one notification as read |
+| `POST` | `/applicant/messages/read-all` | Mark every notification as read |
 | `GET` | `/applicant/insights` | Pro-only cross-round analytics |
 | `POST` | `/applicant/upgrade-pro` | Activate a candidate pack (`months`: 1, 6, 12) |
 | `GET` | `/applicant/vault` | Get the full information library |
@@ -642,7 +654,7 @@ Delete routes use `/:id`, for example `DELETE /applicant/vault/entries/:id`.
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/recruiter/positions` | Create a position with a rubric |
+| `POST` | `/recruiter/positions` | Create a position with a rubric, interview capacity, and interview window |
 | `GET` | `/recruiter/positions` | List the recruiter's positions |
 | `GET` | `/recruiter/positions/:id` | Get a position and its slots |
 | `PATCH` | `/recruiter/positions/:id/close` | Close a position |

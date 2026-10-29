@@ -4,6 +4,7 @@ import { matcherAgent } from './matcher.agent.js';
 import { growthAgent } from './growth.agent.js';
 import { coordinatorAgent } from './coordinator.agent.js';
 import { buildCandidateDossier } from './dossier.js';
+import { notifyApplicationStatus } from '../services/messages.js';
 
 export class AgentOrchestrator {
     async evaluateApplication(applicationId: string) {
@@ -49,29 +50,54 @@ export class AgentOrchestrator {
             evaluation.category;
 
         if (nextStatus === 'ELIGIBLE') {
-            const coordination =
-                await coordinatorAgent.proposeSlotsForCandidate(
-                    applicationId,
-                    application.position.recruiterId,
-                    application.position.id
-                );
-
-            await prisma.interviewEvent.upsert({
+            const capacity = application.position.interviewCapacity;
+            const existingInterview = await prisma.interviewEvent.findUnique({
                 where: { applicationId },
-                create: {
-                    applicationId,
-                    applicantId: application.applicantId,
-                    recruiterId: application.position.recruiterId,
-                    status: 'RANGE_PENDING',
-                    proposedRanges: coordination.proposedSlots as any,
-                },
-                update: {
-                    status: 'RANGE_PENDING',
-                    proposedRanges: coordination.proposedSlots as any,
+                select: { id: true },
+            });
+            const usedInterviews = await prisma.interviewEvent.count({
+                where: {
+                    application: {
+                        positionId: application.position.id,
+                    },
                 },
             });
+            const hasCapacity =
+                capacity === null ||
+                existingInterview !== null ||
+                usedInterviews < capacity;
 
-            nextStatus = 'INTERVIEW_PENDING' as any;
+            if (hasCapacity) {
+                const coordination =
+                    await coordinatorAgent.proposeSlotsForCandidate(
+                        applicationId,
+                        application.position.recruiterId,
+                        application.position.id
+                    );
+
+                if (coordination.proposedSlots.length === 0) {
+                    nextStatus = 'NEEDS_REVIEW';
+                } else {
+                    await prisma.interviewEvent.upsert({
+                        where: { applicationId },
+                        create: {
+                            applicationId,
+                            applicantId: application.applicantId,
+                            recruiterId: application.position.recruiterId,
+                            status: 'RANGE_PENDING',
+                            proposedRanges: coordination.proposedSlots as any,
+                        },
+                        update: {
+                            status: 'RANGE_PENDING',
+                            proposedRanges: coordination.proposedSlots as any,
+                        },
+                    });
+
+                    nextStatus = 'INTERVIEW_PENDING' as any;
+                }
+            } else {
+                nextStatus = 'NEEDS_REVIEW';
+            }
         }
         let gapAnalysis: any = null;
 
@@ -94,6 +120,8 @@ export class AgentOrchestrator {
                 gapAnalysis: gapAnalysis,
             },
         });
+
+        await notifyApplicationStatus(applicationId, updatedApplication.status);
 
         return updatedApplication;
     }

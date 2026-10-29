@@ -147,11 +147,24 @@ export default function PositionApplicationsView() {
                             {positionData?.title} — Candidate Cohort
                         </h1>
                         <div className='text-xs text-(--text-sub) font-mono'>
-                            Deadline:{' '}
+                            Applications close:{' '}
                             {positionData?.deadline ?
                                 new Date(positionData.deadline).toLocaleString()
                             :   ''}{' '}
                             {isDeadlinePassed ? '(CLOSED)' : '(ACTIVE)'}
+                        </div>
+                        <div className='mt-1 text-xs text-(--text-sub) font-mono'>
+                            Interviews:{' '}
+                            {positionData?.interviewRangeStart &&
+                            positionData?.interviewRangeEnd ?
+                                `${new Date(
+                                    positionData.interviewRangeStart
+                                ).toLocaleString()} – ${new Date(
+                                    positionData.interviewRangeEnd
+                                ).toLocaleString()}`
+                            :   'range not set'}{' '}
+                            · Capacity:{' '}
+                            {positionData?.interviewCapacity ?? 'not set'}
                         </div>
                     </div>
                     {isDeadlinePassed && (
@@ -225,7 +238,7 @@ export default function PositionApplicationsView() {
                                                     'border-forest/30 bg-forest/10 text-forest dark:text-forest-dark'
                                                 :   'border-(--border-line) text-(--text-sub)'
                                             }`}>
-                                            {app.status}
+                                            {formatApplicationStatus(app.status)}
                                         </span>
                                         {app.recruiterOverride && (
                                             <span className='font-mono text-[10px] text-forest dark:text-forest-dark font-medium'>
