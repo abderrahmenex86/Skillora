@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, ShieldCheck, Terminal, Users } from 'lucide-react';
+import Footer from '../../components/Footer';
 
 export default function CompaniesView() {
     return (
@@ -79,6 +80,7 @@ export default function CompaniesView() {
                     </Link>
                 </div>
             </main>
+            <Footer />
         </div>
     );
 }

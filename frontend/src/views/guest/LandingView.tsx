@@ -29,6 +29,7 @@ import {
 } from '../../data/algerianCompanies';
 import Typewriter from '../../components/Typewriter';
 import { useAuthStore } from '../../store/useAuthStore';
+import Footer from '../../components/Footer';
 
 const HERO_PREFIX = 'Hiring shouldn’t mean';
 const HERO_PERSPECTIVES = [
@@ -935,6 +936,7 @@ export default function LandingView() {
                     </div>
                 </section>
             </main>
+            <Footer />
         </div>
     );
 }

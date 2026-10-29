@@ -11,7 +11,6 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { apiClient } from './api/apiClient';
 import { queryClient } from './api/queryClient';
 import Navbar from './components/Navbar';
-import Footer from './components/Footer';
 
 import LandingView from './views/guest/LandingView';
 import HowItWorksView from './views/guest/HowItWorksView';
@@ -53,7 +52,6 @@ function AppLayout() {
             <PageTransition>
                 <Outlet />
             </PageTransition>
-            <Footer />
         </div>
     );
 }

@@ -1,3 +1,5 @@
+import Footer from '../../components/Footer';
+
 export default function AboutView() {
     return (
         <div className='page-scroll flex flex-col'>
@@ -37,6 +39,7 @@ export default function AboutView() {
                     Skillora Collective • Algiers, Algeria • 2026
                 </div>
             </main>
+            <Footer />
         </div>
     );
 }

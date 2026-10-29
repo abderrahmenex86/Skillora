@@ -17,6 +17,7 @@ import {
     type Plan,
 } from '../../data/plans';
 import { useAuthStore, type User } from '../../store/useAuthStore';
+import Footer from '../../components/Footer';
 
 type Audience = 'candidate' | 'company';
 
@@ -391,6 +392,7 @@ export default function PricingView() {
                     </div>
                 </section>
             </main>
+            <Footer />
 
             {confirmPlan && (
                 <div

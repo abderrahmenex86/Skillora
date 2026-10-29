@@ -8,6 +8,7 @@ import {
     SearchCheck,
     ShieldCheck,
 } from 'lucide-react';
+import Footer from '../../components/Footer';
 
 const STEPS = [
     {
@@ -165,6 +166,7 @@ export default function HowItWorksView() {
                     </Link>
                 </div>
             </main>
+            <Footer />
         </div>
     );
 }

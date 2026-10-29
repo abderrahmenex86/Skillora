@@ -15,6 +15,7 @@ import { apiClient } from '../../api/apiClient';
 import { ALGERIA_WILAYAS } from '../../data/algeria';
 import { roleHome } from '../../data/routes';
 import { useAuthStore, type User } from '../../store/useAuthStore';
+import Footer from '../../components/Footer';
 
 const inputClass =
     'w-full px-3.5 py-2.5 text-sm rounded-md border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none focus:ring-1 focus:ring-(--text-main) disabled:opacity-60 disabled:cursor-not-allowed';
@@ -521,6 +522,7 @@ export default function EditProfileView() {
                     </form>
                 )}
             </section>
+            <Footer />
         </div>
     );
 }
