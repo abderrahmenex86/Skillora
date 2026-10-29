@@ -9,7 +9,12 @@
         "dev": "tsx watch src/server.ts",
         "prisma:generate": "prisma generate",
         "prisma:migrate": "prisma migrate dev",
-        "prisma:seed": "tsx prisma/seed.ts"
+        "prisma:seed": "tsx prisma/seed.ts",
+        "e2e:seed": "tsx scripts/e2e-test-data.ts",
+        "e2e:test": "tsx scripts/e2e-test-data.ts --verify",
+        "db:clean": "tsx scripts/clean-database.ts",
+        "db:clean:yes": "tsx scripts/clean-database.ts --yes",
+        "db:clean:dry": "tsx scripts/clean-database.ts --dry-run"
     },
     "prisma": {
         "seed": "tsx prisma/seed.ts"

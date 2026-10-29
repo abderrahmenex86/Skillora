@@ -560,6 +560,27 @@ The frontend needs no environment file in development; Vite proxies `/api` to `h
 | `npm run prisma:generate` | Regenerate the Prisma client |
 | `npm run prisma:migrate` | Create and apply a development migration |
 | `npm run prisma:seed` | Seed demo data |
+| `npm run e2e:seed` | Create 6 recruiters, 3 five-minute jobs, 35 applicants, and 45 applications |
+| `npm run e2e:test` | Seed the E2E dataset and verify it through the running API |
+| `npm run db:clean` | Delete all users and dependent data after interactive confirmation |
+| `npm run db:clean:yes` | Delete all users and dependent data without prompting |
+| `npm run db:clean:dry` | Print database counts without deleting anything |
+
+#### E2E dataset
+
+All generated accounts use the `.test` domain and password `password123`.
+
+- **Recruiters:** `e2e.recruiter1@skillora.test` through `e2e.recruiter6@skillora.test`
+- **Applicants:** `e2e.applicant01@skillora.test` through `e2e.applicant35@skillora.test`
+- **Jobs:** 15 applications, 10 applications, and 20 applications respectively
+- **Job deadline:** 5 minutes after creation (configurable with `--deadline-minutes=N`)
+
+Because 45 applications are distributed across 35 applicants, applicants 16–25 each
+apply to two positions. The backend must be running for `npm run e2e:test`.
+Use `npm run e2e:seed -- --dry-run` to preview the dataset without writing.
+
+> `npm run db:clean` is destructive. It removes every user and all dependent
+> positions, applications, resumes, vault entries, interviews, and refresh tokens.
 
 ### Frontend (`frontend/package.json`)
 
