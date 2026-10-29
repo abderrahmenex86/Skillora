@@ -49,7 +49,7 @@ export const CreatePositionSchema = z
 export const OverrideDecisionSchema = z.object({
     newStatus: z.enum([
         ApplicationStatus.ELIGIBLE,
-        ApplicationStatus.REDIRECTED,
+        ApplicationStatus.REJECTED,
         ApplicationStatus.NEEDS_REVIEW,
     ]),
     notes: z.string().min(3, 'Override reason notes are required'),

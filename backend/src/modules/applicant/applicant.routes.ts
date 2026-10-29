@@ -41,8 +41,14 @@ router.patch('/messages/:id/read', (req, res, next) =>
 router.post('/messages/read-all', (req, res, next) =>
     applicantController.markAllMessagesRead(req, res, next)
 );
-router.post('/interviews/select-range', (req, res, next) =>
-    applicantController.selectInterviewRange(req, res, next)
+router.get('/interviews/:id/options', (req, res, next) =>
+    applicantController.getInterviewOptions(req, res, next)
+);
+router.post('/interviews/:id/reschedule', (req, res, next) =>
+    applicantController.rescheduleInterview(req, res, next)
+);
+router.post('/interviews/:id/decline', (req, res, next) =>
+    applicantController.declineInterview(req, res, next)
 );
 router.get('/insights', (req, res, next) =>
     applicantController.getInsights(req, res, next)

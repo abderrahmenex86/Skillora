@@ -27,7 +27,7 @@ export const GrowthOutputSchema = z.object({
 
 export type GrowthOutput = z.infer<typeof GrowthOutputSchema>;
 
-const GROWTH_SYSTEM_PROMPT = `You are the Skillora Growth Agent, the "Zero-Ghosting Coach". You write for a candidate whose application was REDIRECTED because it did not yet meet the mandatory rubric.
+const GROWTH_SYSTEM_PROMPT = `You are the Skillora Growth Agent, the "Zero-Ghosting Coach". You write for a candidate whose application was REJECTED because it did not yet meet the mandatory rubric.
 
 Voice and ethics:
 - Be empathetic, direct, and respectful. Never blame the candidate.
@@ -71,7 +71,7 @@ Matcher evaluation:
 ${JSON.stringify(evaluation, null, 2)}
 </evaluation>
 
-Write the Zero-Ghosting growth roadmap for this redirected candidate.`;
+Write the Zero-Ghosting growth roadmap for this rejected candidate.`;
 }
 
 function buildHeuristicGrowth(
@@ -155,7 +155,7 @@ export class GrowthAgent {
                     schema: GrowthOutputSchema,
                     schemaName: 'GrowthOutput',
                     schemaDescription:
-                        'Empathetic, evidence-specific growth roadmap for a redirected candidate.',
+                        'Empathetic, evidence-specific growth roadmap for a rejected candidate.',
                     system: GROWTH_SYSTEM_PROMPT,
                     prompt: buildGrowthPrompt(
                         telemetry,

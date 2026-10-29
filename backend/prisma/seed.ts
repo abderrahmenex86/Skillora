@@ -380,32 +380,23 @@ async function createInterviewEvent(
     first.setDate(first.getDate() + 3);
     first.setHours(10, 0, 0, 0);
 
-    const second = new Date();
-    second.setDate(second.getDate() + 5);
-    second.setHours(14, 30, 0, 0);
+    const firstSlot = {
+        startTime: first.toISOString(),
+        endTime: new Date(first.getTime() + 60 * 60 * 1000).toISOString(),
+        format: 'video_meet' as const,
+    };
 
     await prisma.interviewEvent.create({
         data: {
             applicationId,
             applicantId,
             recruiterId,
-            status: InterviewStatus.RANGE_PENDING,
-            proposedRanges: [
-                {
-                    startTime: first.toISOString(),
-                    endTime: new Date(
-                        first.getTime() + 60 * 60 * 1000
-                    ).toISOString(),
-                    format: 'video_meet',
-                },
-                {
-                    startTime: second.toISOString(),
-                    endTime: new Date(
-                        second.getTime() + 60 * 60 * 1000
-                    ).toISOString(),
-                    format: 'video_meet',
-                },
-            ],
+            status: InterviewStatus.SLOT_CONFIRMED,
+            proposedRanges: [firstSlot],
+            confirmedStart: new Date(firstSlot.startTime),
+            confirmedEnd: new Date(firstSlot.endTime),
+            meetingLink: `https://meet.google.com/skz-seed-${applicationId.slice(0, 8)}`,
+            unmaskedAt: new Date(),
         },
     });
 }
@@ -1824,7 +1815,7 @@ const applications: ApplicationSeed[] = [
         profileKey: 'cloud',
         positionKey: 'cloud',
         anonymousId: 'DZ-308',
-        status: ApplicationStatus.INTERVIEW_PENDING,
+        status: ApplicationStatus.INTERVIEW_SCHEDULED,
         matchScore: 94,
         interview: true,
     },
@@ -1841,7 +1832,7 @@ const applications: ApplicationSeed[] = [
         profileKey: 'data',
         positionKey: 'data-science',
         anonymousId: 'DZ-309',
-        status: ApplicationStatus.REDIRECTED,
+        status: ApplicationStatus.REJECTED,
         matchScore: 62,
         unmet: ['MLOps'],
         gapAnalysis: {
@@ -1881,7 +1872,7 @@ const applications: ApplicationSeed[] = [
         profileKey: 'product',
         positionKey: 'product',
         anonymousId: 'DZ-311',
-        status: ApplicationStatus.INTERVIEW_PENDING,
+        status: ApplicationStatus.INTERVIEW_SCHEDULED,
         matchScore: 90,
         interview: true,
     },
@@ -1890,7 +1881,7 @@ const applications: ApplicationSeed[] = [
         profileKey: 'ml',
         positionKey: 'data-science',
         anonymousId: 'DZ-312',
-        status: ApplicationStatus.INTERVIEW_PENDING,
+        status: ApplicationStatus.INTERVIEW_SCHEDULED,
         matchScore: 91,
         interview: true,
     },

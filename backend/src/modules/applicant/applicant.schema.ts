@@ -88,6 +88,11 @@ export const SubmitApplicationSchema = z.object({
     profileId: z.string().uuid('Invalid profile ID'),
 });
 
+export const RescheduleInterviewSchema = z.object({
+    selectedStart: z.string().datetime('Valid ISO 8601 start time required'),
+    selectedEnd: z.string().datetime('Valid ISO 8601 end time required'),
+});
+
 export const SelectInterviewRangeSchema = z.object({
     interviewEventId: z.string().uuid('Invalid interview event ID'),
     selectedStart: z.string().datetime('Valid ISO 8601 start time required'),
@@ -134,6 +139,9 @@ export const AddVaultEntrySchema = z.object({
 
 export type SelectInterviewRangeInput = z.infer<
     typeof SelectInterviewRangeSchema
+>;
+export type RescheduleInterviewInput = z.infer<
+    typeof RescheduleInterviewSchema
 >;
 export type CreateProfileInput = z.infer<typeof CreateProfileSchema>;
 export type UpdateProfileInput = z.infer<typeof UpdateProfileSchema>;

@@ -6,9 +6,12 @@ import {
     ConfigureSlotInput,
     UpgradeCompanyPlanInput,
 } from './recruiter.schema.js';
-import { coordinatorAgent } from '../../agents/coordinator.agent.js';
 import { ApplicationStatus } from '@prisma/client';
 import { notifyApplicationStatus } from '../../services/messages.js';
+import {
+    promoteNextOnHold,
+    scheduleApplicationInterview,
+} from '../../services/interview-scheduling.js';
 
 function extractLegacyProjectIds(value: unknown): string[] {
     if (!Array.isArray(value)) return [];
@@ -293,62 +296,29 @@ export class RecruiterService {
         let targetStatus: ApplicationStatus = input.newStatus;
 
         if (input.newStatus === ApplicationStatus.ELIGIBLE) {
-            const capacity = application.position.interviewCapacity;
+            const outcome = await scheduleApplicationInterview(applicationId);
 
-            if (capacity !== null) {
-                const [existingInterview, usedInterviews] = await Promise.all([
-                    prisma.interviewEvent.findUnique({
-                        where: { applicationId },
-                        select: { id: true },
-                    }),
-                    prisma.interviewEvent.count({
-                        where: {
-                            application: {
-                                positionId: application.position.id,
-                            },
-                        },
-                    }),
-                ]);
-
-                if (!existingInterview && usedInterviews >= capacity) {
-                    throw new AppError(
-                        400,
-                        `Interview capacity reached (${capacity}). Increase the capacity or redirect this candidate.`
-                    );
-                }
+            if (outcome.status === 'ON_HOLD') {
+                throw new AppError(
+                    400,
+                    'Interview capacity reached. Increase the capacity, reject this candidate, or keep them on hold.'
+                );
             }
 
-            const coordination =
-                await coordinatorAgent.proposeSlotsForCandidate(
-                    application.id,
-                    application.position.recruiterId,
-                    application.position.id
-                );
-
-            if (coordination.proposedSlots.length === 0) {
+            if (outcome.status !== 'INTERVIEW_SCHEDULED') {
                 throw new AppError(
                     400,
                     'No interview availability inside the configured range. Add recruiter slots or widen the interview range.'
                 );
             }
 
-            await prisma.interviewEvent.upsert({
-                where: { applicationId: application.id },
-                create: {
-                    applicationId: application.id,
-                    applicantId: application.applicantId,
-                    recruiterId: application.position.recruiterId,
-                    status: 'RANGE_PENDING',
-                    proposedRanges: coordination.proposedSlots as any,
-                },
-                update: {
-                    status: 'RANGE_PENDING',
-                    proposedRanges: coordination.proposedSlots as any,
-                },
-            });
-
-            targetStatus = ApplicationStatus.INTERVIEW_PENDING;
+            targetStatus = ApplicationStatus.INTERVIEW_SCHEDULED;
         }
+
+        const existingInterview = await prisma.interviewEvent.findUnique({
+            where: { applicationId },
+            select: { id: true },
+        });
 
         const updated = await prisma.application.update({
             where: { id: applicationId },
@@ -360,6 +330,14 @@ export class RecruiterService {
         });
 
         await notifyApplicationStatus(applicationId, updated.status);
+
+        if (input.newStatus === ApplicationStatus.REJECTED && existingInterview) {
+            await prisma.interviewEvent.update({
+                where: { applicationId },
+                data: { status: 'CANCELED' },
+            });
+            await promoteNextOnHold(application.position.id);
+        }
 
         return updated;
     }

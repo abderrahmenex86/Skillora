@@ -4,7 +4,7 @@
 
 Skillora is a full-stack recruitment platform built for the Algerian talent market. Instead of keyword filtering, it evaluates candidates against recruiter-defined rubrics and guarantees a deterministic outcome for every application: an interview invitation or an actionable learning roadmap.
 
-Candidates build a reusable information library and tailored resumes, apply to open roles, confirm interview slots, and track their progress. Recruiters publish positions with evidence rubrics, review anonymized ranked candidates, and let the platform handle scheduling and feedback.
+Candidates build a reusable information library and tailored resumes, apply to open roles, receive auto-assigned interviews they can reschedule or decline, and track their progress. Recruiters publish positions with evidence rubrics, review anonymized ranked candidates, and let the platform handle scheduling and feedback.
 
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript&logoColor=white)
@@ -62,14 +62,14 @@ Skillora is built around three principles:
 - **Tailored resumes** assembled from saved items, with per-role titles, summaries, and skill sets. The seven core categories are attachable to resumes; the extended sections live in the library.
 - **Job explorer** with open positions, rubrics, deadlines, and required evidence.
 - **Application dashboard** showing anonymous candidate IDs, statuses, match scores, and gap analyses.
-- **Notification inbox** for application updates, interview-slot proposals, and confirmations.
-- **Interview logistics**: confirm an agent-proposed slot directly from the dashboard calendar.
+- **Notification inbox** for application updates, interview assignments, reschedules, and declines.
+- **Interview logistics**: receive an automatically assigned interview, then reschedule or decline it from the dashboard calendar.
 - **Pro insights**: recurrent unmet criteria, department benchmarks, and targeted recommendations across application rounds.
 - **Profile and security settings**: edit personal details, change password, and switch between light and dark themes.
 
 ### For recruiters
 
-- **Position management** with mandatory criteria, preferred criteria, a minimum score threshold, an application deadline, interview capacity, and an interview window.
+- **Position management** with mandatory criteria, preferred criteria, a minimum score threshold, an application deadline, final-round interview capacity, and an interview window.
 - **Anonymized candidate pipeline** ranked by match score, with full resume previews built from selected candidate sections.
 - **Manual decision override** before the deadline, with required reviewer notes.
 - **Interview slot configuration** by weekday and time range.
@@ -98,13 +98,13 @@ flowchart TD
     D --> E[Ingestion agent extracts evidence]
     E --> F[Matcher agent audits the rubric]
     F --> G{Evaluation outcome}
-    G -->|Eligible| H[Coordinator agent proposes interview slots]
+    G -->|Eligible| H[Rank eligible; auto-assign an interview]
     G -->|Needs review| I[Recruiter reviews the application]
-    G -->|Redirected| J[Growth agent writes a gap roadmap]
-    H --> K[Candidate confirms a slot]
+    G -->|Rejected| J[Growth agent writes a gap roadmap]
+    H --> K[Candidate can reschedule or decline]
     K --> L[Interview scheduled]
     I -->|Override: eligible| H
-    I -->|Override: redirected| J
+    I -->|Override: rejected| J
     J --> M[Candidate receives actionable next steps]
 ```
 
@@ -203,23 +203,27 @@ sequenceDiagram
     O->>O: Ingestion extracts evidence
     O->>O: Matcher audits rubric
 
-    alt Eligible
-        O->>O: Coordinator proposes slots
-        O->>DB: InterviewEvent (RANGE_PENDING)
-        O->>DB: Status INTERVIEW_PENDING
+    alt Eligible with capacity
+        O->>O: Coordinator auto-assigns the first available slot
+        O->>DB: InterviewEvent (SLOT_CONFIRMED)
+        O->>DB: Status INTERVIEW_SCHEDULED
+    else Eligible over capacity
+        O->>DB: Status ON_HOLD
     else Needs review
         O->>DB: Status NEEDS_REVIEW
-    else Redirected
+    else Rejected
         O->>O: Growth agent builds roadmap
-        O->>DB: Status REDIRECTED + gapAnalysis
+        O->>DB: Status REJECTED + gapAnalysis
     end
 
     C->>UI: Open dashboard calendar
     UI->>API: GET /applicant/calendar
-    API-->>UI: Proposed slots
-    C->>API: POST /applicant/interviews/select-range
-    API->>DB: InterviewEvent SLOT_CONFIRMED
-    API->>DB: Application INTERVIEW_SCHEDULED
+    API-->>UI: Assigned interview
+    C->>API: POST /applicant/interviews/:id/reschedule
+    API->>DB: Update confirmedStart and confirmedEnd
+    C->>API: POST /applicant/interviews/:id/decline
+    API->>DB: InterviewEvent CANCELED + Application DECLINED
+    API->>API: Promote highest-scoring ON_HOLD candidate
 ```
 
 Each agent writes an `AgentExecutionLog` with its structured output, giving recruiters and operators a full audit trail.
@@ -236,9 +240,9 @@ All four agents resolve their model through a single factory in `backend/src/age
 Set `LLM_MODEL` to override the default for either provider. Each agent calls `generateObject` with its Zod schema and records the model that produced the result (`llm:groq:<model>` or `llm:ollama:<model>`).
 
 - **Ingestion** strips PII, normalizes Algerian degrees and institutions, and extracts skills and verifiable artifacts from a resume-scoped dossier.
-- **Matcher** audits every mandatory criterion against evidence and returns a 0–100 score with `ELIGIBLE`, `NEEDS_REVIEW`, or `REDIRECTED`.
-- **Growth** writes the Zero-Ghosting roadmap for redirected candidates with domain-specific, artifact-producing milestones.
-- **Coordinator** proposes slots from recruiter availability and builds the Google Meet payload when a slot is confirmed.
+- **Matcher** audits every mandatory criterion against evidence and returns a 0–100 score with `ELIGIBLE`, `NEEDS_REVIEW`, or a rejected outcome.
+- **Growth** writes the Zero-Ghosting roadmap for rejected candidates with domain-specific, artifact-producing milestones.
+- **Coordinator** auto-assigns the first available slot inside the recruiter's interview window and builds the Google Meet payload.
 
 Candidate dossiers are built only from the vault entries selected on the resume. URLs are redacted before any prompt is sent, so personal handles never reach the model.
 
@@ -631,8 +635,10 @@ All routes except registration and login require a bearer access token. Applican
 | `DELETE` | `/applicant/profiles/:id` | Delete a tailored resume |
 | `POST` | `/applicant/applications` | Apply to a position with a resume |
 | `GET` | `/applicant/applications` | List the candidate's applications |
-| `GET` | `/applicant/calendar` | List interview events and proposed slots |
-| `POST` | `/applicant/interviews/select-range` | Confirm an interview slot |
+| `GET` | `/applicant/calendar` | List assigned and completed interview events |
+| `GET` | `/applicant/interviews/:id/options` | List available replacement slots |
+| `POST` | `/applicant/interviews/:id/reschedule` | Move an interview to another available slot |
+| `POST` | `/applicant/interviews/:id/decline` | Decline an interview and release the slot |
 | `GET` | `/applicant/messages` | List the notification inbox |
 | `PATCH` | `/applicant/messages/:id/read` | Mark one notification as read |
 | `POST` | `/applicant/messages/read-all` | Mark every notification as read |

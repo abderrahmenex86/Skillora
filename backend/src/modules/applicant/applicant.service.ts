@@ -22,6 +22,7 @@ import {
     createApplicantMessage,
     notifyApplicationStatus,
 } from '../../services/messages.js';
+import { promoteNextOnHold } from '../../services/interview-scheduling.js';
 
 function extractLegacyProjectIds(value: unknown): string[] {
     if (!Array.isArray(value)) return [];
@@ -189,7 +190,9 @@ export class ApplicantService {
                             in: [
                                 'SUBMITTED',
                                 'EVALUATING',
+                                'ON_HOLD',
                                 'INTERVIEW_PENDING',
+                                'INTERVIEW_SCHEDULED',
                             ],
                         },
                     },
@@ -656,6 +659,165 @@ export class ApplicantServiceExtensions {
         });
 
         return updated;
+    }
+
+    async getInterviewOptions(userId: string, eventId: string) {
+        const event = await prisma.interviewEvent.findFirst({
+            where: { id: eventId, applicantId: userId },
+            include: {
+                application: {
+                    select: { id: true, positionId: true },
+                },
+            },
+        });
+
+        if (!event) {
+            throw new AppError(404, 'Interview event not found');
+        }
+
+        const options = await coordinatorAgent.getAvailableSlots(
+            event.application.positionId,
+            event.applicationId
+        );
+        const currentStart = event.confirmedStart?.toISOString();
+
+        return options.filter(
+            (option) => option.startTime !== currentStart
+        );
+    }
+
+    async rescheduleInterview(
+        userId: string,
+        eventId: string,
+        selectedStart: string,
+        selectedEnd: string
+    ) {
+        const event = await prisma.interviewEvent.findFirst({
+            where: { id: eventId, applicantId: userId },
+            include: {
+                application: {
+                    select: {
+                        id: true,
+                        positionId: true,
+                        anonymousId: true,
+                    },
+                },
+            },
+        });
+
+        if (!event) {
+            throw new AppError(404, 'Interview event not found');
+        }
+
+        if (event.status === 'CANCELED') {
+            throw new AppError(400, 'This interview has already been declined');
+        }
+
+        const options = await coordinatorAgent.getAvailableSlots(
+            event.application.positionId,
+            event.applicationId
+        );
+        const available = options.some(
+            (option) =>
+                option.startTime === selectedStart &&
+                option.endTime === selectedEnd
+        );
+
+        if (!available) {
+            throw new AppError(
+                400,
+                'That interview slot is no longer available. Choose another slot.'
+            );
+        }
+
+        const confirmation = await coordinatorAgent.confirmSlot(
+            event.applicationId,
+            selectedStart,
+            selectedEnd,
+            event.application.anonymousId
+        );
+
+        const updated = await prisma.interviewEvent.update({
+            where: { id: eventId },
+            data: {
+                status: 'SLOT_CONFIRMED',
+                confirmedStart: new Date(selectedStart),
+                confirmedEnd: new Date(selectedEnd),
+                meetingLink:
+                    confirmation.confirmedSlot?.meetingLocation ??
+                    event.meetingLink,
+                meetingPayload:
+                    (confirmation.meetingPayload as any) ?? undefined,
+                unmaskedAt: new Date(),
+            },
+        });
+
+        await prisma.application.update({
+            where: { id: event.applicationId },
+            data: { status: 'INTERVIEW_SCHEDULED' },
+        });
+
+        await createApplicantMessage({
+            userId,
+            applicationId: event.applicationId,
+            kind: 'INTERVIEW_RESCHEDULED',
+            title: 'Interview rescheduled',
+            body: `Your interview is now scheduled for ${new Date(
+                selectedStart
+            ).toLocaleString('en-GB', {
+                dateStyle: 'medium',
+                timeStyle: 'short',
+                timeZone: 'Africa/Algiers',
+            })}. The meeting details are available in your dashboard.`,
+        });
+
+        return updated;
+    }
+
+    async declineInterview(userId: string, eventId: string) {
+        const event = await prisma.interviewEvent.findFirst({
+            where: { id: eventId, applicantId: userId },
+            include: {
+                application: {
+                    select: { id: true, positionId: true },
+                },
+            },
+        });
+
+        if (!event) {
+            throw new AppError(404, 'Interview event not found');
+        }
+
+        if (event.status === 'CANCELED') {
+            throw new AppError(400, 'This interview has already been declined');
+        }
+
+        await prisma.interviewEvent.update({
+            where: { id: eventId },
+            data: { status: 'CANCELED' },
+        });
+
+        await prisma.application.update({
+            where: { id: event.applicationId },
+            data: { status: 'DECLINED' },
+        });
+
+        await createApplicantMessage({
+            userId,
+            applicationId: event.applicationId,
+            kind: 'DECLINED',
+            title: 'Interview declined',
+            body: 'You declined this interview offer. Your application is now closed for this position.',
+        });
+
+        const promotion = await promoteNextOnHold(
+            event.application.positionId
+        );
+
+        return {
+            message: 'Interview declined',
+            promoted: promotion?.status === 'INTERVIEW_SCHEDULED',
+        };
     }
 
     async getMessages(userId: string) {

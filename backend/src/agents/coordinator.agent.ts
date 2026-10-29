@@ -60,7 +60,7 @@ export const CoordinatorOutputSchema = z.object({
 
 export type CoordinatorOutput = z.infer<typeof CoordinatorOutputSchema>;
 
-interface AvailabilityWindow {
+export interface AvailabilityWindow {
     startTime: string;
     endTime: string;
     dayOfWeek: number;
@@ -466,6 +466,57 @@ export class CoordinatorAgent {
         });
 
         return output;
+    }
+
+    async getAvailableSlots(
+        positionId: string,
+        excludeApplicationId?: string
+    ) {
+        const [configuredSlots, position, bookedEvents] = await Promise.all([
+            prisma.recruiterSlot.findMany({
+                where: { positionId },
+                select: {
+                    dayOfWeek: true,
+                    startTime: true,
+                    endTime: true,
+                },
+            }),
+            prisma.position.findUnique({
+                where: { id: positionId },
+                select: {
+                    interviewRangeStart: true,
+                    interviewRangeEnd: true,
+                },
+            }),
+            prisma.interviewEvent.findMany({
+                where: {
+                    application: { positionId },
+                    status: 'SLOT_CONFIRMED',
+                    ...(excludeApplicationId ?
+                        { applicationId: { not: excludeApplicationId } }
+                    :   {}),
+                },
+                select: { confirmedStart: true },
+            }),
+        ]);
+
+        if (!position) return [];
+
+        const availability = buildAvailability(
+            configuredSlots,
+            new Date(),
+            position.interviewRangeStart,
+            position.interviewRangeEnd
+        );
+        const bookedStarts = new Set(
+            bookedEvents
+                .map((event) => event.confirmedStart?.toISOString())
+                .filter((value): value is string => Boolean(value))
+        );
+
+        return availability
+            .filter((window) => !bookedStarts.has(window.startTime))
+            .slice(0, 12);
     }
 
     async confirmSlot(

@@ -3,10 +3,12 @@ const APPLICATION_STATUS_LABELS: Record<string, string> = {
     EVALUATING: 'Evaluating',
     ELIGIBLE: 'Eligible',
     NEEDS_REVIEW: 'Needs review',
-    REDIRECTED: 'Redirected',
+    ON_HOLD: 'On hold',
+    REDIRECTED: 'Rejected',
     INTERVIEW_PENDING: 'Interview pending',
     INTERVIEW_SCHEDULED: 'Interview scheduled',
     REJECTED: 'Rejected',
+    DECLINED: 'Declined',
     CLOSED: 'Closed',
 };
 

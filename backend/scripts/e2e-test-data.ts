@@ -249,21 +249,21 @@ const APPLICANT_INDEXES_BY_POSITION = [
 ];
 
 function planStatuses(count: number): ApplicationStatus[] {
-    const interviews = count >= 15 ? 3 : 2;
-    const eligible = Math.ceil(count * 0.2);
+    const scheduled = count >= 15 ? 3 : 2;
+    const onHold = count >= 15 ? 2 : count >= 10 ? 2 : 3;
     const needsReview = Math.ceil(count * 0.2);
-    const redirected = count - interviews - eligible - needsReview;
+    const rejected = count - scheduled - onHold - needsReview;
 
     return [
-        ...Array<ApplicationStatus>(interviews).fill(
-            ApplicationStatus.INTERVIEW_PENDING
+        ...Array<ApplicationStatus>(scheduled).fill(
+            ApplicationStatus.INTERVIEW_SCHEDULED
         ),
-        ...Array<ApplicationStatus>(eligible).fill(ApplicationStatus.ELIGIBLE),
+        ...Array<ApplicationStatus>(onHold).fill(ApplicationStatus.ON_HOLD),
         ...Array<ApplicationStatus>(needsReview).fill(
             ApplicationStatus.NEEDS_REVIEW
         ),
-        ...Array<ApplicationStatus>(redirected).fill(
-            ApplicationStatus.REDIRECTED
+        ...Array<ApplicationStatus>(rejected).fill(
+            ApplicationStatus.REJECTED
         ),
     ];
 }
@@ -276,7 +276,7 @@ function auditFor(
     if (status === ApplicationStatus.SUBMITTED) return undefined;
 
     const unmet =
-        status === ApplicationStatus.REDIRECTED ?
+        status === ApplicationStatus.REJECTED ?
             position.rubric.mandatoryCriteria.slice(-2)
         : status === ApplicationStatus.NEEDS_REVIEW ?
             position.rubric.mandatoryCriteria.slice(-1)
@@ -310,7 +310,7 @@ function gapFor(
     position: PositionSeed,
     status: ApplicationStatus
 ): Prisma.InputJsonValue | undefined {
-    if (status !== ApplicationStatus.REDIRECTED) return undefined;
+    if (status !== ApplicationStatus.REJECTED) return undefined;
 
     const unmet = position.rubric.mandatoryCriteria.slice(-2);
     const focus = unmet[0] ?? 'the missing criterion';
@@ -337,10 +337,14 @@ function gapFor(
 function matchScoreFor(status: ApplicationStatus, index: number): number | null {
     if (status === ApplicationStatus.SUBMITTED) return null;
     if (
+        status === ApplicationStatus.INTERVIEW_SCHEDULED ||
         status === ApplicationStatus.INTERVIEW_PENDING ||
         status === ApplicationStatus.ELIGIBLE
     ) {
-        return 82 + ((index * 7) % 16);
+        return 90 + ((index * 3) % 8);
+    }
+    if (status === ApplicationStatus.ON_HOLD) {
+        return 82 + ((index * 5) % 8);
     }
     if (status === ApplicationStatus.NEEDS_REVIEW) {
         return 66 + ((index * 5) % 10);
@@ -348,31 +352,17 @@ function matchScoreFor(status: ApplicationStatus, index: number): number | null 
     return 40 + ((index * 3) % 22);
 }
 
-function interviewRanges() {
-    const first = new Date();
-    first.setDate(first.getDate() + 3);
-    first.setHours(10, 0, 0, 0);
+function interviewSlot(index: number) {
+    const start = new Date();
+    start.setDate(start.getDate() + 2 + (index % 3));
+    start.setHours(10, 0, 0, 0);
+    const end = new Date(start.getTime() + 60 * 60 * 1000);
 
-    const second = new Date();
-    second.setDate(second.getDate() + 5);
-    second.setHours(14, 30, 0, 0);
-
-    return [
-        {
-            startTime: first.toISOString(),
-            endTime: new Date(
-                first.getTime() + 60 * 60 * 1000
-            ).toISOString(),
-            format: 'video_meet',
-        },
-        {
-            startTime: second.toISOString(),
-            endTime: new Date(
-                second.getTime() + 60 * 60 * 1000
-            ).toISOString(),
-            format: 'video_meet',
-        },
-    ];
+    return {
+        startTime: start.toISOString(),
+        endTime: end.toISOString(),
+        format: 'video_meet' as const,
+    };
 }
 
 async function createApplicant(
@@ -518,7 +508,7 @@ async function seed(): Promise<{
     const interviewRangeEnd = new Date(
         now.getTime() + 6 * 24 * 60 * 60 * 1000
     );
-    const interviewCapacities = [6, 4, 8];
+    const interviewCapacities = [3, 2, 3];
     const positions: CreatedPosition[] = [];
 
     for (let index = 0; index < POSITIONS.length; index += 1) {
@@ -613,14 +603,21 @@ async function seed(): Promise<{
                 },
             });
 
-            if (status === ApplicationStatus.INTERVIEW_PENDING) {
+            if (status === ApplicationStatus.INTERVIEW_SCHEDULED) {
+                const slot = interviewSlot(applicationNumber);
                 await prisma.interviewEvent.create({
                     data: {
                         applicationId: application.id,
                         applicantId: applicant.id,
                         recruiterId: position.recruiterId,
-                        status: InterviewStatus.RANGE_PENDING,
-                        proposedRanges: interviewRanges(),
+                        status: InterviewStatus.SLOT_CONFIRMED,
+                        proposedRanges: [slot],
+                        confirmedStart: new Date(slot.startTime),
+                        confirmedEnd: new Date(slot.endTime),
+                        meetingLink: `https://meet.google.com/skz-e2e-${String(
+                            applicationNumber
+                        ).padStart(3, '0')}`,
+                        unmaskedAt: new Date(),
                     },
                 });
             }

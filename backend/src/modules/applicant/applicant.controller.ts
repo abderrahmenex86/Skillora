@@ -15,7 +15,10 @@ import {
     AddVaultEntrySchema,
 } from './applicant.schema.js';
 import { AppError } from '../../middleware/errorHandler.js';
-import { SelectInterviewRangeSchema } from './applicant.schema.js';
+import {
+    RescheduleInterviewSchema,
+    SelectInterviewRangeSchema,
+} from './applicant.schema.js';
 import { applicantServiceExtensions } from './applicant.service.js';
 
 export class ApplicantController {
@@ -494,6 +497,62 @@ export class ApplicantController {
                     input.selectedEnd
                 );
             res.json({ interviewEvent: updated });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async getInterviewOptions(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            if (!req.user) throw new AppError(401, 'Unauthorized');
+            const options =
+                await applicantServiceExtensions.getInterviewOptions(
+                    req.user.sub,
+                    String(req.params.id)
+                );
+            res.json({ options });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async rescheduleInterview(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            if (!req.user) throw new AppError(401, 'Unauthorized');
+            const input = RescheduleInterviewSchema.parse(req.body);
+            const updated =
+                await applicantServiceExtensions.rescheduleInterview(
+                    req.user.sub,
+                    String(req.params.id),
+                    input.selectedStart,
+                    input.selectedEnd
+                );
+            res.json({ interviewEvent: updated });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async declineInterview(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            if (!req.user) throw new AppError(401, 'Unauthorized');
+            const result = await applicantServiceExtensions.declineInterview(
+                req.user.sub,
+                String(req.params.id)
+            );
+            res.json(result);
         } catch (err) {
             next(err);
         }

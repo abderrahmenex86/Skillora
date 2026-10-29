@@ -17,8 +17,8 @@ function statusCopy(status: string, context: ApplicationContext) {
             };
         case 'INTERVIEW_PENDING':
             return {
-                title: 'Interview slots ready',
-                body: `Your application for ${position} passed the qualification audit. Open your dashboard to choose an interview slot.`,
+                title: 'Interview being scheduled',
+                body: `Your application for ${position} passed the qualification audit. Interview scheduling is in progress.`,
             };
         case 'ELIGIBLE':
             return {
@@ -30,10 +30,25 @@ function statusCopy(status: string, context: ApplicationContext) {
                 title: 'Application under review',
                 body: `A recruiter is reviewing your application for ${position}. You will receive another update when a decision is made.`,
             };
+        case 'ON_HOLD':
+            return {
+                title: 'You are on the interview waitlist',
+                body: `Your qualifications meet the rubric for ${position}, but interview capacity is currently full. We will offer you a slot if a selected candidate declines.`,
+            };
+        case 'REJECTED':
+            return {
+                title: 'Application not selected',
+                body: `Your application for ${position} was not selected. Any feedback is available in your dashboard.`,
+            };
         case 'REDIRECTED':
             return {
                 title: 'Your gap roadmap is ready',
-                body: `Your application for ${position} was redirected. Review the actionable gap roadmap in your dashboard and re-apply when you have closed the gaps.`,
+                body: `Your application for ${position} was not selected. Review the actionable gap roadmap in your dashboard and re-apply when you have closed the gaps.`,
+            };
+        case 'DECLINED':
+            return {
+                title: 'Interview declined',
+                body: `You declined the interview offer for ${position}. Your application is now closed for this position.`,
             };
         case 'INTERVIEW_SCHEDULED':
             return {

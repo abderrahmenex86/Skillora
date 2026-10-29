@@ -1,27 +1,33 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../../api/apiClient';
 import {
+    AlertCircle,
     Calendar,
     CalendarDays,
-    FolderOpen,
-    Video,
-    Clock,
-    CheckCircle2,
     ChevronRight,
-    AlertCircle,
+    Clock,
+    FolderOpen,
     Loader2,
+    Video,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatApplicationStatus } from '../../lib/applicationStatus';
 
+type RescheduleSelection = {
+    eventId: string;
+    start: string;
+    end: string;
+};
+
 export default function ApplicantDashboardView() {
     const queryClient = useQueryClient();
-    const [selectedSlot, setSelectedSlot] = useState<{
-        eventId: string;
-        start: string;
-        end: string;
-    } | null>(null);
+    const [rescheduleEventId, setRescheduleEventId] = useState<string | null>(
+        null
+    );
+    const [selectedReschedule, setSelectedReschedule] =
+        useState<RescheduleSelection | null>(null);
+    const [actionError, setActionError] = useState('');
 
     const { data: calendarData, isLoading: calLoading } = useQuery({
         queryKey: ['applicant-calendar'],
@@ -39,32 +45,81 @@ export default function ApplicantDashboardView() {
         },
     });
 
-    const selectRangeMutation = useMutation({
-        mutationFn: async ({
-            eventId,
-            start,
-            end,
-        }: {
-            eventId: string;
-            start: string;
-            end: string;
-        }) => {
+    const {
+        data: rescheduleOptions,
+        isLoading: optionsLoading,
+        error: optionsError,
+    } = useQuery({
+        queryKey: ['interview-options', rescheduleEventId],
+        queryFn: async () => {
+            const { data } = await apiClient.get(
+                `/applicant/interviews/${rescheduleEventId}/options`
+            );
+            return data.options;
+        },
+        enabled: Boolean(rescheduleEventId),
+    });
+
+    const refreshAfterAction = () => {
+        queryClient.invalidateQueries({ queryKey: ['applicant-calendar'] });
+        queryClient.invalidateQueries({ queryKey: ['my-applications'] });
+        queryClient.invalidateQueries({ queryKey: ['applicant-messages'] });
+    };
+
+    const rescheduleMutation = useMutation({
+        mutationFn: async (selection: RescheduleSelection) => {
             const { data } = await apiClient.post(
-                '/applicant/interviews/select-range',
+                `/applicant/interviews/${selection.eventId}/reschedule`,
                 {
-                    interviewEventId: eventId,
-                    selectedStart: start,
-                    selectedEnd: end,
+                    selectedStart: selection.start,
+                    selectedEnd: selection.end,
                 }
             );
             return data;
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['applicant-calendar'] });
-            queryClient.invalidateQueries({ queryKey: ['my-applications'] });
-            setSelectedSlot(null);
+            refreshAfterAction();
+            setRescheduleEventId(null);
+            setSelectedReschedule(null);
+            setActionError('');
+        },
+        onError: (error: any) => {
+            setActionError(
+                error.response?.data?.error ||
+                    'Could not reschedule the interview.'
+            );
         },
     });
+
+    const declineMutation = useMutation({
+        mutationFn: async (eventId: string) => {
+            const { data } = await apiClient.post(
+                `/applicant/interviews/${eventId}/decline`
+            );
+            return data;
+        },
+        onSuccess: () => {
+            refreshAfterAction();
+            setRescheduleEventId(null);
+            setSelectedReschedule(null);
+            setActionError('');
+        },
+        onError: (error: any) => {
+            setActionError(
+                error.response?.data?.error ||
+                    'Could not decline the interview.'
+            );
+        },
+    });
+
+    const handleDecline = (eventId: string) => {
+        const confirmed = window.confirm(
+            'Decline this interview offer? Your application will be closed for this position.'
+        );
+        if (confirmed) {
+            declineMutation.mutate(eventId);
+        }
+    };
 
     return (
         <div className='flex min-h-0 w-full max-w-7xl flex-1 flex-col gap-5 overflow-y-auto mx-auto px-6 py-6 lg:overflow-hidden'>
@@ -95,7 +150,7 @@ export default function ApplicantDashboardView() {
                             <Calendar size={20} /> Interview Schedule
                         </h3>
                         <span className='font-mono text-xs text-(--text-sub)'>
-                            AGENT DISPATCH
+                            AUTO-DISPATCH
                         </span>
                     </div>
 
@@ -117,19 +172,26 @@ export default function ApplicantDashboardView() {
                                     aria-hidden='true'
                                 />
                                 <p className='mt-3'>
-                                    No active interview slots pending or
-                                    scheduled.
+                                    No interviews scheduled yet.
                                 </p>
                             </div>
                         :   <div className='space-y-4'>
                                 {calendarData?.map((event: any) => {
                                     const isConfirmed =
-                                        event.status === 'SLOT_CONFIRMED';
+                                        event.status === 'SLOT_CONFIRMED' &&
+                                        Boolean(event.confirmedStart);
+                                    const isDeclined =
+                                        event.status === 'CANCELED';
+                                    const isChangingDate =
+                                        rescheduleEventId === event.id;
+
                                     return (
                                         <div
                                             key={event.id}
                                             className={`relative p-4 rounded-md border ${
-                                                isConfirmed ?
+                                                isDeclined ?
+                                                    'border-red-500/30 bg-red-500/5'
+                                                : isConfirmed ?
                                                     'border-forest/40 bg-forest/5 dark:bg-forest-dark/5'
                                                 :   'border-amber-accent/50 bg-(--bg-canvas)'
                                             }`}>
@@ -137,7 +199,7 @@ export default function ApplicantDashboardView() {
                                                 aria-hidden='true'
                                                 className='snap-anchor'
                                             />
-                                            <div className='flex justify-between items-start mb-2'>
+                                            <div className='flex justify-between items-start mb-2 gap-3'>
                                                 <div>
                                                     <div className='font-mono text-[10px] text-(--text-sub)'>
                                                         {
@@ -160,159 +222,243 @@ export default function ApplicantDashboardView() {
                                                 </div>
                                                 <span
                                                     className={`font-mono text-[10px] px-2 py-0.5 rounded uppercase ${
-                                                        isConfirmed ?
+                                                        isDeclined ?
+                                                            'bg-red-500/10 text-red-600 dark:text-red-400'
+                                                        : isConfirmed ?
                                                             'bg-forest/10 text-forest dark:text-forest-dark'
                                                         :   'bg-amber-accent/10 text-amber-accent'
                                                     }`}>
-                                                    {isConfirmed ?
+                                                    {isDeclined ?
+                                                        'Declined'
+                                                    : isConfirmed ?
                                                         'Confirmed'
-                                                    :   'Select Range'}
+                                                    :   'Scheduling'}
                                                 </span>
                                             </div>
 
-                                            {isConfirmed ?
-                                                <div className='mt-3 text-xs font-mono space-y-1 text-(--text-main)'>
-                                                    <div className='flex items-center gap-1.5'>
-                                                        <Clock
-                                                            size={14}
-                                                            className='text-(--text-sub)'
-                                                        />
-                                                        <span>
-                                                            {new Date(
-                                                                event.confirmedStart
-                                                            ).toLocaleString(
-                                                                [],
-                                                                {
-                                                                    dateStyle:
-                                                                        'medium',
-                                                                    timeStyle:
-                                                                        'short',
-                                                                }
-                                                            )}
-                                                        </span>
-                                                    </div>
-                                                    <div className='flex items-center gap-1.5 text-forest dark:text-forest-dark'>
-                                                        <Video size={14} />
-                                                        <a
-                                                            href={
-                                                                event.meetingLink
-                                                            }
-                                                            target='_blank'
-                                                            rel='noreferrer'
-                                                            className='underline'>
-                                                            Join Google Meet
-                                                            Room
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                            :   <div className='mt-3'>
-                                                    <p className='text-xs text-(--text-sub) mb-2'>
-                                                        The logistics agent
-                                                        proposed the following
-                                                        interview ranges:
-                                                    </p>
-                                                    <div className='space-y-2'>
-                                                        {event.proposedRanges?.map(
-                                                            (
-                                                                slot: any,
-                                                                idx: number
-                                                            ) => {
-                                                                const start =
-                                                                    new Date(
-                                                                        slot.startTime
-                                                                    );
-                                                                const end =
-                                                                    new Date(
-                                                                        slot.endTime
-                                                                    );
-                                                                const isSelected =
-                                                                    selectedSlot?.start ===
-                                                                        slot.startTime &&
-                                                                    selectedSlot?.eventId ===
-                                                                        event.id;
-
-                                                                return (
-                                                                    <button
-                                                                        key={
-                                                                            idx
-                                                                        }
-                                                                        type='button'
-                                                                        onClick={() =>
-                                                                            setSelectedSlot(
-                                                                                {
-                                                                                    eventId:
-                                                                                        event.id,
-                                                                                    start: slot.startTime,
-                                                                                    end: slot.endTime,
-                                                                                }
-                                                                            )
-                                                                        }
-                                                                        className={`w-full text-left px-3 py-2 rounded text-xs font-mono border transition-all flex justify-between items-center ${
-                                                                            (
-                                                                                isSelected
-                                                                            ) ?
-                                                                                'border-(--text-main) bg-(--bg-panel) ring-1 ring-(--text-main)'
-                                                                            :   'border-(--border-line) hover:border-(--text-sub)'
-                                                                        }`}>
-                                                                        <span>
-                                                                            {start.toLocaleString(
-                                                                                [],
-                                                                                {
-                                                                                    weekday:
-                                                                                        'short',
-                                                                                    hour: '2-digit',
-                                                                                    minute: '2-digit',
-                                                                                }
-                                                                            )}{' '}
-                                                                            –{' '}
-                                                                            {end.toLocaleTimeString(
-                                                                                [],
-                                                                                {
-                                                                                    hour: '2-digit',
-                                                                                    minute: '2-digit',
-                                                                                }
-                                                                            )}
-                                                                        </span>
-                                                                        <ChevronRight
-                                                                            size={
-                                                                                14
-                                                                            }
-                                                                        />
-                                                                    </button>
-                                                                );
-                                                            }
+                                            {isDeclined ?
+                                                <p className='mt-3 text-xs text-(--text-sub)'>
+                                                    You declined this interview
+                                                    offer.
+                                                </p>
+                                            : isConfirmed ?
+                                                <>
+                                                    <div className='mt-3 text-xs font-mono space-y-1 text-(--text-main)'>
+                                                        <div className='flex items-center gap-1.5'>
+                                                            <Clock
+                                                                size={14}
+                                                                className='text-(--text-sub)'
+                                                            />
+                                                            <span>
+                                                                {new Date(
+                                                                    event.confirmedStart
+                                                                ).toLocaleString(
+                                                                    [],
+                                                                    {
+                                                                        dateStyle:
+                                                                            'medium',
+                                                                        timeStyle:
+                                                                            'short',
+                                                                    }
+                                                                )}
+                                                            </span>
+                                                        </div>
+                                                        {event.meetingLink && (
+                                                            <div className='flex items-center gap-1.5 text-forest dark:text-forest-dark'>
+                                                                <Video
+                                                                    size={14}
+                                                                />
+                                                                <a
+                                                                    href={
+                                                                        event.meetingLink
+                                                                    }
+                                                                    target='_blank'
+                                                                    rel='noreferrer'
+                                                                    className='underline'>
+                                                                    Join Google
+                                                                    Meet Room
+                                                                </a>
+                                                            </div>
                                                         )}
                                                     </div>
 
-                                                    {selectedSlot?.eventId ===
-                                                        event.id && (
+                                                    <div className='mt-4 flex flex-wrap gap-2'>
+                                                        <button
+                                                            type='button'
+                                                            onClick={() => {
+                                                                setActionError(
+                                                                    ''
+                                                                );
+                                                                setSelectedReschedule(
+                                                                    null
+                                                                );
+                                                                setRescheduleEventId(
+                                                                    isChangingDate ?
+                                                                        null
+                                                                    :   event.id
+                                                                );
+                                                            }}
+                                                            className='inline-flex items-center gap-1.5 rounded-md border border-(--border-line) px-3 py-1.5 text-xs font-semibold text-(--text-main) transition-colors hover:bg-(--bg-panel)'>
+                                                            <CalendarDays
+                                                                size={13}
+                                                                aria-hidden='true'
+                                                            />
+                                                            {isChangingDate ?
+                                                                'Cancel'
+                                                            :   'Change date'}
+                                                        </button>
                                                         <button
                                                             type='button'
                                                             onClick={() =>
-                                                                selectRangeMutation.mutate(
-                                                                    selectedSlot
+                                                                handleDecline(
+                                                                    event.id
                                                                 )
                                                             }
                                                             disabled={
-                                                                selectRangeMutation.isPending
+                                                                declineMutation.isPending
                                                             }
-                                                            className='mt-3 w-full inline-flex items-center justify-center gap-2 py-2 bg-(--btn-main-bg) text-(--btn-main-text) text-xs font-mono uppercase tracking-wider rounded font-semibold hover:opacity-90 disabled:opacity-50'>
-                                                            {selectRangeMutation.isPending && (
-                                                                <Loader2
-                                                                    size={14}
-                                                                    className='animate-spin'
-                                                                />
-                                                            )}
-                                                            {(
-                                                                selectRangeMutation.isPending
-                                                            ) ?
-                                                                'Locking Slot...'
-                                                            :   'Confirm Selected Slot'
-                                                            }
+                                                            className='inline-flex items-center gap-1.5 rounded-md border border-red-500/30 px-3 py-1.5 text-xs font-semibold text-red-600 transition-colors hover:bg-red-500/10 disabled:opacity-50 dark:text-red-400'>
+                                                            Decline offer
                                                         </button>
+                                                    </div>
+
+                                                    {isChangingDate && (
+                                                        <div className='mt-3 rounded-md border border-(--border-line) bg-(--bg-canvas) p-3'>
+                                                            <p className='text-xs text-(--text-sub)'>
+                                                                Choose another
+                                                                slot inside the
+                                                                recruiter&apos;s
+                                                                interview
+                                                                window.
+                                                            </p>
+
+                                                            {optionsLoading ?
+                                                                <div className='mt-3 flex items-center gap-2 text-xs text-(--text-sub)'>
+                                                                    <Loader2
+                                                                        size={
+                                                                            13
+                                                                        }
+                                                                        className='animate-spin'
+                                                                    />
+                                                                    Loading
+                                                                    available
+                                                                    slots...
+                                                                </div>
+                                                            : optionsError ?
+                                                                <div className='mt-3 flex items-center gap-2 text-xs text-red-600 dark:text-red-400'>
+                                                                    <AlertCircle
+                                                                        size={
+                                                                            13
+                                                                        }
+                                                                    />
+                                                                    Could not load
+                                                                    alternate
+                                                                    slots.
+                                                                </div>
+                                                            : !rescheduleOptions ||
+                                                                  rescheduleOptions.length ===
+                                                                      0 ?
+                                                                <p className='mt-3 text-xs text-(--text-sub)'>
+                                                                    No alternate
+                                                                    slots are
+                                                                    available.
+                                                                </p>
+                                                            :   <div className='mt-3 max-h-56 space-y-2 overflow-y-auto'>
+                                                                    {rescheduleOptions.map(
+                                                                        (
+                                                                            option: any
+                                                                        ) => {
+                                                                            const selected =
+                                                                                selectedReschedule?.eventId ===
+                                                                                    event.id &&
+                                                                                selectedReschedule?.start ===
+                                                                                    option.startTime;
+
+                                                                            return (
+                                                                                <button
+                                                                                    key={
+                                                                                        option.startTime
+                                                                                    }
+                                                                                    type='button'
+                                                                                    onClick={() =>
+                                                                                        setSelectedReschedule(
+                                                                                            {
+                                                                                                eventId:
+                                                                                                    event.id,
+                                                                                                start: option.startTime,
+                                                                                                end: option.endTime,
+                                                                                            }
+                                                                                        )
+                                                                                    }
+                                                                                    className={`flex w-full items-center justify-between rounded border px-3 py-2 text-left font-mono text-xs transition-colors ${
+                                                                                        selected ?
+                                                                                            'border-(--text-main) bg-(--bg-panel) ring-1 ring-(--text-main)'
+                                                                                        :   'border-(--border-line) hover:border-(--text-sub)'
+                                                                                    }`}>
+                                                                                    <span>
+                                                                                        {new Date(
+                                                                                            option.startTime
+                                                                                        ).toLocaleString(
+                                                                                            [],
+                                                                                            {
+                                                                                                dateStyle:
+                                                                                                    'medium',
+                                                                                                timeStyle:
+                                                                                                    'short',
+                                                                                            }
+                                                                                        )}
+                                                                                    </span>
+                                                                                    <ChevronRight
+                                                                                        size={
+                                                                                            14
+                                                                                        }
+                                                                                    />
+                                                                                </button>
+                                                                            );
+                                                                        }
+                                                                    )}
+                                                                </div>
+                                                            }
+
+                                                            <button
+                                                                type='button'
+                                                                onClick={() =>
+                                                                    selectedReschedule &&
+                                                                    rescheduleMutation.mutate(
+                                                                        selectedReschedule
+                                                                    )
+                                                                }
+                                                                disabled={
+                                                                    !selectedReschedule ||
+                                                                    selectedReschedule.eventId !==
+                                                                        event.id ||
+                                                                    rescheduleMutation.isPending
+                                                                }
+                                                                className='mt-3 w-full rounded bg-(--btn-main-bg) py-2 text-xs font-mono uppercase tracking-wider text-(--btn-main-text) hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50'>
+                                                                {rescheduleMutation.isPending ?
+                                                                    'Rescheduling...'
+                                                                :   'Confirm new date'}
+                                                            </button>
+                                                        </div>
                                                     )}
-                                                </div>
+                                                </>
+                                            :   <p className='mt-3 flex items-center gap-2 text-xs text-(--text-sub)'>
+                                                    <Clock
+                                                        size={14}
+                                                        className='text-amber-accent'
+                                                    />
+                                                    Your interview is being
+                                                    assigned. You can reschedule
+                                                    or decline once it is
+                                                    confirmed.
+                                                </p>
                                             }
+
+                                            {actionError && (
+                                                <p className='mt-2 text-xs text-red-600 dark:text-red-400'>
+                                                    {actionError}
+                                                </p>
+                                            )}
                                         </div>
                                     );
                                 })}
@@ -354,68 +500,93 @@ export default function ApplicantDashboardView() {
                                 </p>
                             </div>
                         :   <div className='space-y-4'>
-                                {appsData?.map((app: any) => (
-                                    <div
-                                        key={app.id}
-                                        className='relative p-5 rounded-md border border-(--border-line) bg-(--bg-canvas) space-y-3'>
-                                        <div className='flex justify-between items-start'>
-                                            <div>
-                                                <div className='font-mono text-xs text-(--text-sub)'>
-                                                    {app.anonymousId} • Resume:{' '}
-                                                    {app.profile.title}
-                                                </div>
-                                                <h4 className='font-grotesque font-bold text-2xl text-(--text-main)'>
-                                                    {app.position.title}
-                                                </h4>
-                                                <div className='text-xs text-(--text-sub)'>
-                                                    {app.position.companyName} •{' '}
-                                                    {app.position.location}
-                                                </div>
-                                            </div>
-                                            <span
-                                                className={`font-mono text-xs px-2.5 py-1 rounded border ${
-                                                    app.status === 'REJECTED' ?
-                                                        'border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400'
-                                                    : app.status ===
-                                                          'ELIGIBLE' ||
-                                                      app.status ===
-                                                          'INTERVIEW_SCHEDULED' ?
-                                                        'border-forest/30 bg-forest/10 text-forest dark:text-forest-dark'
-                                                    :   'border-(--border-line) bg-(--bg-panel)'
-                                                }`}>
-                                                {formatApplicationStatus(app.status)}
-                                            </span>
-                                        </div>
+                                {appsData?.map((app: any) => {
+                                    const isRejected =
+                                        app.status === 'REJECTED' ||
+                                        app.status === 'DECLINED';
+                                    const isPositive =
+                                        app.status === 'ELIGIBLE' ||
+                                        app.status === 'INTERVIEW_PENDING' ||
+                                        app.status === 'INTERVIEW_SCHEDULED';
+                                    const isOnHold =
+                                        app.status === 'ON_HOLD';
 
-                                        {app.gapAnalysis && (
-                                            <div className='mt-4 p-4 border-2 border-amber-accent rounded-md bg-(--bg-canvas)'>
-                                                <span className='font-mono text-[10px] text-amber-accent border border-amber-accent/40 px-2 py-0.5 rounded uppercase tracking-wider inline-block mb-2'>
-                                                    {app.gapAnalysis.badge}
+                                    return (
+                                        <div
+                                            key={app.id}
+                                            className='relative p-5 rounded-md border border-(--border-line) bg-(--bg-canvas) space-y-3'>
+                                            <div className='flex justify-between items-start'>
+                                                <div>
+                                                    <div className='font-mono text-xs text-(--text-sub)'>
+                                                        {app.anonymousId} •
+                                                        Resume:{' '}
+                                                        {app.profile.title}
+                                                    </div>
+                                                    <h4 className='font-grotesque font-bold text-2xl text-(--text-main)'>
+                                                        {app.position.title}
+                                                    </h4>
+                                                    <div className='text-xs text-(--text-sub)'>
+                                                        {
+                                                            app.position
+                                                                .companyName
+                                                        }{' '}
+                                                        •{' '}
+                                                        {
+                                                            app.position
+                                                                .location
+                                                        }
+                                                    </div>
+                                                </div>
+                                                <span
+                                                    className={`font-mono text-xs px-2.5 py-1 rounded border ${
+                                                        isRejected ?
+                                                            'border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400'
+                                                        : isPositive ?
+                                                            'border-forest/30 bg-forest/10 text-forest dark:text-forest-dark'
+                                                        : isOnHold ?
+                                                            'border-amber-accent/40 bg-amber-accent/10 text-amber-accent'
+                                                        :   'border-(--border-line) bg-(--bg-panel)'
+                                                    }`}>
+                                                    {formatApplicationStatus(
+                                                        app.status
+                                                    )}
                                                 </span>
-                                                <div className='text-xs text-(--text-main) font-medium mb-1'>
-                                                    {
-                                                        app.gapAnalysis
-                                                            .headlineReason
-                                                    }
-                                                </div>
-                                                <div className='bg-(--bg-panel) p-3 rounded text-xs text-(--text-sub) mt-2'>
-                                                    <span className='font-semibold text-(--text-main) block mb-0.5'>
-                                                        Recommended Bridge Path:
-                                                    </span>
-                                                    {
-                                                        app.gapAnalysis
-                                                            .recommendedBridgePath
-                                                            ?.title
-                                                    }
-                                                </div>
                                             </div>
-                                        )}
-                                        <span
-                                            aria-hidden='true'
-                                            className='snap-anchor'
-                                        />
-                                    </div>
-                                ))}
+
+                                            {app.gapAnalysis && (
+                                                <div className='mt-4 p-4 border-2 border-amber-accent rounded-md bg-(--bg-canvas)'>
+                                                    <span className='font-mono text-[10px] text-amber-accent border border-amber-accent/40 px-2 py-0.5 rounded uppercase tracking-wider inline-block mb-2'>
+                                                        {
+                                                            app.gapAnalysis
+                                                                .badge
+                                                        }
+                                                    </span>
+                                                    <div className='text-xs text-(--text-main) font-medium mb-1'>
+                                                        {
+                                                            app.gapAnalysis
+                                                                .headlineReason
+                                                        }
+                                                    </div>
+                                                    <div className='bg-(--bg-panel) p-3 rounded text-xs text-(--text-sub) mt-2'>
+                                                        <span className='font-semibold text-(--text-main) block mb-0.5'>
+                                                            Recommended Bridge
+                                                            Path:
+                                                        </span>
+                                                        {
+                                                            app.gapAnalysis
+                                                                .recommendedBridgePath
+                                                                ?.title
+                                                        }
+                                                    </div>
+                                                </div>
+                                            )}
+                                            <span
+                                                aria-hidden='true'
+                                                className='snap-anchor'
+                                            />
+                                        </div>
+                                    );
+                                })}
                             </div>
                         }
                     </div>

@@ -64,7 +64,7 @@ const APPLICANT_FEATURES: Feature[] = [
         icon: CalendarCheck2,
         title: 'Interviews that actually happen',
         description:
-            'Confirm a slot without the email chain, then track every interview from one dashboard.',
+            'Receive an interview slot automatically, reschedule or decline it, and track every interview from one dashboard.',
     },
 ];
 
@@ -85,7 +85,7 @@ const RECRUITER_FEATURES: Feature[] = [
         icon: CalendarCheck2,
         title: 'Scheduling without the back-and-forth',
         description:
-            'Offer interview slots, collect confirmations, and keep the calendar in sync automatically.',
+            'Auto-assign interviews, handle reschedules and declines, and keep the calendar in sync automatically.',
     },
     {
         icon: BarChart3,

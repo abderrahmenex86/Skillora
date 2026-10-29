@@ -87,7 +87,7 @@ export default function InsightsView() {
                     <div className='panel-scroll panel-snap flex-1 space-y-4 p-6'>
                     <p className='text-xs text-(--text-sub)'>
                         These criteria appeared most frequently in your
-                        redirection dossiers across all cohorts:
+                        rejection dossiers across all cohorts:
                     </p>
 
                     <div className='space-y-3'>

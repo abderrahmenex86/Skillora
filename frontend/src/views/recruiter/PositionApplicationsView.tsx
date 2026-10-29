@@ -33,7 +33,7 @@ export default function PositionApplicationsView() {
     const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
     const [resumeOpen, setResumeOpen] = useState(false);
     const [overrideStatus, setOverrideStatus] = useState<
-        'ELIGIBLE' | 'REDIRECTED'
+        'ELIGIBLE' | 'REJECTED'
     >('ELIGIBLE');
     const [overrideNotes, setOverrideNotes] = useState('');
     const [overrideError, setOverrideError] = useState('');
@@ -231,11 +231,16 @@ export default function PositionApplicationsView() {
                                     <div className='flex items-center gap-2 mt-2'>
                                         <span
                                             className={`font-mono text-[10px] px-2 py-0.5 rounded border ${
-                                                app.status === 'REJECTED' ?
+                                                app.status === 'REJECTED' ||
+                                                app.status === 'DECLINED' ?
                                                     'border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400'
+                                                : app.status === 'ON_HOLD' ?
+                                                    'border-amber-accent/40 bg-amber-accent/10 text-amber-accent'
                                                 : app.status === 'ELIGIBLE' ||
                                                   app.status ===
-                                                      'INTERVIEW_SCHEDULED' ?
+                                                      'INTERVIEW_SCHEDULED' ||
+                                                  app.status ===
+                                                      'INTERVIEW_PENDING' ?
                                                     'border-forest/30 bg-forest/10 text-forest dark:text-forest-dark'
                                                 :   'border-(--border-line) text-(--text-sub)'
                                             }`}>
@@ -396,19 +401,19 @@ export default function PositionApplicationsView() {
                                             <input
                                                 type='radio'
                                                 name='overrideStatus'
-                                                value='REDIRECTED'
+                                                value='REJECTED'
                                                 checked={
                                                     overrideStatus ===
-                                                    'REDIRECTED'
+                                                    'REJECTED'
                                                 }
                                                 onChange={() =>
                                                     setOverrideStatus(
-                                                        'REDIRECTED'
+                                                        'REJECTED'
                                                     )
                                                 }
                                                 disabled={isDeadlinePassed}
                                             />
-                                            Redirect (Issue Gap Roadmap)
+                                            Reject (Issue Gap Roadmap)
                                         </label>
                                     </div>
 

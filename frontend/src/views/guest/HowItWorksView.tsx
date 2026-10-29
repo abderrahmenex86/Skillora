@@ -22,14 +22,18 @@ flowchart TD
     F --> G[Parse + normalize]
     G --> H[Audit against rubric]
     H --> I{Qualifications verified?}
-    I -->|Yes| J[Unlock interview slots]
-    J --> K[Calendar locked]
-    I -->|No| L[Gap roadmap]
-    L --> M[Re-apply with new proof]
+    I -->|Yes| J[Rank eligible candidates]
+    J --> K[Auto-assign interview]
+    K --> L[Accepted by default]
+    L --> M[Applicant reschedules or declines]
+    J -->|Capacity full| N[On hold]
+    M -->|Declines| O[Promote highest on-hold]
+    I -->|No| P[Gap roadmap]
+    P --> Q[Re-apply with new proof]
     classDef accent fill:{{accent}},stroke:{{accent}},color:{{onAccent}};
     classDef soft fill:{{accentSoft}},stroke:{{muted}},color:{{accentText}};
-    class F,J,K accent;
-    class D,E,I,L,M soft;
+    class F,K,L accent;
+    class D,E,I,J,M,N,O,P,Q soft;
 `;
 
 const STEPS = [
@@ -54,7 +58,7 @@ const STEPS = [
         label: 'A deterministic outcome',
         title: 'An interview or a concrete next step.',
         description:
-            'Eligible applicants unlock calendar slots they can confirm from their dashboard. Redirected applicants receive a specific gap roadmap with the exact proof to build before re-applying.',
+            'Eligible applicants are ranked and receive an interview slot automatically, accepted by default with options to reschedule or decline. Rejected applicants receive a specific gap roadmap with the exact proof to build before re-applying.',
         icon: Route,
     },
 ];
