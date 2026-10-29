@@ -155,11 +155,17 @@ export async function scheduleApplicationInterview(
  * Promotes the highest-scoring eligible candidate on hold for a position.
  * Called when a scheduled applicant declines the interview.
  */
-export async function promoteNextOnHold(positionId: string) {
+export async function promoteNextOnHold(
+    positionId: string,
+    excludeApplicationId?: string
+) {
     const next = await prisma.application.findFirst({
         where: {
             positionId,
             status: 'ON_HOLD',
+            ...(excludeApplicationId ?
+                { id: { not: excludeApplicationId } }
+            :   {}),
         },
         orderBy: [{ matchScore: 'desc' }, { appliedAt: 'asc' }],
         select: { id: true },

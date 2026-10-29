@@ -21,6 +21,10 @@ router.patch('/positions/:id/close', (req, res, next) =>
     recruiterController.closePosition(req, res, next)
 );
 
+router.patch('/positions/:id/deadline', (req, res, next) =>
+    recruiterController.extendDeadline(req, res, next)
+);
+
 router.get('/positions/:id/applications', (req, res, next) =>
     recruiterController.getPositionApplications(req, res, next)
 );

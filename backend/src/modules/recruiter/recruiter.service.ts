@@ -4,9 +4,10 @@ import {
     CreatePositionInput,
     OverrideDecisionInput,
     ConfigureSlotInput,
+    ExtendDeadlineInput,
     UpgradeCompanyPlanInput,
 } from './recruiter.schema.js';
-import { ApplicationStatus } from '@prisma/client';
+import { coordinatorAgent } from '../../agents/coordinator.agent.js';
 import { notifyApplicationStatus } from '../../services/messages.js';
 import {
     promoteNextOnHold,
@@ -286,57 +287,176 @@ export class RecruiterService {
             );
         }
 
-        if (new Date() >= new Date(application.position.deadline)) {
-            throw new AppError(
-                400,
-                'Manual override window is closed. Decisions become permanent after the position deadline passes.'
-            );
-        }
+        const deadlinePassed =
+            new Date() >= new Date(application.position.deadline);
+        const existingInterview = await prisma.interviewEvent.findUnique({
+            where: { applicationId },
+        });
+        const hasActiveInterview =
+            existingInterview !== null &&
+            existingInterview.status !== 'CANCELED';
+        const capacity = application.position.interviewCapacity;
 
-        let targetStatus: ApplicationStatus = input.newStatus;
+        const updateDecision = async (
+            status: 'INTERVIEW_SCHEDULED' | 'ON_HOLD' | 'REJECTED'
+        ) => {
+            const updated = await prisma.application.update({
+                where: { id: applicationId },
+                data: {
+                    status,
+                    recruiterOverride: true,
+                    overrideNotes: input.notes,
+                },
+            });
 
-        if (input.newStatus === ApplicationStatus.ELIGIBLE) {
-            const outcome = await scheduleApplicationInterview(applicationId);
+            await notifyApplicationStatus(applicationId, updated.status);
+            return updated;
+        };
 
-            if (outcome.status === 'ON_HOLD') {
+        if (input.action === 'PROMOTE') {
+            if (deadlinePassed) {
                 throw new AppError(
                     400,
-                    'Interview capacity reached. Increase the capacity, reject this candidate, or keep them on hold.'
+                    'Standard promotion is only available before the deadline. Extend the deadline or promote with an extra interview seat.'
                 );
             }
+
+            if (!hasActiveInterview && capacity !== null) {
+                const usedSeats = await prisma.interviewEvent.count({
+                    where: {
+                        application: {
+                            positionId: application.positionId,
+                        },
+                        status: {
+                            in: [
+                                'RANGE_PENDING',
+                                'SLOT_CONFIRMED',
+                                'COMPLETED',
+                            ],
+                        },
+                    },
+                });
+
+                if (usedSeats >= capacity) {
+                    throw new AppError(
+                        400,
+                        'No free interview seat. Promote with extra seats or keep this candidate on hold.'
+                    );
+                }
+            }
+
+            if (!hasActiveInterview) {
+                const availability =
+                    await coordinatorAgent.getAvailableSlots(
+                        application.positionId,
+                        applicationId
+                    );
+
+                if (availability.length === 0) {
+                    throw new AppError(
+                        400,
+                        'No interview availability inside the configured range. Add availability or extend the interview window.'
+                    );
+                }
+            }
+
+            const outcome =
+                await scheduleApplicationInterview(applicationId);
 
             if (outcome.status !== 'INTERVIEW_SCHEDULED') {
                 throw new AppError(
                     400,
-                    'No interview availability inside the configured range. Add recruiter slots or widen the interview range.'
+                    'Could not schedule the interview. Add availability or keep the candidate on hold.'
                 );
             }
 
-            targetStatus = ApplicationStatus.INTERVIEW_SCHEDULED;
+            return updateDecision('INTERVIEW_SCHEDULED');
         }
 
-        const existingInterview = await prisma.interviewEvent.findUnique({
-            where: { applicationId },
-            select: { id: true },
-        });
+        if (input.action === 'PROMOTE_EXTEND_CAPACITY') {
+            if (hasActiveInterview || capacity === null) {
+                const outcome =
+                    await scheduleApplicationInterview(applicationId);
 
-        const updated = await prisma.application.update({
-            where: { id: applicationId },
-            data: {
-                status: targetStatus,
-                recruiterOverride: true,
-                overrideNotes: input.notes,
-            },
-        });
+                if (outcome.status !== 'INTERVIEW_SCHEDULED') {
+                    throw new AppError(
+                        400,
+                        'Could not schedule the interview. Add availability or keep the candidate on hold.'
+                    );
+                }
 
-        await notifyApplicationStatus(applicationId, updated.status);
+                return updateDecision('INTERVIEW_SCHEDULED');
+            }
 
-        if (input.newStatus === ApplicationStatus.REJECTED && existingInterview) {
+            const availability = await coordinatorAgent.getAvailableSlots(
+                application.positionId,
+                applicationId
+            );
+
+            if (availability.length === 0) {
+                throw new AppError(
+                    400,
+                    'No interview availability inside the configured range. Add availability or extend the interview window.'
+                );
+            }
+
+            await prisma.position.update({
+                where: { id: application.positionId },
+                data: { interviewCapacity: capacity + 1 },
+            });
+
+            try {
+                const outcome =
+                    await scheduleApplicationInterview(applicationId);
+
+                if (outcome.status !== 'INTERVIEW_SCHEDULED') {
+                    throw new AppError(
+                        400,
+                        'Could not schedule the interview after adding a seat.'
+                    );
+                }
+
+                return updateDecision('INTERVIEW_SCHEDULED');
+            } catch (error) {
+                await prisma.position.update({
+                    where: { id: application.positionId },
+                    data: { interviewCapacity: capacity },
+                });
+                throw error;
+            }
+        }
+
+        if (input.action === 'HOLD') {
+            if (hasActiveInterview) {
+                await prisma.interviewEvent.update({
+                    where: { applicationId },
+                    data: { status: 'CANCELED' },
+                });
+            }
+
+            const updated = await updateDecision('ON_HOLD');
+
+            if (hasActiveInterview) {
+                await promoteNextOnHold(
+                    application.positionId,
+                    applicationId
+                );
+            }
+
+            return updated;
+        }
+
+        if (hasActiveInterview) {
             await prisma.interviewEvent.update({
                 where: { applicationId },
                 data: { status: 'CANCELED' },
             });
-            await promoteNextOnHold(application.position.id);
+        }
+
+        const updated = await updateDecision('REJECTED');
+
+        if (hasActiveInterview) {
+            await promoteNextOnHold(application.positionId);
         }
 
         return updated;
@@ -354,6 +474,42 @@ export class RecruiterService {
         return prisma.position.update({
             where: { id: positionId },
             data: { status: 'CLOSED' },
+        });
+    }
+
+    async extendDeadline(
+        recruiterId: string,
+        positionId: string,
+        input: ExtendDeadlineInput
+    ) {
+        const position = await prisma.position.findFirst({
+            where: { id: positionId, recruiterId },
+        });
+
+        if (!position) {
+            throw new AppError(404, 'Position not found or access denied');
+        }
+
+        const now = new Date();
+        const newDeadline = new Date(input.newDeadline);
+
+        if (new Date(position.deadline) <= now) {
+            throw new AppError(
+                400,
+                'The application deadline has already passed and can no longer be extended.'
+            );
+        }
+
+        if (newDeadline <= new Date(position.deadline)) {
+            throw new AppError(
+                400,
+                'The new deadline must be later than the current deadline.'
+            );
+        }
+
+        return prisma.position.update({
+            where: { id: positionId },
+            data: { deadline: newDeadline },
         });
     }
 

@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { ApplicationStatus } from '@prisma/client';
 
 export const CreatePositionSchema = z
     .object({
@@ -46,13 +45,22 @@ export const CreatePositionSchema = z
         }
     );
 
+export const OverrideActionSchema = z.enum([
+    'PROMOTE',
+    'PROMOTE_EXTEND_CAPACITY',
+    'HOLD',
+    'REJECT',
+]);
+
 export const OverrideDecisionSchema = z.object({
-    newStatus: z.enum([
-        ApplicationStatus.ELIGIBLE,
-        ApplicationStatus.REJECTED,
-        ApplicationStatus.NEEDS_REVIEW,
-    ]),
+    action: OverrideActionSchema,
     notes: z.string().min(3, 'Override reason notes are required'),
+});
+
+export const ExtendDeadlineSchema = z.object({
+    newDeadline: z
+        .string()
+        .datetime('New deadline must be an ISO 8601 date string'),
 });
 
 export const ConfigureSlotSchema = z.object({
@@ -77,6 +85,8 @@ export const UpgradeCompanyPlanSchema = z.object({
 export type ConfigureSlotInput = z.infer<typeof ConfigureSlotSchema>;
 export type CreatePositionInput = z.infer<typeof CreatePositionSchema>;
 export type OverrideDecisionInput = z.infer<typeof OverrideDecisionSchema>;
+export type OverrideAction = z.infer<typeof OverrideActionSchema>;
+export type ExtendDeadlineInput = z.infer<typeof ExtendDeadlineSchema>;
 export type UpgradeCompanyPlanInput = z.infer<
     typeof UpgradeCompanyPlanSchema
 >;

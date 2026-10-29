@@ -32,11 +32,14 @@ export default function PositionApplicationsView() {
     const queryClient = useQueryClient();
     const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
     const [resumeOpen, setResumeOpen] = useState(false);
-    const [overrideStatus, setOverrideStatus] = useState<
-        'ELIGIBLE' | 'REJECTED'
-    >('ELIGIBLE');
+    const [overrideAction, setOverrideAction] = useState<
+        'PROMOTE' | 'PROMOTE_EXTEND_CAPACITY' | 'HOLD' | 'REJECT'
+    >('PROMOTE');
     const [overrideNotes, setOverrideNotes] = useState('');
     const [overrideError, setOverrideError] = useState('');
+    const [deadlineModalOpen, setDeadlineModalOpen] = useState(false);
+    const [newDeadline, setNewDeadline] = useState('');
+    const [deadlineError, setDeadlineError] = useState('');
 
     const { data: positionData } = useQuery({
         queryKey: ['position-detail', positionId],
@@ -61,17 +64,17 @@ export default function PositionApplicationsView() {
     const overrideMutation = useMutation({
         mutationFn: async ({
             appId,
-            status,
+            action,
             notes,
         }: {
             appId: string;
-            status: string;
+            action: string;
             notes: string;
         }) => {
             const { data } = await apiClient.post(
                 `/recruiter/applications/${appId}/override`,
                 {
-                    newStatus: status,
+                    action,
                     notes,
                 }
             );
@@ -80,6 +83,12 @@ export default function PositionApplicationsView() {
         onSuccess: () => {
             queryClient.invalidateQueries({
                 queryKey: ['position-applications', positionId],
+            });
+            queryClient.invalidateQueries({
+                queryKey: ['position-detail', positionId],
+            });
+            queryClient.invalidateQueries({
+                queryKey: ['recruiter-positions'],
             });
             setOverrideNotes('');
             setOverrideError('');
@@ -95,6 +104,50 @@ export default function PositionApplicationsView() {
     const isDeadlinePassed =
         positionData ? new Date() >= new Date(positionData.deadline) : false;
     const selectedApplicationId = selectedApp?.id;
+
+    useEffect(() => {
+        if (isDeadlinePassed && overrideAction === 'PROMOTE') {
+            setOverrideAction('PROMOTE_EXTEND_CAPACITY');
+        }
+    }, [isDeadlinePassed, overrideAction]);
+
+    const extendDeadlineMutation = useMutation({
+        mutationFn: async (value: string) => {
+            const { data } = await apiClient.patch(
+                `/recruiter/positions/${positionId}/deadline`,
+                { newDeadline: new Date(value).toISOString() }
+            );
+            return data.position;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: ['position-detail', positionId],
+            });
+            queryClient.invalidateQueries({
+                queryKey: ['recruiter-positions'],
+            });
+            setDeadlineModalOpen(false);
+            setNewDeadline('');
+            setDeadlineError('');
+        },
+        onError: (err: any) => {
+            setDeadlineError(
+                err.response?.data?.error || 'Could not extend the deadline.'
+            );
+        },
+    });
+
+    const handleExtendDeadline = (event: React.FormEvent) => {
+        event.preventDefault();
+        setDeadlineError('');
+
+        if (!newDeadline) {
+            setDeadlineError('Choose a new deadline first.');
+            return;
+        }
+
+        extendDeadlineMutation.mutate(newDeadline);
+    };
 
     const {
         data: resumePreview,
@@ -129,7 +182,7 @@ export default function PositionApplicationsView() {
         setOverrideError('');
         overrideMutation.mutate({
             appId: selectedApp.id,
-            status: overrideStatus,
+            action: overrideAction,
             notes: overrideNotes,
         });
     };
@@ -147,12 +200,28 @@ export default function PositionApplicationsView() {
                         <h1 className='font-grotesque font-extrabold text-3xl text-(--text-main)'>
                             {positionData?.title} — Candidate Cohort
                         </h1>
-                        <div className='text-xs text-(--text-sub) font-mono'>
-                            Applications close:{' '}
-                            {positionData?.deadline ?
-                                new Date(positionData.deadline).toLocaleString()
-                            :   ''}{' '}
-                            {isDeadlinePassed ? '(CLOSED)' : '(ACTIVE)'}
+                        <div className='mt-1 flex flex-wrap items-center gap-3 text-xs text-(--text-sub) font-mono'>
+                            <span>
+                                Applications close:{' '}
+                                {positionData?.deadline ?
+                                    new Date(
+                                        positionData.deadline
+                                    ).toLocaleString()
+                                :   ''}{' '}
+                                {isDeadlinePassed ? '(CLOSED)' : '(ACTIVE)'}
+                            </span>
+                            {!isDeadlinePassed && positionData && (
+                                <button
+                                    type='button'
+                                    onClick={() => {
+                                        setDeadlineError('');
+                                        setNewDeadline('');
+                                        setDeadlineModalOpen(true);
+                                    }}
+                                    className='rounded border border-(--border-line) px-2.5 py-1 text-[10px] font-semibold text-(--text-main) transition-colors hover:bg-(--bg-panel)'>
+                                    Extend deadline
+                                </button>
+                            )}
                         </div>
                         <div className='mt-1 text-xs text-(--text-sub) font-mono'>
                             Interviews:{' '}
@@ -170,7 +239,7 @@ export default function PositionApplicationsView() {
                     </div>
                     {isDeadlinePassed && (
                         <span className='font-mono text-xs px-2.5 py-1 bg-amber-accent/10 text-amber-accent rounded'>
-                            Override Locked (Deadline Passed)
+                            Deadline passed
                         </span>
                     )}
                 </div>
@@ -360,12 +429,14 @@ export default function PositionApplicationsView() {
 
                             <div className='p-4 border border-(--border-line) rounded-md bg-(--bg-panel)'>
                                 <h4 className='font-grotesque font-bold text-xl text-(--text-main) mb-2'>
-                                    Manual Intervention Override
+                                    Manual Review Decision
                                 </h4>
                                 <p className='text-xs text-(--text-sub) mb-4'>
-                                    Recruiters can manually override candidate
-                                    status strictly before the position closing
-                                    deadline.
+                                    Standard promotion uses an existing
+                                    interview seat and is available before the
+                                    deadline. Adding a seat, keeping the
+                                    candidate on hold, and rejecting remain
+                                    available after the deadline.
                                 </p>
 
                                 {overrideError && (
@@ -377,51 +448,79 @@ export default function PositionApplicationsView() {
                                 <form
                                     onSubmit={handleOverrideSubmit}
                                     className='space-y-3'>
-                                    <div className='flex gap-4'>
-                                        <label className='flex items-center gap-1.5 text-xs text-(--text-main)'>
-                                            <input
-                                                type='radio'
-                                                name='overrideStatus'
-                                                value='ELIGIBLE'
-                                                checked={
-                                                    overrideStatus ===
-                                                    'ELIGIBLE'
-                                                }
-                                                onChange={() =>
-                                                    setOverrideStatus(
-                                                        'ELIGIBLE'
-                                                    )
-                                                }
-                                                disabled={isDeadlinePassed}
-                                            />
-                                            Promote to Eligible (Schedule
-                                            Interview)
-                                        </label>
-                                        <label className='flex items-center gap-1.5 text-xs text-(--text-main)'>
-                                            <input
-                                                type='radio'
-                                                name='overrideStatus'
-                                                value='REJECTED'
-                                                checked={
-                                                    overrideStatus ===
-                                                    'REJECTED'
-                                                }
-                                                onChange={() =>
-                                                    setOverrideStatus(
-                                                        'REJECTED'
-                                                    )
-                                                }
-                                                disabled={isDeadlinePassed}
-                                            />
-                                            Reject (Issue Gap Roadmap)
-                                        </label>
+                                    <div className='grid gap-2 sm:grid-cols-2'>
+                                        {[
+                                            {
+                                                value: 'PROMOTE',
+                                                label: 'Promote to eligible',
+                                                hint: 'Use a free interview seat. Before the deadline only.',
+                                                disabled: isDeadlinePassed,
+                                            },
+                                            {
+                                                value: 'PROMOTE_EXTEND_CAPACITY',
+                                                label: 'Promote + extend interview seats',
+                                                hint: 'Add one final-round seat and schedule immediately.',
+                                                disabled: false,
+                                            },
+                                            {
+                                                value: 'HOLD',
+                                                label: 'Keep on hold',
+                                                hint: 'Eligible, waitlisted for the next available seat.',
+                                                disabled: false,
+                                            },
+                                            {
+                                                value: 'REJECT',
+                                                label: 'Reject',
+                                                hint: 'Close the application and issue feedback.',
+                                                disabled: false,
+                                            },
+                                        ].map((option) => (
+                                            <label
+                                                key={option.value}
+                                                className={`flex gap-2 rounded border p-3 text-xs ${
+                                                    option.disabled ?
+                                                        'cursor-not-allowed border-(--border-line) opacity-50'
+                                                    : overrideAction ===
+                                                        option.value ?
+                                                        'cursor-pointer border-(--text-main) bg-(--bg-canvas)'
+                                                    :   'cursor-pointer border-(--border-line) hover:bg-(--bg-canvas)'
+                                                }`}>
+                                                <input
+                                                    type='radio'
+                                                    name='overrideAction'
+                                                    value={option.value}
+                                                    checked={
+                                                        overrideAction ===
+                                                        option.value
+                                                    }
+                                                    onChange={() =>
+                                                        setOverrideAction(
+                                                            option.value as
+                                                                | 'PROMOTE'
+                                                                | 'PROMOTE_EXTEND_CAPACITY'
+                                                                | 'HOLD'
+                                                                | 'REJECT'
+                                                        )
+                                                    }
+                                                    disabled={option.disabled}
+                                                    className='mt-0.5'
+                                                />
+                                                <span>
+                                                    <span className='block font-semibold text-(--text-main)'>
+                                                        {option.label}
+                                                    </span>
+                                                    <span className='mt-0.5 block text-[11px] leading-relaxed text-(--text-sub)'>
+                                                        {option.hint}
+                                                    </span>
+                                                </span>
+                                            </label>
+                                        ))}
                                     </div>
 
                                     <input
                                         type='text'
                                         required
-                                        disabled={isDeadlinePassed}
-                                        placeholder='Override justification notes'
+                                        placeholder='Decision notes (required for audit)'
                                         value={overrideNotes}
                                         onChange={(e) =>
                                             setOverrideNotes(e.target.value)
@@ -431,14 +530,11 @@ export default function PositionApplicationsView() {
 
                                     <button
                                         type='submit'
-                                        disabled={
-                                            isDeadlinePassed ||
-                                            overrideMutation.isPending
-                                        }
+                                        disabled={overrideMutation.isPending}
                                         className='w-full py-2 bg-(--btn-main-bg) text-(--btn-main-text) text-xs font-mono uppercase tracking-wider rounded font-semibold hover:opacity-90 disabled:opacity-50'>
                                         {overrideMutation.isPending ?
-                                            'Saving Override...'
-                                        :   'Apply Manual Override'}
+                                            'Saving Decision...'
+                                        :   'Apply Manual Decision'}
                                     </button>
                                 </form>
                             </div>
@@ -632,6 +728,65 @@ export default function PositionApplicationsView() {
                             :   null}
                         </div>
                     </div>
+                </div>
+            )}
+            {deadlineModalOpen && (
+                <div
+                    className='modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'
+                    role='dialog'
+                    aria-modal='true'
+                    aria-label='Extend application deadline'>
+                    <form
+                        onSubmit={handleExtendDeadline}
+                        className='modal-panel w-full max-w-md rounded-lg border border-(--border-line) bg-(--bg-canvas) p-6'>
+                        <h3 className='font-grotesque text-2xl font-bold text-(--text-main)'>
+                            Extend deadline
+                        </h3>
+                        <p className='mt-1 text-xs leading-relaxed text-(--text-sub)'>
+                            Current deadline:{' '}
+                            {positionData?.deadline ?
+                                new Date(positionData.deadline).toLocaleString()
+                            :   '—'}
+                        </p>
+
+                        <label className='mt-4 block'>
+                            <span className='mb-1 block font-mono text-[9px] uppercase tracking-[0.14em] text-(--text-sub)'>
+                                New application deadline
+                            </span>
+                            <input
+                                type='datetime-local'
+                                required
+                                value={newDeadline}
+                                onChange={(event) =>
+                                    setNewDeadline(event.target.value)
+                                }
+                                className='w-full rounded-md border border-(--border-line) bg-(--bg-canvas) px-3 py-2.5 text-sm text-(--text-main) outline-none focus:border-(--text-main)'
+                            />
+                        </label>
+
+                        {deadlineError && (
+                            <p className='mt-2 text-xs text-red-600 dark:text-red-400'>
+                                {deadlineError}
+                            </p>
+                        )}
+
+                        <div className='mt-5 flex justify-end gap-2'>
+                            <button
+                                type='button'
+                                onClick={() => setDeadlineModalOpen(false)}
+                                className='rounded-md border border-(--border-line) px-4 py-2 text-xs font-semibold text-(--text-main)'>
+                                Cancel
+                            </button>
+                            <button
+                                type='submit'
+                                disabled={extendDeadlineMutation.isPending}
+                                className='rounded-md bg-(--btn-main-bg) px-4 py-2 text-xs font-semibold text-(--btn-main-text) disabled:opacity-50'>
+                                {extendDeadlineMutation.isPending ?
+                                    'Extending...'
+                                :   'Extend deadline'}
+                            </button>
+                        </div>
+                    </form>
                 </div>
             )}
         </div>

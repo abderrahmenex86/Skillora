@@ -4,6 +4,7 @@ import {
     CreatePositionSchema,
     OverrideDecisionSchema,
     ConfigureSlotSchema,
+    ExtendDeadlineSchema,
     UpgradeCompanyPlanSchema,
 } from './recruiter.schema.js';
 import { AppError } from '../../middleware/errorHandler.js';
@@ -106,6 +107,25 @@ export class RecruiterController {
                 input
             );
             res.json({ application: updated });
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    async extendDeadline(
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> {
+        try {
+            if (!req.user) throw new AppError(401, 'Unauthorized');
+            const input = ExtendDeadlineSchema.parse(req.body);
+            const position = await recruiterService.extendDeadline(
+                req.user.sub,
+                String(req.params.id),
+                input
+            );
+            res.json({ position });
         } catch (err) {
             next(err);
         }

@@ -71,7 +71,8 @@ Skillora is built around three principles:
 
 - **Position management** with mandatory criteria, preferred criteria, a minimum score threshold, an application deadline, final-round interview capacity, and an interview window.
 - **Anonymized candidate pipeline** ranked by match score, with full resume previews built from selected candidate sections.
-- **Manual decision override** before the deadline, with required reviewer notes.
+- **Manual review decisions**: promote using an existing seat, promote while adding a seat, keep on hold, or reject, with required reviewer notes.
+- **Deadline extension** while a position is still accepting applications.
 - **Interview slot configuration** by weekday and time range.
 - **Automated calendar dispatch** through the coordinator agent.
 - **Company plans** billed monthly or annually.
@@ -664,6 +665,7 @@ Delete routes use `/:id`, for example `DELETE /applicant/vault/entries/:id`.
 | `GET` | `/recruiter/positions` | List the recruiter's positions |
 | `GET` | `/recruiter/positions/:id` | Get a position and its slots |
 | `PATCH` | `/recruiter/positions/:id/close` | Close a position |
+| `PATCH` | `/recruiter/positions/:id/deadline` | Extend the application deadline before it passes |
 | `GET` | `/recruiter/positions/:id/applications` | Ranked applicant pipeline |
 | `GET` | `/recruiter/applications/:id/resume` | Full resume preview for an application |
 | `POST` | `/recruiter/applications/:id/override` | Override a decision before the deadline |
