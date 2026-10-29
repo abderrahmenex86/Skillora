@@ -11,6 +11,7 @@ import {
     User as UserIcon,
 } from 'lucide-react';
 import { roleHome } from '../data/routes';
+import { apiClient } from '../api/apiClient';
 import { useThemeStore } from '../store/useThemeStore';
 import MessagesMenu from './MessagesMenu';
 import { useAuthStore } from '../store/useAuthStore';
@@ -60,8 +61,15 @@ export default function Navbar() {
         };
     }, [menuOpen]);
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
         setMenuOpen(false);
+
+        try {
+            await apiClient.post('/auth/logout');
+        } catch {
+            // Local state must still be cleared if the server is unavailable.
+        }
+
         logout();
         navigate('/');
     };
