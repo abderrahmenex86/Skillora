@@ -17,6 +17,8 @@ import HowItWorksView from './views/guest/HowItWorksView';
 import PricingView from './views/guest/PricingView';
 import CompaniesView from './views/guest/CompaniesView';
 import AboutView from './views/guest/AboutView';
+import TermsView from './views/guest/TermsView';
+import PrivacyView from './views/guest/PrivacyView';
 import JobsExplorerView from './views/guest/JobsExplorerView';
 import NotFoundView from './views/NotFoundView';
 import AuthView from './views/auth/AuthView';
@@ -173,6 +175,14 @@ export default function App() {
                         <Route
                             path='/about'
                             element={<AboutView />}
+                        />
+                        <Route
+                            path='/terms'
+                            element={<TermsView />}
+                        />
+                        <Route
+                            path='/privacy'
+                            element={<PrivacyView />}
                         />
                         <Route
                             path='/auth'

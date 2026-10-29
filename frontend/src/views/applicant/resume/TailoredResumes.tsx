@@ -1,6 +1,7 @@
 import {
     useEffect,
     useMemo,
+    useRef,
     useState,
     type DragEvent,
     type KeyboardEvent,
@@ -86,6 +87,19 @@ export default function TailoredResumes({
     const [dropZone, setDropZone] = useState<'resume' | 'library' | null>(
         null
     );
+    const [highlightedKind, setHighlightedKind] = useState<string | null>(null);
+    const libraryRef = useRef<HTMLElement>(null);
+
+    const focusLibrary = (kind: string) => {
+        setHighlightedKind(kind);
+        const reducedMotion = window.matchMedia(
+            '(prefers-reduced-motion: reduce)'
+        ).matches;
+        libraryRef.current?.scrollIntoView({
+            behavior: reducedMotion ? 'auto' : 'smooth',
+            block: 'start',
+        });
+    };
 
     const { data: profiles = [], isLoading: profilesLoading } = useQuery({
         queryKey: ['applicant-profiles'],
@@ -681,15 +695,25 @@ export default function TailoredResumes({
                                     <span className='font-mono text-[10px] uppercase text-(--text-sub)'>
                                         Resume Sections
                                     </span>
-                                    <span className='font-mono text-[10px] text-(--text-sub)'>
+                                    <span className='hidden font-mono text-[10px] text-(--text-sub) lg:inline'>
                                         Drag items here from the right
+                                    </span>
+                                    <span className='font-mono text-[10px] text-(--text-sub) lg:hidden'>
+                                        Add from your information
                                     </span>
                                 </div>
 
                                 {visibleSelectedCount === 0 ?
                                     <div className='rounded-md border border-dashed border-(--border-line) px-4 py-10 text-center text-xs text-(--text-sub)'>
-                                        Drag information from the panel on the
-                                        right to start building this resume.
+                                        <span className='hidden lg:inline'>
+                                            Drag information from the panel on
+                                            the right to start building this
+                                            resume.
+                                        </span>
+                                        <span className='lg:hidden'>
+                                            Use Add on a section, or add
+                                            information from the panel below.
+                                        </span>
                                     </div>
                                 :   <div className='space-y-5'>
                                         {selectedSections
@@ -699,9 +723,22 @@ export default function TailoredResumes({
                                             )
                                             .map(({ kind, items }) => (
                                                 <div key={kind}>
-                                                    <h4 className='mb-2 font-mono text-[10px] uppercase tracking-wide text-(--text-sub)'>
-                                                        {INFO_LABELS[kind]}
-                                                    </h4>
+                                                    <div className='mb-2 flex items-center justify-between gap-2'>
+                                                        <h4 className='font-mono text-[10px] uppercase tracking-wide text-(--text-sub)'>
+                                                            {INFO_LABELS[kind]}
+                                                        </h4>
+                                                        <button
+                                                            type='button'
+                                                            onClick={() =>
+                                                                focusLibrary(
+                                                                    kind
+                                                                )
+                                                            }
+                                                            className='inline-flex items-center gap-1 rounded border border-(--border-line) px-2 py-1 text-[10px] font-medium text-(--text-main) transition-colors hover:bg-(--bg-panel)'>
+                                                            <Plus size={11} />
+                                                            Add
+                                                        </button>
+                                                    </div>
                                                     <div className='space-y-2'>
                                                         {items.map((item) => {
                                                             const info =
@@ -809,6 +846,7 @@ export default function TailoredResumes({
                     </section>
 
                     <aside
+                        ref={libraryRef}
                         onDragOver={(event) => {
                             event.preventDefault();
                             if (drag?.source === 'resume') {
@@ -836,8 +874,7 @@ export default function TailoredResumes({
                                     Your Information
                                 </h3>
                                 <p className='mt-0.5 text-[11px] text-(--text-sub)'>
-                                    Drag into the resume, or use the plus
-                                    button.
+                                    Drag into the resume, or use Add.
                                 </p>
                             </div>
                             <button
@@ -903,7 +940,11 @@ export default function TailoredResumes({
                                         ({ kind, items }) => (
                                             <div
                                                 key={kind}
-                                                className='relative'>
+                                                className={`relative rounded-md transition-shadow ${
+                                                    highlightedKind === kind ?
+                                                        'ring-2 ring-(--text-main) ring-offset-2 ring-offset-(--bg-canvas)'
+                                                    :   ''
+                                                }`}>
                                                 <span
                                                     aria-hidden='true'
                                                     className='snap-anchor'

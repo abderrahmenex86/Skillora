@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatApplicationStatus } from '../../lib/applicationStatus';
+import { formatDateTime } from '../../lib/dateTime';
 
 type RescheduleSelection = {
     eventId: string;
@@ -114,7 +115,7 @@ export default function ApplicantDashboardView() {
 
     const handleDecline = (eventId: string) => {
         const confirmed = window.confirm(
-            'Decline this interview offer? Your application will be closed for this position.'
+            'Decline this interview? Your application will be closed for this position.'
         );
         if (confirmed) {
             declineMutation.mutate(eventId);
@@ -143,15 +144,12 @@ export default function ApplicantDashboardView() {
                 </div>
             </div>
 
-            <div className='grid grid-cols-1 items-stretch gap-6 lg:min-h-0 lg:flex-1 lg:grid-cols-12'>
+            <div className='grid grid-cols-1 items-start gap-6 lg:min-h-0 lg:flex-1 lg:grid-cols-12'>
                 <section className='flex min-h-0 flex-col rounded-lg border border-(--border-line) bg-(--bg-canvas) lg:col-span-5'>
                     <div className='flex shrink-0 items-center justify-between border-b border-(--border-line) px-6 py-4'>
                         <h3 className='font-grotesque font-bold text-2xl text-(--text-main) flex items-center gap-2'>
                             <Calendar size={20} /> Interview Schedule
                         </h3>
-                        <span className='font-mono text-xs text-(--text-sub)'>
-                            AUTO-DISPATCH
-                        </span>
                     </div>
 
                     <div className='panel-scroll panel-snap flex-1 space-y-4 p-6'>
@@ -250,16 +248,8 @@ export default function ApplicantDashboardView() {
                                                                 className='text-(--text-sub)'
                                                             />
                                                             <span>
-                                                                {new Date(
+                                                                {formatDateTime(
                                                                     event.confirmedStart
-                                                                ).toLocaleString(
-                                                                    [],
-                                                                    {
-                                                                        dateStyle:
-                                                                            'medium',
-                                                                        timeStyle:
-                                                                            'short',
-                                                                    }
                                                                 )}
                                                             </span>
                                                         </div>
@@ -304,7 +294,7 @@ export default function ApplicantDashboardView() {
                                                                 aria-hidden='true'
                                                             />
                                                             {isChangingDate ?
-                                                                'Cancel'
+                                                                'Close'
                                                             :   'Change date'}
                                                         </button>
                                                         <button
@@ -318,7 +308,7 @@ export default function ApplicantDashboardView() {
                                                                 declineMutation.isPending
                                                             }
                                                             className='inline-flex items-center gap-1.5 rounded-md border border-red-500/30 px-3 py-1.5 text-xs font-semibold text-red-600 transition-colors hover:bg-red-500/10 disabled:opacity-50 dark:text-red-400'>
-                                                            Decline offer
+                                                            Decline interview
                                                         </button>
                                                     </div>
 
@@ -396,16 +386,8 @@ export default function ApplicantDashboardView() {
                                                                                         :   'border-(--border-line) hover:border-(--text-sub)'
                                                                                     }`}>
                                                                                     <span>
-                                                                                        {new Date(
+                                                                                        {formatDateTime(
                                                                                             option.startTime
-                                                                                        ).toLocaleString(
-                                                                                            [],
-                                                                                            {
-                                                                                                dateStyle:
-                                                                                                    'medium',
-                                                                                                timeStyle:
-                                                                                                    'short',
-                                                                                            }
                                                                                         )}
                                                                                     </span>
                                                                                     <ChevronRight

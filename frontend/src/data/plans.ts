@@ -32,7 +32,7 @@ const CANDIDATE_FEATURES = [
 ];
 
 const COMPANY_FEATURES = [
-    'Pre-deadline manual decision override',
+    'Post-deadline manual review & seat extension',
     'Autonomous document & repo parsing',
     'Autonomous calendar dispatch',
     'Automated respectful gap analysis',

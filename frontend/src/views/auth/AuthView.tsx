@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { apiClient } from '../../api/apiClient';
 import { ALGERIA_WILAYAS } from '../../data/algeria';
@@ -24,6 +25,8 @@ export default function AuthView() {
     const [companyName, setCompanyName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
 
     const [errorMsg, setErrorMsg] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -48,6 +51,18 @@ export default function AuthView() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setErrorMsg('');
+
+        if (!isLogin) {
+            if (password.length < 8) {
+                setErrorMsg('Password must be at least 8 characters.');
+                return;
+            }
+            if (password !== confirmPassword) {
+                setErrorMsg('Passwords do not match.');
+                return;
+            }
+        }
+
         setIsLoading(true);
 
         try {
@@ -101,13 +116,13 @@ export default function AuthView() {
 
     return (
         <div className='page-scroll flex flex-col md:flex-row'>
-            <div className='w-full md:w-[42%] bg-(--bg-panel) border-r border-(--border-line) p-8 md:p-14 flex flex-col justify-between'>
-                <div className='max-w-md my-auto'>
-                    <h2 className='font-grotesque font-extrabold text-4xl sm:text-5xl leading-[1.05] tracking-tight mb-8 text-(--text-main)'>
+            <div className='order-2 w-full border-t border-(--border-line) bg-(--bg-panel) p-6 sm:p-8 md:order-1 md:w-[42%] md:border-r md:border-t-0 md:p-14 flex flex-col justify-between'>
+                <div className='max-w-md md:my-auto'>
+                    <h2 className='font-grotesque font-extrabold text-3xl sm:text-4xl md:text-5xl leading-[1.05] tracking-tight mb-6 md:mb-8 text-(--text-main)'>
                         Every applicant gets either an interview or a path to
                         grow. Guaranteed.
                     </h2>
-                    <div className='space-y-4 text-sm text-(--text-main)'>
+                    <div className='hidden space-y-4 text-sm text-(--text-main) md:block'>
                         <div className='flex items-center space-x-3'>
                             <span className='font-mono'>✓</span>
                             <span>
@@ -125,18 +140,18 @@ export default function AuthView() {
                         <div className='flex items-center space-x-3'>
                             <span className='font-mono'>✓</span>
                             <span>
-                                Autonomous scheduling and guaranteed Cedar Amber
-                                gap analysis.
+                                Autonomous scheduling and a guaranteed
+                                skill-gap analysis.
                             </span>
                         </div>
                     </div>
                 </div>
-                <div className='font-mono text-xs text-(--text-sub)'>
+                <div className='hidden font-mono text-xs text-(--text-sub) md:block'>
                     [ALGERIA TALENT INFRASTRUCTURE • 58 WILAYAS]
                 </div>
             </div>
 
-            <div className='w-full md:w-[58%] p-8 md:p-14 flex flex-col justify-center items-center'>
+            <div className='order-1 w-full p-6 sm:p-8 md:order-2 md:w-[58%] md:p-14 flex flex-col justify-start md:justify-center items-center'>
                 <div className='w-full max-w-lg'>
                     {!isLogin && (
                         <div className='bg-(--bg-panel) p-1 rounded-md border border-(--border-line) flex mb-6'>
@@ -330,28 +345,75 @@ export default function AuthView() {
                                     </Link>
                                 )}
                             </div>
-                            <input
-                                id='auth-password'
-                                type='password'
-                                required
-                                autoComplete={
-                                    isLogin ?
-                                        'current-password'
-                                    :   'new-password'
-                                }
-                                placeholder={
-                                    isLogin ? 'Password' : 'Minimum 8 characters'
-                                }
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className='w-full px-3.5 py-2.5 text-sm rounded-md border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none focus:ring-1 focus:ring-(--text-main)'
-                            />
+                            <div className='relative'>
+                                <input
+                                    id='auth-password'
+                                    type={
+                                        showPassword ? 'text' : 'password'
+                                    }
+                                    required
+                                    autoComplete={
+                                        isLogin ?
+                                            'current-password'
+                                        :   'new-password'
+                                    }
+                                    placeholder={
+                                        isLogin ?
+                                            'Password'
+                                        :   'Minimum 8 characters'
+                                    }
+                                    value={password}
+                                    onChange={(e) =>
+                                        setPassword(e.target.value)
+                                    }
+                                    className='w-full px-3.5 py-2.5 pr-10 text-sm rounded-md border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none focus:ring-1 focus:ring-(--text-main)'
+                                />
+                                <button
+                                    type='button'
+                                    onClick={() =>
+                                        setShowPassword((visible) => !visible)
+                                    }
+                                    aria-label={
+                                        showPassword ?
+                                            'Hide password'
+                                        :   'Show password'
+                                    }
+                                    className='absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-(--text-sub) transition-colors hover:text-(--text-main)'>
+                                    {showPassword ?
+                                        <EyeOff size={15} />
+                                    :   <Eye size={15} />}
+                                </button>
+                            </div>
                             {!isLogin && (
                                 <p className='mt-1 text-[10px] text-(--text-sub)'>
                                     At least 8 characters.
                                 </p>
                             )}
                         </div>
+
+                        {!isLogin && (
+                            <div>
+                                <label
+                                    htmlFor='auth-confirm-password'
+                                    className='mb-1 block font-mono text-[9px] uppercase tracking-[0.14em] text-(--text-sub)'>
+                                    Confirm password
+                                </label>
+                                <input
+                                    id='auth-confirm-password'
+                                    type={
+                                        showPassword ? 'text' : 'password'
+                                    }
+                                    required
+                                    autoComplete='new-password'
+                                    placeholder='Repeat your password'
+                                    value={confirmPassword}
+                                    onChange={(e) =>
+                                        setConfirmPassword(e.target.value)
+                                    }
+                                    className='w-full px-3.5 py-2.5 text-sm rounded-md border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none focus:ring-1 focus:ring-(--text-main)'
+                                />
+                            </div>
+                        )}
 
                         <button
                             type='submit'
@@ -363,6 +425,24 @@ export default function AuthView() {
                                 'Continue to Workspace'
                             :   'Complete Registration'}
                         </button>
+
+                        {!isLogin && (
+                            <p className='text-center text-[10px] leading-relaxed text-(--text-sub)'>
+                                By creating an account you agree to our{' '}
+                                <Link
+                                    to='/terms'
+                                    className='font-semibold text-(--text-main) underline'>
+                                    Terms of Service
+                                </Link>{' '}
+                                and{' '}
+                                <Link
+                                    to='/privacy'
+                                    className='font-semibold text-(--text-main) underline'>
+                                    Privacy Policy
+                                </Link>
+                                .
+                            </p>
+                        )}
                     </form>
 
                     <div className='text-center text-xs text-(--text-sub) mt-6'>

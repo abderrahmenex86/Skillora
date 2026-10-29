@@ -9,7 +9,7 @@ export default function CompaniesView() {
         <div className='page-scroll flex flex-col'>
             <main className='max-w-6xl mx-auto px-6 pt-6 pb-2 tall:py-16 w-full'>
                 <h1 className='font-grotesque font-extrabold text-5xl sm:text-6xl text-(--text-main) tracking-tight mb-4'>
-                    Stop screening 500 unvetted CVs per opening.
+                    Stop screening hundreds of unvetted CVs per opening.
                 </h1>
                 <p className='text-lg text-(--text-sub) max-w-2xl leading-relaxed mb-8 tall:mb-16'>
                     Engineering managers and HR leads lose dozens of hours every
@@ -40,12 +40,12 @@ export default function CompaniesView() {
                             className='text-(--text-main) mb-3 tall:mb-4'
                         />
                         <h4 className='font-grotesque font-bold text-2xl text-(--text-main) mb-2'>
-                            Pre-Deadline Override
+                            Post-deadline seat extension
                         </h4>
                         <p className='text-xs text-(--text-sub) leading-relaxed'>
-                            Recruiters retain full authority: manually promote
-                            or decline candidate decisions at any time prior to
-                            the position closing deadline.
+                            Recruiters can add a final-round seat, keep a
+                            candidate on hold, or reject after the deadline —
+                            the pipeline does not hard-stop at close.
                         </p>
                     </div>
 
@@ -55,12 +55,12 @@ export default function CompaniesView() {
                             className='text-(--text-main) mb-3 tall:mb-4'
                         />
                         <h4 className='font-grotesque font-bold text-2xl text-(--text-main) mb-2'>
-                            Zero-Ghosting Brand Protection
+                            Guaranteed feedback
                         </h4>
                         <p className='text-xs text-(--text-sub) leading-relaxed'>
-                            Preserve your employer reputation. Applicants not
-                            selected receive courteous, actionable learning
-                            roadmaps instead of silence.
+                            Every applicant gets a decision. Rejected
+                            candidates receive the missing criteria and a
+                            concrete next step instead of silence.
                         </p>
                     </div>
                 </div>

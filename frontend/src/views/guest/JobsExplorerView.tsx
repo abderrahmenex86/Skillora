@@ -1,9 +1,17 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../../api/apiClient';
 import { useAuthStore } from '../../store/useAuthStore';
-import { Search, ArrowRight, Check, Lock, Loader2 } from 'lucide-react';
+import {
+    Search,
+    ArrowRight,
+    ArrowLeft,
+    Check,
+    Lock,
+    Loader2,
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { formatDeadline } from '../../lib/dateTime';
 
 export default function JobsExplorerView() {
     const queryClient = useQueryClient();
@@ -14,6 +22,23 @@ export default function JobsExplorerView() {
     const [applyModalOpen, setApplyModalOpen] = useState(false);
     const [appliedSuccess, setAppliedSuccess] = useState(false);
     const [applyError, setApplyError] = useState('');
+    const listRef = useRef<HTMLDivElement>(null);
+    const detailRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!selectedJobId) return;
+        if (!window.matchMedia('(max-width: 767px)').matches) return;
+
+        const reducedMotion = window.matchMedia(
+            '(prefers-reduced-motion: reduce)'
+        ).matches;
+        requestAnimationFrame(() => {
+            detailRef.current?.scrollIntoView({
+                behavior: reducedMotion ? 'auto' : 'smooth',
+                block: 'start',
+            });
+        });
+    }, [selectedJobId]);
 
     const { data: positions, isLoading } = useQuery({
         queryKey: ['public-positions'],
@@ -140,7 +165,11 @@ export default function JobsExplorerView() {
                     </p>
                 </div>
             :   <div className='grid grid-cols-1 gap-6 md:min-h-0 md:flex-1 md:grid-cols-12 md:items-stretch'>
-                    <div className='flex flex-col gap-3 md:col-span-5 md:min-h-0'>
+                    <div
+                        ref={listRef}
+                        className={`flex-col gap-3 md:col-span-5 md:min-h-0 md:flex ${
+                            selectedJobId ? 'hidden' : 'flex'
+                        }`}>
                         <h3 className='shrink-0 font-grotesque font-bold text-2xl text-(--text-main)'>
                             Available Jobs ({positions?.length ?? 0})
                         </h3>
@@ -151,10 +180,24 @@ export default function JobsExplorerView() {
                             return (
                                 <div
                                     key={job.id}
+                                    role='button'
+                                    tabIndex={0}
+                                    aria-pressed={isSelected}
                                     onClick={() => {
                                         setSelectedJobId(job.id);
                                         setAppliedSuccess(false);
                                         setApplyError('');
+                                    }}
+                                    onKeyDown={(event) => {
+                                        if (
+                                            event.key === 'Enter' ||
+                                            event.key === ' '
+                                        ) {
+                                            event.preventDefault();
+                                            setSelectedJobId(job.id);
+                                            setAppliedSuccess(false);
+                                            setApplyError('');
+                                        }
                                     }}
                                     className={`relative p-5 rounded-md border cursor-pointer transition-all ${
                                         isSelected ?
@@ -183,8 +226,8 @@ export default function JobsExplorerView() {
                                         )}
                                     </div>
 
-                                    <div className='mt-3 flex items-center justify-between text-xs font-mono text-(--text-sub)'>
-                                        <div className='flex items-center gap-2'>
+                                    <div className='mt-3 flex flex-col gap-1 text-xs font-mono text-(--text-sub) lg:flex-row lg:items-center lg:justify-between'>
+                                        <div className='flex flex-wrap items-center gap-2'>
                                             <span>{job.department}</span>
                                             {appliedPositionIds.has(job.id) && (
                                                 <span className='inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-forest/10 text-forest dark:text-forest-dark'>
@@ -194,10 +237,7 @@ export default function JobsExplorerView() {
                                             )}
                                         </div>
                                         <span className='text-amber-accent'>
-                                            Closes:{' '}
-                                            {new Date(
-                                                job.deadline
-                                            ).toLocaleDateString()}
+                                            {formatDeadline(job.deadline)}
                                         </span>
                                     </div>
                                 </div>
@@ -206,7 +246,25 @@ export default function JobsExplorerView() {
                         </div>
                     </div>
 
-                    <div className='panel-scroll rounded-lg border border-(--border-line) bg-(--bg-canvas) p-6 space-y-6 md:col-span-7 md:p-8'>
+                    <div
+                        ref={detailRef}
+                        className={`panel-scroll rounded-lg border border-(--border-line) bg-(--bg-canvas) p-6 space-y-6 md:col-span-7 md:flex md:flex-col md:p-8 ${
+                            selectedJobId ? 'flex flex-col' : 'hidden'
+                        }`}>
+                        <button
+                            type='button'
+                            onClick={() => {
+                                setSelectedJobId(null);
+                                requestAnimationFrame(() =>
+                                    listRef.current?.scrollIntoView({
+                                        behavior: 'auto',
+                                        block: 'start',
+                                    })
+                                );
+                            }}
+                            className='inline-flex items-center gap-1.5 text-xs font-mono text-(--text-sub) transition-colors hover:text-(--text-main) md:hidden'>
+                            <ArrowLeft size={14} /> Back to jobs
+                        </button>
                         {selectedJob && (
                             <>
                                 <div>
@@ -267,6 +325,31 @@ export default function JobsExplorerView() {
                                                 You can still apply to any other
                                                 open job.
                                             </p>
+                                            <div className='mt-2 flex flex-wrap items-center justify-center gap-3 text-[11px]'>
+                                                <Link
+                                                    to='/applicant/dashboard'
+                                                    className='font-semibold underline'>
+                                                    View application status
+                                                </Link>
+                                                <button
+                                                    type='button'
+                                                    onClick={() => {
+                                                        setSelectedJobId(null);
+                                                        requestAnimationFrame(
+                                                            () =>
+                                                                listRef.current?.scrollIntoView(
+                                                                    {
+                                                                        behavior:
+                                                                            'smooth',
+                                                                        block: 'start',
+                                                                    }
+                                                                )
+                                                        );
+                                                    }}
+                                                    className='font-semibold underline'>
+                                                    Browse more jobs
+                                                </button>
+                                            </div>
                                         </div>
                                     :   <div>
                                             <button

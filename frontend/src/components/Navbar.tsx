@@ -5,6 +5,7 @@ import { flushSync } from 'react-dom';
 import {
     ChevronDown,
     LayoutDashboard,
+    Lock,
     LogOut,
     Menu,
     Moon,
@@ -80,6 +81,27 @@ export default function Navbar() {
         : user.role === 'APPLICANT' ? applicantItems
         : user.role === 'RECRUITER' ? recruiterItems
         : [];
+
+    const isProLocked = (item: NavItem) =>
+        item.to === '/applicant/insights' &&
+        user?.subscriptionTier === 'FREE';
+
+    const navLabel = (item: NavItem) => (
+        <span className='inline-flex items-center gap-1.5'>
+            {item.label}
+            {isProLocked(item) && (
+                <span
+                    role='img'
+                    aria-label='Pro feature'
+                    className='inline-flex text-(--text-sub)'>
+                    <Lock
+                        size={11}
+                        aria-hidden='true'
+                    />
+                </span>
+            )}
+        </span>
+    );
 
     useEffect(() => {
         setMenuOpen(false);
@@ -278,7 +300,7 @@ export default function Navbar() {
                             to={item.to}
                             end={item.end}
                             className={mobileNavLinkClass}>
-                            {item.label}
+                            {navLabel(item)}
                         </NavLink>
                     ))}
                 </nav>
@@ -368,7 +390,7 @@ export default function Navbar() {
                             to={item.to}
                             end={item.end}
                             className={navLinkClass}>
-                            {item.label}
+                            {navLabel(item)}
                         </NavLink>
                     ))}
                 </nav>

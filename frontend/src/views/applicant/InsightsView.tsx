@@ -22,24 +22,104 @@ export default function InsightsView() {
 
     if (user?.subscriptionTier === 'FREE') {
         return (
-            <div className='page-scroll flex flex-col justify-center items-center px-6 py-20 text-center'>
-                <div className='p-3 rounded-full bg-(--bg-panel) border border-(--border-line) mb-4 text-(--text-main)'>
-                    <Lock size={24} />
+            <div className='page-scroll px-6 py-12'>
+                <div className='mx-auto w-full max-w-3xl'>
+                    <div className='flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-(--text-sub)'>
+                        <Lock
+                            size={13}
+                            aria-hidden='true'
+                        />
+                        Pro insights
+                    </div>
+                    <h2 className='mt-3 font-grotesque text-4xl font-bold tracking-tight text-(--text-main)'>
+                        See the pattern behind your rejections.
+                    </h2>
+                    <p className='mt-2 max-w-2xl text-sm leading-relaxed text-(--text-sub)'>
+                        Personalized Insights turns your application history
+                        into cross-round telemetry: the gaps that repeat, how
+                        you compare with your cohort, and the next milestone
+                        worth shipping.
+                    </p>
+
+                    <div className='mt-8 rounded-lg border border-(--border-line) bg-(--bg-canvas) p-5'>
+                        <div className='flex flex-wrap items-center justify-between gap-2'>
+                            <span className='font-mono text-[10px] uppercase tracking-[0.14em] text-(--text-main)'>
+                                Example preview
+                            </span>
+                            <span className='font-mono text-[9px] uppercase tracking-[0.12em] text-(--text-sub)'>
+                                Sample data
+                            </span>
+                        </div>
+
+                        <div className='mt-4 grid gap-3 md:grid-cols-3'>
+                            <div className='rounded-md border border-(--border-line) bg-(--bg-panel) p-4'>
+                                <AlertTriangle
+                                    size={16}
+                                    className='text-amber-accent'
+                                    aria-hidden='true'
+                                />
+                                <div className='mt-2 font-mono text-[9px] uppercase tracking-[0.12em] text-(--text-sub)'>
+                                    Most common gap
+                                </div>
+                                <div className='mt-1 font-grotesque text-2xl font-bold text-(--text-main)'>
+                                    Kubernetes
+                                </div>
+                                <p className='mt-1 text-[11px] leading-relaxed text-(--text-sub)'>
+                                    Missing in 3 of your last 5 rejections.
+                                </p>
+                            </div>
+                            <div className='rounded-md border border-(--border-line) bg-(--bg-panel) p-4'>
+                                <TrendingUp
+                                    size={16}
+                                    className='text-forest dark:text-forest-dark'
+                                    aria-hidden='true'
+                                />
+                                <div className='mt-2 font-mono text-[9px] uppercase tracking-[0.12em] text-(--text-sub)'>
+                                    Match benchmark
+                                </div>
+                                <div className='mt-1 font-grotesque text-2xl font-bold text-(--text-main)'>
+                                    72%
+                                </div>
+                                <p className='mt-1 text-[11px] leading-relaxed text-(--text-sub)'>
+                                    8 points above the cohort median.
+                                </p>
+                            </div>
+                            <div className='rounded-md border border-(--border-line) bg-(--bg-panel) p-4'>
+                                <CheckCircle
+                                    size={16}
+                                    className='text-forest dark:text-forest-dark'
+                                    aria-hidden='true'
+                                />
+                                <div className='mt-2 font-mono text-[9px] uppercase tracking-[0.12em] text-(--text-sub)'>
+                                    Next milestone
+                                </div>
+                                <div className='mt-1 font-grotesque text-2xl font-bold text-(--text-main)'>
+                                    Helm deployment
+                                </div>
+                                <p className='mt-1 text-[11px] leading-relaxed text-(--text-sub)'>
+                                    Ship one verified artifact to close the
+                                    gap.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className='mt-4 rounded-md border border-dashed border-(--border-line) px-4 py-3 text-xs text-(--text-sub)'>
+                            Unlock your real cross-round telemetry, department
+                            benchmarks, and targeted learning milestones.
+                        </div>
+                    </div>
+
+                    <div className='mt-6 flex flex-wrap items-center gap-4'>
+                        <Link
+                            to='/pricing'
+                            className='inline-flex rounded-md bg-(--btn-main-bg) px-6 py-2.5 font-grotesque text-xl font-bold text-(--btn-main-text) transition-opacity hover:opacity-90'>
+                            Upgrade to Pro from 999 DZD
+                        </Link>
+                        <span className='font-mono text-[10px] uppercase tracking-[0.12em] text-(--text-sub)'>
+                            Cancel anytime · Test mode
+                        </span>
+                    </div>
                 </div>
-                <h2 className='font-grotesque font-bold text-4xl text-(--text-main) mb-2'>
-                    Personalized Insights is a Pro Feature
-                </h2>
-                <p className='text-sm text-(--text-sub) max-w-md mb-6 leading-relaxed'>
-                    Upgrade to Pro to unlock cross-round telemetry: find out
-                    which missing criteria appear most frequently in your
-                    rejections, see how you benchmark across departments, and
-                    get targeted learning milestones.
-                </p>
-                <Link
-                    to='/pricing'
-                    className='px-6 py-2.5 bg-(--btn-main-bg) text-(--btn-main-text) font-grotesque font-bold text-xl rounded-md hover:opacity-90 transition-opacity'>
-                    Upgrade to Pro from 999 DZD
-                </Link>
             </div>
         );
     }

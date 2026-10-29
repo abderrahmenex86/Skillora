@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Bell, CheckCheck, X } from 'lucide-react';
 import { apiClient } from '../api/apiClient';
+import { formatDateTime } from '../lib/dateTime';
 import { useAuthStore } from '../store/useAuthStore';
 
 type Message = {
@@ -170,13 +171,7 @@ export default function MessagesMenu() {
                                 {message.body}
                             </p>
                             <p className='mt-1.5 font-mono text-[9px] uppercase tracking-[0.12em] text-(--text-sub)'>
-                                {new Date(message.createdAt).toLocaleString(
-                                    [],
-                                    {
-                                        dateStyle: 'medium',
-                                        timeStyle: 'short',
-                                    }
-                                )}
+                                {formatDateTime(message.createdAt)}
                             </p>
                         </button>
                     ))

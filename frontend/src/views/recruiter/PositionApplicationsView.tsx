@@ -4,12 +4,19 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../../api/apiClient';
 import { formatApplicationStatus } from '../../lib/applicationStatus';
 import {
+    formatDateTime,
+    formatDateTimeRange,
+    parseAlgeriaDateTime,
+    toAlgeriaDateTimeLocal,
+} from '../../lib/dateTime';
+import {
     ArrowLeft,
     Check,
     AlertTriangle,
     ExternalLink,
     FileText,
     FolderOpen,
+    Search,
     X,
 } from 'lucide-react';
 import {
@@ -31,6 +38,9 @@ export default function PositionApplicationsView() {
     const { id: positionId } = useParams<{ id: string }>();
     const queryClient = useQueryClient();
     const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
+    const [candidateSearch, setCandidateSearch] = useState('');
+    const [statusFilter, setStatusFilter] = useState('ALL');
+    const [sortBy, setSortBy] = useState('MATCH_DESC');
     const [resumeOpen, setResumeOpen] = useState(false);
     const [overrideAction, setOverrideAction] = useState<
         'PROMOTE' | 'PROMOTE_EXTEND_CAPACITY' | 'HOLD' | 'REJECT'
@@ -107,6 +117,35 @@ export default function PositionApplicationsView() {
         positionData ? new Date() >= new Date(positionData.deadline) : false;
     const selectedApplicationId = selectedApp?.id;
 
+    const normalizedSearch = candidateSearch.trim().toLowerCase();
+    const filteredApplications = [...(applications ?? [])]
+        .filter((app: any) => {
+            const matchesSearch =
+                !normalizedSearch ||
+                [app.anonymousId, app.profile?.title, app.status]
+                    .filter(Boolean)
+                    .join(' ')
+                    .toLowerCase()
+                    .includes(normalizedSearch);
+            const matchesStatus =
+                statusFilter === 'ALL' || app.status === statusFilter;
+            return matchesSearch && matchesStatus;
+        })
+        .sort((a: any, b: any) => {
+            if (sortBy === 'MATCH_ASC') {
+                return (a.matchScore ?? 0) - (b.matchScore ?? 0);
+            }
+            if (sortBy === 'NEWEST') {
+                return (
+                    new Date(b.createdAt ?? 0).getTime() -
+                    new Date(a.createdAt ?? 0).getTime()
+                );
+            }
+            return (b.matchScore ?? 0) - (a.matchScore ?? 0);
+        });
+    const hasActiveFilters =
+        candidateSearch.trim() !== '' || statusFilter !== 'ALL';
+
     useEffect(() => {
         if (isDeadlinePassed && overrideAction === 'PROMOTE') {
             setOverrideAction('PROMOTE_EXTEND_CAPACITY');
@@ -141,9 +180,13 @@ export default function PositionApplicationsView() {
 
     const extendDeadlineMutation = useMutation({
         mutationFn: async (value: string) => {
+            const parsed = parseAlgeriaDateTime(value);
+            if (!parsed) {
+                throw new Error('Invalid deadline');
+            }
             const { data } = await apiClient.patch(
                 `/recruiter/positions/${positionId}/deadline`,
-                { newDeadline: new Date(value).toISOString() }
+                { newDeadline: parsed.toISOString() }
             );
             return data.position;
         },
@@ -171,6 +214,24 @@ export default function PositionApplicationsView() {
 
         if (!newDeadline) {
             setDeadlineError('Choose a new deadline first.');
+            return;
+        }
+
+        const parsed = parseAlgeriaDateTime(newDeadline);
+        if (!parsed) {
+            setDeadlineError('Choose a valid date and time.');
+            return;
+        }
+
+        if (parsed <= new Date()) {
+            setDeadlineError('The new deadline must be in the future.');
+            return;
+        }
+
+        if (positionData && parsed <= new Date(positionData.deadline)) {
+            setDeadlineError(
+                'The new deadline must be after the current deadline.'
+            );
             return;
         }
 
@@ -232,9 +293,7 @@ export default function PositionApplicationsView() {
                             <span>
                                 Applications close:{' '}
                                 {positionData?.deadline ?
-                                    new Date(
-                                        positionData.deadline
-                                    ).toLocaleString()
+                                    formatDateTime(positionData.deadline)
                                 :   ''}{' '}
                                 {isDeadlinePassed ? '(CLOSED)' : '(ACTIVE)'}
                             </span>
@@ -243,7 +302,11 @@ export default function PositionApplicationsView() {
                                     type='button'
                                     onClick={() => {
                                         setDeadlineError('');
-                                        setNewDeadline('');
+                                        setNewDeadline(
+                                            toAlgeriaDateTimeLocal(
+                                                positionData.deadline
+                                            )
+                                        );
                                         setDeadlineModalOpen(true);
                                     }}
                                     className='rounded border border-(--border-line) px-2.5 py-1 text-[10px] font-semibold text-(--text-main) transition-colors hover:bg-(--bg-panel)'>
@@ -255,11 +318,10 @@ export default function PositionApplicationsView() {
                             Interviews:{' '}
                             {positionData?.interviewRangeStart &&
                             positionData?.interviewRangeEnd ?
-                                `${new Date(
-                                    positionData.interviewRangeStart
-                                ).toLocaleString()} – ${new Date(
+                                formatDateTimeRange(
+                                    positionData.interviewRangeStart,
                                     positionData.interviewRangeEnd
-                                ).toLocaleString()}`
+                                )
                             :   'range not set'}{' '}
                             · Capacity:{' '}
                             {positionData?.interviewCapacity ?? 'not set'}
@@ -280,15 +342,73 @@ export default function PositionApplicationsView() {
                         selectedAppId ? 'hidden' : 'flex'
                     }`}>
                     <h3 className='shrink-0 border-b border-(--border-line) px-5 py-4 font-grotesque font-bold text-2xl text-(--text-main)'>
-                        Received Applications ({applications?.length ?? 0})
+                        Received Applications ({filteredApplications.length}
+                        {filteredApplications.length !==
+                        (applications?.length ?? 0) ?
+                            ` of ${applications?.length ?? 0}`
+                        :   ''}
+                        )
                     </h3>
+
+                    <div className='shrink-0 space-y-2 border-b border-(--border-line) p-4'>
+                        <div className='relative'>
+                            <Search
+                                size={14}
+                                className='absolute left-2.5 top-1/2 -translate-y-1/2 text-(--text-sub)'
+                                aria-hidden='true'
+                            />
+                            <input
+                                aria-label='Search candidates'
+                                value={candidateSearch}
+                                onChange={(event) =>
+                                    setCandidateSearch(event.target.value)
+                                }
+                                placeholder='Search by candidate ID or resume...'
+                                className='w-full rounded-md border border-(--border-line) bg-(--bg-panel) py-2 pl-8 pr-3 text-xs text-(--text-main) placeholder:text-(--text-sub)/60 focus:outline-none focus:ring-1 focus:ring-(--text-main)'
+                            />
+                        </div>
+                        <div className='grid grid-cols-2 gap-2'>
+                            <select
+                                aria-label='Filter by status'
+                                value={statusFilter}
+                                onChange={(event) =>
+                                    setStatusFilter(event.target.value)
+                                }
+                                className='w-full rounded-md border border-(--border-line) bg-(--bg-canvas) px-2 py-1.5 text-[11px] text-(--text-main) focus:outline-none focus:ring-1 focus:ring-(--text-main)'>
+                                <option value='ALL'>All statuses</option>
+                                <option value='NEEDS_REVIEW'>
+                                    Needs review
+                                </option>
+                                <option value='ON_HOLD'>On hold</option>
+                                <option value='INTERVIEW_SCHEDULED'>
+                                    Interview scheduled
+                                </option>
+                                <option value='REJECTED'>Rejected</option>
+                            </select>
+                            <select
+                                aria-label='Sort candidates'
+                                value={sortBy}
+                                onChange={(event) =>
+                                    setSortBy(event.target.value)
+                                }
+                                className='w-full rounded-md border border-(--border-line) bg-(--bg-canvas) px-2 py-1.5 text-[11px] text-(--text-main) focus:outline-none focus:ring-1 focus:ring-(--text-main)'>
+                                <option value='MATCH_DESC'>
+                                    Match: high to low
+                                </option>
+                                <option value='MATCH_ASC'>
+                                    Match: low to high
+                                </option>
+                                <option value='NEWEST'>Newest first</option>
+                            </select>
+                        </div>
+                    </div>
 
                     <div className='panel-scroll panel-snap flex-1 space-y-3 p-5'>
                     {isLoading ?
                         <div className='text-xs text-(--text-sub)'>
                             Loading cohort submissions...
                         </div>
-                    : applications?.length === 0 ?
+                    : (applications?.length ?? 0) === 0 ?
                         <div className='text-xs text-(--text-sub) text-center py-8'>
                             <FolderOpen
                                 size={32}
@@ -298,13 +418,29 @@ export default function PositionApplicationsView() {
                             />
                             No applications received for this position yet.
                         </div>
-                    :   applications?.map((app: any) => {
+                    : filteredApplications.length === 0 ?
+                        <div className='rounded-md border border-dashed border-(--border-line) px-4 py-8 text-center text-xs text-(--text-sub)'>
+                            <p>No candidates match these filters.</p>
+                            {hasActiveFilters && (
+                                <button
+                                    type='button'
+                                    onClick={() => {
+                                        setCandidateSearch('');
+                                        setStatusFilter('ALL');
+                                    }}
+                                    className='mt-2 font-semibold text-(--text-main) underline'>
+                                    Clear filters
+                                </button>
+                            )}
+                        </div>
+                    :   filteredApplications.map((app: any) => {
                             const isSelected =
-                                (selectedAppId || applications[0]?.id) ===
+                                (selectedAppId || filteredApplications[0]?.id) ===
                                 app.id;
                             return (
                                 <div
                                     key={app.id}
+                                    data-candidate-card
                                     role='button'
                                     tabIndex={0}
                                     aria-pressed={isSelected}
@@ -799,7 +935,7 @@ export default function PositionApplicationsView() {
                         <p className='mt-1 text-xs leading-relaxed text-(--text-sub)'>
                             Current deadline:{' '}
                             {positionData?.deadline ?
-                                new Date(positionData.deadline).toLocaleString()
+                                formatDateTime(positionData.deadline)
                             :   '—'}
                         </p>
 
@@ -810,6 +946,7 @@ export default function PositionApplicationsView() {
                             <input
                                 type='datetime-local'
                                 required
+                                min={toAlgeriaDateTimeLocal(new Date())}
                                 value={newDeadline}
                                 onChange={(event) =>
                                     setNewDeadline(event.target.value)
@@ -817,6 +954,10 @@ export default function PositionApplicationsView() {
                                 className='w-full rounded-md border border-(--border-line) bg-(--bg-canvas) px-3 py-2.5 text-sm text-(--text-main) outline-none focus:border-(--text-main)'
                             />
                         </label>
+                        <p className='mt-1 font-mono text-[9px] uppercase tracking-[0.12em] text-(--text-sub)'>
+                            Africa/Algiers (UTC+1). Must be after the current
+                            deadline.
+                        </p>
 
                         {deadlineError && (
                             <p className='mt-2 text-xs text-red-600 dark:text-red-400'>

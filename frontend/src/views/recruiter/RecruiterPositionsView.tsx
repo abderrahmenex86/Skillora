@@ -3,6 +3,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../../api/apiClient';
 import { Link } from 'react-router-dom';
 import { Plus, Users, Clock, ArrowRight, FolderOpen } from 'lucide-react';
+import {
+    formatDate,
+    parseAlgeriaDateTime,
+    toAlgeriaDateTimeLocal,
+} from '../../lib/dateTime';
 
 export default function RecruiterPositionsView() {
     const queryClient = useQueryClient();
@@ -68,10 +73,20 @@ export default function RecruiterPositionsView() {
             return;
         }
 
-        const deadlineDate = new Date(deadline);
-        const rangeStart = new Date(interviewRangeStart);
-        const rangeEnd = new Date(interviewRangeEnd);
+        const deadlineDate = parseAlgeriaDateTime(deadline);
+        const rangeStart = parseAlgeriaDateTime(interviewRangeStart);
+        const rangeEnd = parseAlgeriaDateTime(interviewRangeEnd);
         const capacity = Number(interviewCapacity);
+
+        if (!deadlineDate || !rangeStart || !rangeEnd) {
+            setFormError('Enter valid dates and times.');
+            return;
+        }
+
+        if (deadlineDate <= new Date()) {
+            setFormError('The application deadline must be in the future.');
+            return;
+        }
 
         if (rangeStart < deadlineDate) {
             setFormError(
@@ -108,6 +123,7 @@ export default function RecruiterPositionsView() {
     };
 
     const now = new Date();
+    const minDateTime = toAlgeriaDateTimeLocal(now);
     const openPositions = positions?.filter(
         (p: any) => p.status === 'OPEN' && new Date(p.deadline) > now
     );
@@ -205,6 +221,7 @@ export default function RecruiterPositionsView() {
                                     <input
                                         type='datetime-local'
                                         required
+                                        min={minDateTime}
                                         value={deadline}
                                         onChange={(e) =>
                                             setDeadline(e.target.value)
@@ -237,6 +254,7 @@ export default function RecruiterPositionsView() {
                                     <input
                                         type='datetime-local'
                                         required
+                                        min={deadline || minDateTime}
                                         value={interviewRangeStart}
                                         onChange={(e) =>
                                             setInterviewRangeStart(
@@ -253,6 +271,11 @@ export default function RecruiterPositionsView() {
                                     <input
                                         type='datetime-local'
                                         required
+                                        min={
+                                            interviewRangeStart ||
+                                            deadline ||
+                                            minDateTime
+                                        }
                                         value={interviewRangeEnd}
                                         onChange={(e) =>
                                             setInterviewRangeEnd(
@@ -263,6 +286,10 @@ export default function RecruiterPositionsView() {
                                     />
                                 </label>
                             </div>
+
+                            <p className='font-mono text-[9px] uppercase tracking-[0.12em] text-(--text-sub)'>
+                                Times are Africa/Algiers (UTC+1).
+                            </p>
 
                             {formError && (
                                 <p
@@ -311,7 +338,7 @@ export default function RecruiterPositionsView() {
                 <div className='text-xs text-(--text-sub)'>
                     Loading position pipelines...
                 </div>
-            :   <div className='grid min-h-0 gap-6 lg:flex-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]'>
+            :   <div className='grid min-h-0 items-start gap-6 lg:flex-1 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]'>
                     <section className='flex min-h-0 flex-col'>
                         <h3 className='mb-3 flex shrink-0 items-center gap-2 font-grotesque font-bold text-2xl text-(--text-main)'>
                             <span className='w-2 h-2 rounded-full bg-forest dark:bg-forest-dark' />{' '}
@@ -371,11 +398,11 @@ export default function RecruiterPositionsView() {
                                             <span>
                                                 {p.interviewRangeStart &&
                                                 p.interviewRangeEnd ?
-                                                    `${new Date(
+                                                    `${formatDate(
                                                         p.interviewRangeStart
-                                                    ).toLocaleDateString()} – ${new Date(
+                                                    )} – ${formatDate(
                                                         p.interviewRangeEnd
-                                                    ).toLocaleDateString()}`
+                                                    )}`
                                                 :   'Interview range not set'}
                                             </span>
                                         </div>
@@ -393,9 +420,7 @@ export default function RecruiterPositionsView() {
                                                 <Clock size={14} />
                                                 <span>
                                                     Deadline:{' '}
-                                                    {new Date(
-                                                        p.deadline
-                                                    ).toLocaleDateString()}
+                                                    {formatDate(p.deadline)}
                                                 </span>
                                             </div>
                                         </div>
@@ -446,9 +471,7 @@ export default function RecruiterPositionsView() {
                                             </span>
                                             <span>
                                                 Closed{' '}
-                                                {new Date(
-                                                    p.deadline
-                                                ).toLocaleDateString()}
+                                                {formatDate(p.deadline)}
                                             </span>
                                         </div>
                                     </Link>
