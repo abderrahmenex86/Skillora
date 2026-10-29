@@ -13,7 +13,7 @@ const PROCESS_FLOW_DESKTOP = `
 flowchart LR
     subgraph P1["01 · Resume"]
         direction TB
-        A[Choose role] --> B[Select evidence]
+        A[Choose role] --> B[Select qualifications]
         B --> C[Generate resume]
     end
     subgraph P2["02 · Audit"]
@@ -38,7 +38,7 @@ flowchart LR
 
 const PROCESS_FLOW_MOBILE = `
 flowchart TD
-    A[Choose a role] --> B[Select evidence]
+    A[Choose a role] --> B[Select qualifications]
     B --> C[Generate resume]
     C --> D{Ready to submit?}
     D -->|No| E[Add missing proof]
@@ -46,7 +46,7 @@ flowchart TD
     D -->|Yes| F[Submit application]
     F --> G[Parse + normalize]
     G --> H[Audit against rubric]
-    H --> I{Evidence verified?}
+    H --> I{Qualifications verified?}
     I -->|Yes| J[Unlock interview slots]
     J --> K[Calendar locked]
     I -->|No| L[Gap roadmap]
@@ -73,7 +73,7 @@ export default function HowItWorksView() {
                     </h1>
                     <p className='mt-6 max-w-2xl text-lg leading-relaxed text-(--text-sub)'>
                         Skillora replaces keyword filtering with verified
-                        evidence and a deterministic dual outcome: an
+                        qualifications and a deterministic dual outcome: an
                         interview invitation or an actionable gap roadmap.
                     </p>
 
@@ -105,7 +105,7 @@ export default function HowItWorksView() {
                                 className='text-forest dark:text-forest-dark'
                                 aria-hidden='true'
                             />
-                            Evidence, not adjectives
+                            Qualifications, not adjectives
                         </span>
                         <span className='inline-flex items-center gap-2'>
                             <CalendarCheck2
@@ -140,7 +140,7 @@ export default function HowItWorksView() {
                         <MermaidDiagram
                             chart={PROCESS_FLOW_DESKTOP}
                             mobileChart={PROCESS_FLOW_MOBILE}
-                            label='End-to-end flowchart: tailor a resume, submit it for an evidence audit, then route to interview scheduling or an actionable gap roadmap.'
+                            label='End-to-end flowchart: tailor a resume, submit it for an qualification audit, then route to interview scheduling or an actionable gap roadmap.'
                         />
                     </div>
                 </section>

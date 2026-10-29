@@ -46,7 +46,7 @@ type Feature = {
 const APPLICANT_FEATURES: Feature[] = [
     {
         icon: Target,
-        title: 'Evidence over keywords',
+        title: 'Qualifications over keywords',
         description:
             'Your projects, degrees, and shipped work are matched against the real rubric — not a PDF keyword scan.',
     },
@@ -81,7 +81,7 @@ const RECRUITER_FEATURES: Feature[] = [
         icon: Users,
         title: 'One pipeline per role',
         description:
-            'Every applicant lands in a structured cohort with their evidence and gap analysis attached.',
+            'Every applicant lands in a structured cohort with their qualifications and gap analysis attached.',
     },
     {
         icon: CalendarCheck2,
@@ -438,7 +438,7 @@ export default function LandingView() {
                                 <div className='space-y-5 p-5'>
                                     <div>
                                         <div className='flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.14em] text-(--text-sub)'>
-                                            <span>Evidence match</span>
+                                            <span>Qualifications match</span>
                                             <span>72%</span>
                                         </div>
                                         <div className='mt-2 h-1.5 overflow-hidden rounded-full bg-(--border-line)'>
@@ -511,7 +511,7 @@ export default function LandingView() {
                         index='02'
                         label='Recruiters'
                         title='Shortlists with proof attached.'
-                        description='Stop screening on adjectives. Skillora routes candidates by verified evidence, keeps every role in one structured pipeline, and removes the scheduling drag.'
+                        description='Stop screening on adjectives. Skillora routes candidates by verified qualifications, keeps every role in one structured pipeline, and removes the scheduling drag.'
                     />
 
                     <div className='mt-10 grid gap-6 lg:grid-cols-12 lg:items-stretch'>

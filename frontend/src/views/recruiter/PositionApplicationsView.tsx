@@ -426,7 +426,7 @@ export default function PositionApplicationsView() {
                         </>
                     :   <div className='text-xs text-(--text-sub) py-8 text-center'>
                             Select an application on the left to inspect
-                            evidence.
+                            qualifications.
                         </div>
                     }
                     </div>

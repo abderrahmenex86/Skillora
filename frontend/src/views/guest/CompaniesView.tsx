@@ -13,7 +13,7 @@ export default function CompaniesView() {
                     Engineering managers and HR leads lose dozens of hours every
                     week reading inflated resumes. Skillora delivers verified
                     candidate dossiers where claimed competencies are backed by
-                    evidence.
+                    qualifications.
                 </p>
 
                 <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 tall:mb-16'>
