@@ -379,38 +379,52 @@ export default function RecruiterPositionsView() {
                             {closedPositions?.length ?? 0})
                         </h3>
                         <div className='panel-scroll panel-snap flex-1 min-h-0'>
-                        {closedPositions?.length > 0 && (
-                            <div className='grid grid-cols-1 md:grid-cols-2 gap-4 opacity-75'>
+                        {closedPositions?.length > 0 ?
+                            <div className='space-y-3 opacity-80'>
                                 {closedPositions.map((p: any) => (
                                     <Link
                                         key={p.id}
                                         to={`/recruiter/positions/${p.id}/applications`}
-                                        className='relative p-5 rounded-md border border-(--border-line) bg-(--bg-panel) block'>
+                                        className='relative block rounded-md border border-(--border-line) bg-(--bg-panel) p-4 transition-colors hover:border-(--text-sub)'>
                                         <span
                                             aria-hidden='true'
                                             className='snap-anchor'
                                         />
-                                        <div className='flex justify-between items-start mb-2'>
-                                            <div>
-                                                <span className='font-mono text-[10px] text-(--text-sub) uppercase'>
+                                        <div className='flex items-start justify-between gap-3'>
+                                            <div className='min-w-0'>
+                                                <span className='font-mono text-[10px] uppercase tracking-[0.08em] text-(--text-sub)'>
                                                     CLOSED • {p.department}
                                                 </span>
-                                                <h4 className='font-grotesque font-bold text-2xl text-(--text-main)'>
+                                                <h4 className='mt-1 break-words font-grotesque text-xl font-bold leading-tight text-(--text-main)'>
                                                     {p.title}
                                                 </h4>
+                                                <p className='mt-1 font-mono text-[10px] text-(--text-sub)'>
+                                                    {p.location}
+                                                </p>
                                             </div>
-                                            <span className='font-mono text-[10px] px-2 py-0.5 rounded bg-(--border-line) text-(--text-sub)'>
+                                            <span className='shrink-0 rounded bg-(--border-line) px-2 py-0.5 font-mono text-[10px] text-(--text-sub)'>
                                                 LOCKED
                                             </span>
                                         </div>
-                                        <div className='text-xs font-mono text-(--text-sub)'>
-                                            {p._count?.applications ?? 0}{' '}
-                                            Applications processed
+                                        <div className='mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-(--border-line) pt-3 font-mono text-[10px] uppercase tracking-[0.08em] text-(--text-sub)'>
+                                            <span>
+                                                {p._count?.applications ?? 0}{' '}
+                                                applications
+                                            </span>
+                                            <span>
+                                                Closed{' '}
+                                                {new Date(
+                                                    p.deadline
+                                                ).toLocaleDateString()}
+                                            </span>
                                         </div>
                                     </Link>
                                 ))}
                             </div>
-                        )}
+                        :   <div className='rounded-md border border-dashed border-(--border-line) px-4 py-8 text-center text-xs text-(--text-sub)'>
+                                No archived positions yet.
+                            </div>
+                        }
                         </div>
                     </section>
                 </div>
