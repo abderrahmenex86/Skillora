@@ -26,7 +26,13 @@ import {
     type LucideIcon,
 } from 'lucide-react';
 import { ALGERIAN_COMPANIES } from '../../data/algerianCompanies';
+import Typewriter from '../../components/Typewriter';
 import { useAuthStore } from '../../store/useAuthStore';
+
+const HERO_PERSPECTIVES = [
+    'Hiring shouldn’t mean waiting in silence with zero feedback.',
+    'Hiring shouldn’t mean drowning in 500 CVs with zero real proof.',
+];
 
 type Feature = {
     icon: LucideIcon;
@@ -330,9 +336,22 @@ export default function LandingView() {
                                 </span>
                             </div>
 
-                            <h1 className='mt-6 font-grotesque text-5xl font-extrabold leading-[0.95] tracking-tight text-(--text-main) sm:text-6xl md:text-7xl'>
-                                Hiring shouldn’t end in silence. Match talent
-                                on real evidence.
+                            <h1 className='mt-6 grid font-grotesque text-5xl font-extrabold leading-[0.95] tracking-tight text-(--text-main) sm:text-6xl md:text-7xl'>
+                                {HERO_PERSPECTIVES.map((perspective) => (
+                                    <span
+                                        key={perspective}
+                                        aria-hidden='true'
+                                        className='invisible col-start-1 row-start-1'>
+                                        {perspective}
+                                        {'\u00A0'}
+                                    </span>
+                                ))}
+                                <span className='col-start-1 row-start-1'>
+                                    <Typewriter
+                                        texts={HERO_PERSPECTIVES}
+                                        cursorClassName='text-forest dark:text-forest-dark'
+                                    />
+                                </span>
                             </h1>
                             <p className='mt-6 max-w-2xl text-lg leading-relaxed text-(--text-sub) md:text-xl'>
                                 Skillora automates screening and scheduling

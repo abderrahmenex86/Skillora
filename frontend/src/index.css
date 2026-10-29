@@ -178,6 +178,27 @@ body {
     overflow: hidden;
 }
 
+/*
+ * Typewriter cursor. Kept in CSS so the component only owns the typed text.
+ */
+.typewriter-cursor {
+    display: inline;
+    margin-left: 0.12em;
+    border-left: 0.09em solid currentColor;
+    animation: cursor-blink 1.05s steps(1, end) infinite;
+}
+
+@keyframes cursor-blink {
+    0%,
+    48% {
+        opacity: 1;
+    }
+    49%,
+    100% {
+        opacity: 0;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     html {
         scroll-behavior: auto;
@@ -185,8 +206,13 @@ body {
 
     .page-transition,
     .modal-backdrop,
-    .modal-panel {
+    .modal-panel,
+    .typewriter-cursor {
         animation: none;
+    }
+
+    .typewriter-cursor {
+        opacity: 1;
     }
 
     .page-scroll,
