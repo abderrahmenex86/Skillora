@@ -27,7 +27,7 @@ const prisma = new PrismaClient();
 
 const TEST_DOMAIN = '@skillora.test';
 const TEST_PASSWORD = 'password123';
-const DEFAULT_DEADLINE_MINUTES = 5;
+const DEFAULT_DEADLINE_MINUTES = 1;
 
 type RecruiterSeed = {
     email: string;
