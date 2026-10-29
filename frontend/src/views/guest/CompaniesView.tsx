@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, ShieldCheck, Terminal, Users } from 'lucide-react';
 import Footer from '../../components/Footer';
+import CompanyMark from '../../components/CompanyMark';
+import { ALGERIAN_COMPANIES } from '../../data/algerianCompanies';
 
 export default function CompaniesView() {
     return (
@@ -63,7 +65,53 @@ export default function CompaniesView() {
                     </div>
                 </div>
 
-                <div className='border border-(--border-line) p-6 tall:p-8 rounded-lg bg-(--bg-panel) flex flex-col md:flex-row items-center justify-between gap-6'>
+                <section className='mt-12 border-t border-(--border-line) pt-10'>
+                    <div className='flex flex-col gap-4 md:flex-row md:items-end md:justify-between'>
+                        <div className='max-w-2xl'>
+                            <p className='font-mono text-[10px] uppercase tracking-[0.22em] text-(--text-sub)'>
+                                Hiring network
+                            </p>
+                            <h2 className='mt-2 font-grotesque text-3xl font-extrabold tracking-tight text-(--text-main) sm:text-4xl'>
+                                {ALGERIAN_COMPANIES.length} companies across
+                                Algeria, in one network.
+                            </h2>
+                            <p className='mt-3 text-sm leading-relaxed text-(--text-sub)'>
+                                From banking and telecom to energy, retail, and
+                                engineering — the same directory applicants
+                                search on the homepage.
+                            </p>
+                        </div>
+                        <span className='inline-flex shrink-0 items-center gap-2 rounded-full border border-forest/25 bg-forest/8 px-3 py-1.5 font-mono text-[9px] uppercase tracking-[0.14em] text-forest dark:border-forest-dark/30 dark:bg-forest-dark/10 dark:text-forest-dark'>
+                            <span className='h-1.5 w-1.5 rounded-full bg-forest dark:bg-forest-dark' />
+                            Live directory
+                        </span>
+                    </div>
+
+                    <div className='mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
+                        {ALGERIAN_COMPANIES.map((company) => (
+                            <article
+                                key={company.name}
+                                className='group flex items-center gap-3 rounded-lg border border-(--border-line) bg-(--bg-canvas) p-3.5 transition-colors hover:border-(--text-sub)/40 hover:bg-(--bg-panel)'>
+                                <CompanyMark company={company} />
+                                <div className='min-w-0'>
+                                    <h3
+                                        className='line-clamp-2 text-sm font-semibold leading-snug text-(--text-main)'
+                                        title={company.name}>
+                                        {company.name}
+                                    </h3>
+                                    <p className='truncate font-mono text-[9px] uppercase leading-snug tracking-[0.1em] text-(--text-sub)'>
+                                        {company.sector}
+                                    </p>
+                                    <p className='truncate font-mono text-[9px] uppercase leading-snug tracking-[0.1em] text-(--text-sub)'>
+                                        {company.city}
+                                    </p>
+                                </div>
+                            </article>
+                        ))}
+                    </div>
+                </section>
+
+                <div className='mt-12 border border-(--border-line) p-6 tall:p-8 rounded-lg bg-(--bg-panel) flex flex-col md:flex-row items-center justify-between gap-6'>
                     <div>
                         <h3 className='font-grotesque font-bold text-3xl text-(--text-main) mb-1'>
                             Ready to deploy your candidate cohort?
