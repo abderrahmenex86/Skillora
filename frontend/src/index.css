@@ -196,6 +196,13 @@ body {
     margin-inline: auto;
 }
 
+/* Match the lightly rounded corners used across the app. */
+.mermaid-diagram .node rect,
+.mermaid-diagram .cluster rect {
+    rx: 6px;
+    ry: 6px;
+}
+
 /*
  * Process diagrams are easier to read at a fixed minimum width than when
  * scaled down to a phone screen. The card scrolls horizontally instead.

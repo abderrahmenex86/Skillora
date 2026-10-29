@@ -3,7 +3,6 @@ import { useThemeStore } from '../store/useThemeStore';
 
 type MermaidDiagramProps = {
     chart: string;
-    mobileChart?: string;
     label: string;
     className?: string;
 };
@@ -92,28 +91,12 @@ let renderSequence = 0;
  */
 export default function MermaidDiagram({
     chart,
-    mobileChart,
     label,
     className = '',
 }: MermaidDiagramProps) {
     const isDark = useThemeStore((state) => state.isDark);
     const [svg, setSvg] = useState('');
     const [failed, setFailed] = useState(false);
-    const [isNarrow, setIsNarrow] = useState(
-        () =>
-            typeof window !== 'undefined' &&
-            window.matchMedia('(max-width: 1023px)').matches
-    );
-
-    useEffect(() => {
-        const media = window.matchMedia('(max-width: 1023px)');
-        const update = () => setIsNarrow(media.matches);
-        update();
-        media.addEventListener('change', update);
-        return () => media.removeEventListener('change', update);
-    }, []);
-
-    const activeChart = isNarrow && mobileChart ? mobileChart : chart;
 
     useEffect(() => {
         let cancelled = false;
@@ -150,7 +133,7 @@ export default function MermaidDiagram({
                 });
 
                 const id = `skillora-mermaid-${renderSequence++}`;
-                const themedChart = activeChart
+                const themedChart = chart
                     .replaceAll('{{accent}}', isDark ? '#f5f5f5' : '#171717')
                     .replaceAll(
                         '{{accentSoft}}',
@@ -172,7 +155,7 @@ export default function MermaidDiagram({
         return () => {
             cancelled = true;
         };
-    }, [activeChart, isDark]);
+    }, [chart, isDark]);
 
     if (failed) {
         return (

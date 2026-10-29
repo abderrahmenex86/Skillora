@@ -3,40 +3,15 @@ import {
     ArrowRight,
     ArrowUpRight,
     CalendarCheck2,
+    FileText,
     Route,
+    SearchCheck,
     ShieldCheck,
 } from 'lucide-react';
 import Footer from '../../components/Footer';
 import MermaidDiagram from '../../components/MermaidDiagram';
 
-const PROCESS_FLOW_DESKTOP = `
-flowchart LR
-    subgraph P1["01 · Resume"]
-        direction TB
-        A[Choose role] --> B[Select qualifications]
-        B --> C[Generate resume]
-    end
-    subgraph P2["02 · Audit"]
-        direction TB
-        D[Submit application] --> E[Parse + normalize]
-        E --> F[Audit rubric]
-        F --> G{Verified?}
-    end
-    subgraph P3["03 · Outcome"]
-        direction TB
-        H[Interview + calendar]
-        J[Gap roadmap + re-apply]
-    end
-    C --> D
-    G -->|Yes| H
-    G -->|No| J
-    classDef accent fill:{{accent}},stroke:{{accent}},color:{{onAccent}};
-    classDef soft fill:{{accentSoft}},stroke:{{muted}},color:{{accentText}};
-    class D,H accent;
-    class G,J soft;
-`;
-
-const PROCESS_FLOW_MOBILE = `
+const PROCESS_FLOW = `
 flowchart TD
     A[Choose a role] --> B[Select qualifications]
     B --> C[Generate resume]
@@ -56,6 +31,33 @@ flowchart TD
     class F,J,K accent;
     class D,E,I,L,M soft;
 `;
+
+const STEPS = [
+    {
+        index: '01',
+        label: 'Tailored resumes',
+        title: 'Apply with the resume that fits the role.',
+        description:
+            'Keep one information library and assemble a role-specific resume for every application — data engineering, security, corporate counsel. The version you submit is the version Skillora audits.',
+        icon: FileText,
+    },
+    {
+        index: '02',
+        label: 'Qualification audit',
+        title: 'Every claim is checked against the rubric.',
+        description:
+            'Companies define mandatory criteria. Skillora normalizes each submission into a randomized candidate card, then audits projects, repos, and credentials against those criteria — not keyword density.',
+        icon: SearchCheck,
+    },
+    {
+        index: '03',
+        label: 'A deterministic outcome',
+        title: 'An interview or a concrete next step.',
+        description:
+            'Eligible applicants unlock calendar slots they can confirm from their dashboard. Redirected applicants receive a specific gap roadmap with the exact proof to build before re-applying.',
+        icon: Route,
+    },
+];
 
 export default function HowItWorksView() {
     return (
@@ -136,12 +138,66 @@ export default function HowItWorksView() {
                         </h2>
                     </div>
 
-                    <div className='mt-10 max-w-6xl rounded-xl border border-(--border-line) bg-(--bg-panel) p-4 sm:p-6'>
-                        <MermaidDiagram
-                            chart={PROCESS_FLOW_DESKTOP}
-                            mobileChart={PROCESS_FLOW_MOBILE}
-                            label='End-to-end flowchart: tailor a resume, submit it for an qualification audit, then route to interview scheduling or an actionable gap roadmap.'
-                        />
+                    <div className='mt-10 grid gap-8 lg:grid-cols-12 lg:items-start'>
+                        <div className='lg:col-span-5'>
+                            <div className='rounded-xl border border-(--border-line) bg-(--bg-panel) p-3 sm:p-4'>
+                                <MermaidDiagram
+                                    chart={PROCESS_FLOW}
+                                    label='End-to-end flowchart: tailor a resume, submit it for a qualification audit, then route to interview scheduling or an actionable gap roadmap.'
+                                />
+                            </div>
+                        </div>
+
+                        <div className='space-y-7 lg:col-span-7'>
+                            <p className='text-sm leading-relaxed text-(--text-sub)'>
+                                One pipeline, three stages. Every application
+                                follows the same path — whether it ends in an
+                                interview or a concrete plan to close the gap.
+                            </p>
+
+                            {STEPS.map((step) => {
+                                const Icon = step.icon;
+
+                                return (
+                                    <div
+                                        key={step.index}
+                                        className='border-t border-(--border-line) pt-6'>
+                                        <div className='flex items-center gap-3'>
+                                            <span className='flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-(--border-line) bg-(--bg-panel) text-(--text-main)'>
+                                                <Icon
+                                                    size={16}
+                                                    aria-hidden='true'
+                                                />
+                                            </span>
+                                            <div>
+                                                <p className='font-mono text-[9px] uppercase tracking-[0.16em] text-(--text-sub)'>
+                                                    {step.index}
+                                                </p>
+                                                <p className='font-mono text-[9px] uppercase tracking-[0.16em] text-(--text-sub)'>
+                                                    {step.label}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <h3 className='mt-3 font-grotesque text-2xl font-bold text-(--text-main)'>
+                                            {step.title}
+                                        </h3>
+                                        <p className='mt-2 text-sm leading-relaxed text-(--text-sub)'>
+                                            {step.description}
+                                        </p>
+                                    </div>
+                                );
+                            })}
+
+                            <div className='rounded-lg border border-(--border-line) bg-(--bg-panel) p-4'>
+                                <p className='font-mono text-[9px] uppercase tracking-[0.16em] text-(--text-sub)'>
+                                    Outcome guarantee
+                                </p>
+                                <p className='mt-1 text-sm leading-relaxed text-(--text-main)'>
+                                    No silent rejections. Every applicant leaves
+                                    with an interview or a concrete next step.
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </section>
             </main>
