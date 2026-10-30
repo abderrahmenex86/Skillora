@@ -8,6 +8,7 @@ import {
     normalizeRedirect,
     redirectFromLocationState,
 } from '../../lib/redirect';
+import { homeForUser } from '../../data/routes';
 import { useAuthStore } from '../../store/useAuthStore';
 
 export default function AuthView() {
@@ -99,11 +100,7 @@ export default function AuthView() {
             setTokens(data.accessToken, data.user);
 
             if (!redirect) {
-                if (data.user.role === 'RECRUITER') {
-                    navigate('/recruiter/positions', { replace: true });
-                } else {
-                    navigate('/applicant/dashboard', { replace: true });
-                }
+                navigate(homeForUser(data.user), { replace: true });
             }
         } catch (err: any) {
             if (err.response?.data?.issues) {

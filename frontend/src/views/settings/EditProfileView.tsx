@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { apiClient } from '../../api/apiClient';
 import { ALGERIA_WILAYAS } from '../../data/algeria';
-import { roleHome } from '../../data/routes';
+import { homeForUser } from '../../data/routes';
 import { useAuthStore, type User } from '../../store/useAuthStore';
 import Footer from '../../components/Footer';
 
@@ -171,7 +171,7 @@ export default function EditProfileView() {
         <div className='page-scroll flex flex-col'>
             <div className='w-full max-w-3xl mx-auto px-6 py-8'>
             <Link
-                to={roleHome[user.role]}
+                to={homeForUser(user)}
                 className='inline-flex items-center gap-1.5 text-xs font-mono text-(--text-sub) hover:text-(--text-main) transition-colors mb-6'>
                 <ArrowLeft size={14} />
                 Back to Dashboard
@@ -358,7 +358,7 @@ export default function EditProfileView() {
 
                 <div className='flex items-center justify-end gap-3 pt-2'>
                     <Link
-                        to={roleHome[user.role]}
+                        to={homeForUser(user)}
                         className='px-4 py-2.5 text-sm font-medium rounded-md border border-(--border-line) text-(--text-main) hover:bg-(--bg-canvas) transition-colors'>
                         Cancel
                     </Link>

@@ -2,7 +2,15 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../../api/apiClient';
 import { Link } from 'react-router-dom';
-import { Plus, Users, Clock, ArrowRight, FolderOpen } from 'lucide-react';
+import {
+    AlertTriangle,
+    Plus,
+    Users,
+    Clock,
+    ArrowRight,
+    FolderOpen,
+} from 'lucide-react';
+import { useAuthStore } from '../../store/useAuthStore';
 import {
     formatDate,
     parseAlgeriaDateTime,
@@ -11,6 +19,8 @@ import {
 
 export default function RecruiterPositionsView() {
     const queryClient = useQueryClient();
+    const user = useAuthStore((state) => state.user);
+    const isFrozen = user?.companyStatus === 'FROZEN';
     const [showCreateModal, setShowCreateModal] = useState(false);
 
     const [companyName, setCompanyName] = useState('');
@@ -141,10 +151,25 @@ export default function RecruiterPositionsView() {
                 </div>
                 <button
                     onClick={() => setShowCreateModal(true)}
-                    className='px-4 py-2 bg-(--btn-main-bg) text-(--btn-main-text) text-sm font-medium rounded-md hover:opacity-90 inline-flex items-center gap-2'>
+                    disabled={isFrozen}
+                    className='px-4 py-2 bg-(--btn-main-bg) text-(--btn-main-text) text-sm font-medium rounded-md hover:opacity-90 inline-flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-50'>
                     <Plus size={16} /> Open New Position
                 </button>
             </div>
+
+            {isFrozen && (
+                <div className='flex items-start gap-3 rounded-lg border border-amber-accent/30 bg-amber-accent/5 p-4'>
+                    <AlertTriangle
+                        size={18}
+                        className='mt-0.5 shrink-0 text-amber-accent'
+                    />
+                    <p className='text-xs leading-relaxed text-(--text-sub)'>
+                        Your company is frozen. You can review positions and
+                        candidates, but creating, editing, and pipeline actions
+                        are disabled.
+                    </p>
+                </div>
+            )}
 
             {showCreateModal && (
                 <div className='modal-backdrop fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4'>

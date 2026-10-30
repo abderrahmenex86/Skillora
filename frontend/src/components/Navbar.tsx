@@ -14,7 +14,7 @@ import {
     User as UserIcon,
     X,
 } from 'lucide-react';
-import { roleHome } from '../data/routes';
+import { homeForUser } from '../data/routes';
 import { apiClient } from '../api/apiClient';
 import { useThemeStore } from '../store/useThemeStore';
 import MessagesMenu from './MessagesMenu';
@@ -62,6 +62,7 @@ const applicantItems: NavItem[] = [
 
 const recruiterItems: NavItem[] = [
     { to: '/recruiter/positions', label: 'Positions History' },
+    { to: '/recruiter/onboarding', label: 'Company' },
     { to: '/jobs', label: 'Public Jobs Preview' },
     { to: '/pricing', label: 'Plans' },
 ];
@@ -77,11 +78,28 @@ export default function Navbar() {
     const mobileNavRef = useRef<HTMLDivElement>(null);
     const mobileNavButtonRef = useRef<HTMLButtonElement>(null);
 
+    const pendingCompany =
+        user?.role === 'RECRUITER' &&
+        ['DRAFT', 'REJECTED', 'PENDING'].includes(
+            user.companyStatus ?? ''
+        );
+
     const navItems =
         !user ? publicItems
         : user.role === 'APPLICANT' ? applicantItems
-        : user.role === 'RECRUITER' ? recruiterItems
-        : [];
+        : user.role === 'RECRUITER' ?
+            pendingCompany ?
+                [
+                    {
+                        to: '/recruiter/onboarding',
+                        label:
+                            user.companyStatus === 'PENDING' ?
+                                'Company review'
+                            :   'Company setup',
+                    },
+                ]
+            :   recruiterItems
+        :   [];
 
     const isProLocked = (item: NavItem) =>
         item.to === '/applicant/insights' &&
@@ -262,7 +280,9 @@ export default function Navbar() {
     const showUpgradeButton =
         Boolean(user) &&
         user?.subscriptionTier !== 'PRO' &&
-        user?.subscriptionTier !== 'ENTERPRISE';
+        user?.subscriptionTier !== 'ENTERPRISE' &&
+        (user?.role !== 'RECRUITER' ||
+            ['APPROVED', 'FROZEN'].includes(user.companyStatus ?? ''));
 
     const mobileDrawer = mobileNavOpen ? (
         <div className='fixed inset-0 top-16 z-[60] md:hidden'>
@@ -378,7 +398,7 @@ export default function Navbar() {
             <div className='mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6'>
                 <div className='flex min-w-0 shrink-0 items-center'>
                     <Link
-                        to={user ? roleHome[user.role] : '/'}
+                        to={homeForUser(user)}
                         className='inline-flex items-center px-2.5 py-1 font-grotesque text-3xl font-bold tracking-tight bg-(--btn-main-bg) text-(--btn-main-text) rounded-sm transition-colors sm:px-3'>
                         Skillora
                     </Link>
@@ -429,7 +449,7 @@ export default function Navbar() {
                                 type='button'
                                 onClick={() => {
                                     setMenuOpen(false);
-                                    navigate(roleHome[user.role]);
+                                    navigate(homeForUser(user));
                                 }}
                                 aria-label='Go to dashboard'
                                 className='flex items-center space-x-2 rounded-md px-1.5 py-1 hover:bg-(--bg-panel) transition-colors cursor-pointer sm:px-2'>
@@ -473,7 +493,7 @@ export default function Navbar() {
                                     :   'pointer-events-none -translate-y-1 scale-95 opacity-0'
                                 }`}>
                                 <Link
-                                    to={roleHome[user.role]}
+                                    to={homeForUser(user)}
                                     role='menuitem'
                                     onClick={() => setMenuOpen(false)}
                                     className='flex items-center gap-2 rounded px-3 py-2 text-sm text-(--text-main) transition-colors hover:bg-(--bg-panel)'>

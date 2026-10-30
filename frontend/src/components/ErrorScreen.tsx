@@ -9,7 +9,7 @@ import {
     type LucideIcon,
 } from 'lucide-react';
 import { queryClient } from '../api/queryClient';
-import { roleHome } from '../data/routes';
+import { homeForUser } from '../data/routes';
 import { useAuthStore } from '../store/useAuthStore';
 import {
     ERROR_CONTEXTS,
@@ -83,7 +83,7 @@ export default function ErrorScreen({
             onReturnToDashboard();
             return;
         }
-        window.location.assign(user ? roleHome[user.role] : '/');
+        window.location.assign(homeForUser(user));
     };
 
     const handleRetry = () => {

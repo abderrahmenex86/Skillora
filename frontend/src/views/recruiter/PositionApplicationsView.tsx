@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../../api/apiClient';
+import { useAuthStore } from '../../store/useAuthStore';
 import { formatApplicationStatus } from '../../lib/applicationStatus';
 import {
     formatDateTime,
@@ -37,6 +38,8 @@ interface ApplicationResume extends VaultLibrary {
 export default function PositionApplicationsView() {
     const { id: positionId } = useParams<{ id: string }>();
     const queryClient = useQueryClient();
+    const user = useAuthStore((state) => state.user);
+    const isFrozen = user?.companyStatus === 'FROZEN';
     const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
     const [candidateSearch, setCandidateSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('ALL');
@@ -300,6 +303,7 @@ export default function PositionApplicationsView() {
                             {!isDeadlinePassed && positionData && (
                                 <button
                                     type='button'
+                                    disabled={isFrozen}
                                     onClick={() => {
                                         setDeadlineError('');
                                         setNewDeadline(
@@ -334,6 +338,19 @@ export default function PositionApplicationsView() {
                     )}
                 </div>
             </div>
+
+            {isFrozen && (
+                <div className='flex items-start gap-3 rounded-lg border border-amber-accent/30 bg-amber-accent/5 p-4'>
+                    <AlertTriangle
+                        size={18}
+                        className='mt-0.5 shrink-0 text-amber-accent'
+                    />
+                    <p className='text-xs leading-relaxed text-(--text-sub)'>
+                        Your company is frozen. Candidate review is read-only;
+                        decisions and deadline changes are disabled.
+                    </p>
+                </div>
+            )}
 
             <div className='grid grid-cols-1 gap-6 md:min-h-0 md:flex-1 md:grid-cols-12 md:items-stretch'>
                 <div
@@ -692,7 +709,10 @@ export default function PositionApplicationsView() {
                                                                 | 'REJECT'
                                                         )
                                                     }
-                                                    disabled={option.disabled}
+                                                    disabled={
+                                                        option.disabled ||
+                                                        isFrozen
+                                                    }
                                                     className='mt-0.5'
                                                 />
                                                 <span>
@@ -715,12 +735,16 @@ export default function PositionApplicationsView() {
                                         onChange={(e) =>
                                             setOverrideNotes(e.target.value)
                                         }
-                                        className='w-full px-3 py-2 text-xs rounded border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none'
+                                        disabled={isFrozen}
+                                        className='w-full px-3 py-2 text-xs rounded border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none disabled:opacity-60'
                                     />
 
                                     <button
                                         type='submit'
-                                        disabled={overrideMutation.isPending}
+                                        disabled={
+                                            overrideMutation.isPending ||
+                                            isFrozen
+                                        }
                                         className='w-full py-2 bg-(--btn-main-bg) text-(--btn-main-text) text-xs font-mono uppercase tracking-wider rounded font-semibold hover:opacity-90 disabled:opacity-50'>
                                         {overrideMutation.isPending ?
                                             'Saving Decision...'

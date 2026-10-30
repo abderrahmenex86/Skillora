@@ -31,8 +31,9 @@ import InsightsView from './views/applicant/InsightsView';
 
 import RecruiterPositionsView from './views/recruiter/RecruiterPositionsView';
 import PositionApplicationsView from './views/recruiter/PositionApplicationsView';
+import CompanyOnboardingView from './views/recruiter/CompanyOnboardingView';
 
-import { roleHome } from './data/routes';
+import { homeForUser } from './data/routes';
 import { redirectFromLocationState } from './lib/redirect';
 import { useThemeStore } from './store/useThemeStore';
 import { useAuthStore } from './store/useAuthStore';
@@ -70,7 +71,7 @@ function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
     if (user && !hasRedirect) {
         return (
             <Navigate
-                to={roleHome[user.role]}
+                to={homeForUser(user)}
                 replace
             />
         );
@@ -91,6 +92,103 @@ function SignedInRoute({ children }: { children: React.ReactNode }) {
             />
         );
     }
+    return <>{children}</>;
+}
+
+function RecruiterOnboardingRoute({
+    children,
+}: {
+    children: React.ReactNode;
+}) {
+    const user = useAuthStore((state) => state.user);
+    const location = useLocation();
+
+    if (!user) {
+        return (
+            <Navigate
+                to='/auth?mode=login'
+                state={{ from: location }}
+                replace
+            />
+        );
+    }
+
+    if (user.role !== 'RECRUITER') {
+        return (
+            <Navigate
+                to={homeForUser(user)}
+                replace
+            />
+        );
+    }
+
+    if (
+        user.companyStatus === 'ARCHIVED' ||
+        user.companyStatus === 'DELETED'
+    ) {
+        return (
+            <Navigate
+                to='/'
+                replace
+            />
+        );
+    }
+
+    return <>{children}</>;
+}
+
+function ApprovedCompanyRoute({
+    children,
+}: {
+    children: React.ReactNode;
+}) {
+    const user = useAuthStore((state) => state.user);
+    const location = useLocation();
+
+    if (!user) {
+        return (
+            <Navigate
+                to='/auth?mode=login'
+                state={{ from: location }}
+                replace
+            />
+        );
+    }
+
+    if (user.role !== 'RECRUITER') {
+        return (
+            <Navigate
+                to={homeForUser(user)}
+                replace
+            />
+        );
+    }
+
+    if (
+        user.companyStatus === 'DRAFT' ||
+        user.companyStatus === 'REJECTED' ||
+        user.companyStatus === 'PENDING'
+    ) {
+        return (
+            <Navigate
+                to='/recruiter/onboarding'
+                replace
+            />
+        );
+    }
+
+    if (
+        user.companyStatus === 'ARCHIVED' ||
+        user.companyStatus === 'DELETED'
+    ) {
+        return (
+            <Navigate
+                to='/'
+                replace
+            />
+        );
+    }
+
     return <>{children}</>;
 }
 
@@ -251,19 +349,27 @@ export default function App() {
                         />
 
                         <Route
+                            path='/recruiter/onboarding'
+                            element={
+                                <RecruiterOnboardingRoute>
+                                    <CompanyOnboardingView />
+                                </RecruiterOnboardingRoute>
+                            }
+                        />
+                        <Route
                             path='/recruiter/positions'
                             element={
-                                <ProtectedRoute allowedRole='RECRUITER'>
+                                <ApprovedCompanyRoute>
                                     <RecruiterPositionsView />
-                                </ProtectedRoute>
+                                </ApprovedCompanyRoute>
                             }
                         />
                         <Route
                             path='/recruiter/positions/:id/applications'
                             element={
-                                <ProtectedRoute allowedRole='RECRUITER'>
+                                <ApprovedCompanyRoute>
                                     <PositionApplicationsView />
-                                </ProtectedRoute>
+                                </ApprovedCompanyRoute>
                             }
                         />
                     </Route>

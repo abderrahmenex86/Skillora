@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import ErrorScreen from '../components/ErrorScreen';
 import { queryClient } from '../api/queryClient';
-import { roleHome } from '../data/routes';
+import { homeForUser } from '../data/routes';
 import { useAuthStore } from '../store/useAuthStore';
 
 export default function NotFoundView() {
@@ -12,7 +12,7 @@ export default function NotFoundView() {
         <ErrorScreen
             kind='not-found'
             onReturnToDashboard={() =>
-                navigate(user ? roleHome[user.role] : '/')
+                navigate(homeForUser(user))
             }
             onRetry={() => {
                 queryClient.invalidateQueries();
