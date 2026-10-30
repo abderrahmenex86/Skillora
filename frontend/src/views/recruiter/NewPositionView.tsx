@@ -71,7 +71,6 @@ export default function NewPositionView() {
     const [capacity, setCapacity] = useState('3');
     const [criteria, setCriteria] = useState('');
     const [preferred, setPreferred] = useState('');
-    const [threshold, setThreshold] = useState('70');
     const [deadlineDate, setDeadlineDate] = useState('');
     const [deadlineTime, setDeadlineTime] = useState('18:00');
     const [fromDate, setFromDate] = useState('');
@@ -170,7 +169,6 @@ export default function NewPositionView() {
                         .split(',')
                         .map((item) => item.trim())
                         .filter(Boolean),
-                    minimumScoreThreshold: Number(threshold),
                 },
             });
             return data.position;
@@ -434,21 +432,6 @@ export default function NewPositionView() {
                                     }
                                     placeholder='Kubernetes, Go'
                                     className='w-full resize-y rounded-md border border-(--border-line) bg-(--bg-canvas) px-3 py-2 text-sm text-(--text-main)'
-                                />
-                            </label>
-                            <label className='block sm:max-w-xs'>
-                                <span className='mb-1 block font-mono text-[9px] uppercase tracking-[0.14em] text-(--text-sub)'>
-                                    Minimum score threshold
-                                </span>
-                                <input
-                                    type='number'
-                                    min={0}
-                                    max={100}
-                                    value={threshold}
-                                    onChange={(event) =>
-                                        setThreshold(event.target.value)
-                                    }
-                                    className='w-full rounded-md border border-(--border-line) bg-(--bg-canvas) px-3 py-2 text-sm text-(--text-main)'
                                 />
                             </label>
                         </div>
