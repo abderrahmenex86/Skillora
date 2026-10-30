@@ -58,6 +58,20 @@ const RECRUITER_SLOT_TIMES = [
     { dayOfWeek: 5, startTime: '09:00', endTime: '12:00' },
 ] as const;
 
+const EXPECTED_DEADLINE_OFFSETS = [
+    1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 30,
+] as const;
+
+// Positions per company, in COMPANIES order:
+// Atlas Cloud, Numidia Systems, Tell Platform, Sahara Fintech, and the two
+// pending companies (which have no positions).
+const EXPECTED_POSITIONS_PER_COMPANY = [7, 3, 3, 3, 0, 0] as const;
+
+const EXPECTED_ANONYMOUS_IDS = Array.from(
+    { length: 100 },
+    (_, index) => `DZ-L${String(index + 1).padStart(4, '0')}`
+);
+
 type CreatedApplicant = {
     id: string;
     profileId: string;
@@ -88,7 +102,14 @@ function assert(condition: unknown, message: string): asserts condition {
     if (!condition) throw new Error(message);
 }
 
-function auditFor(position: PositionSeed, status: ApplicationStatus, index: number) {
+function arraysEqual<T>(actual: readonly T[], expected: readonly T[]): boolean {
+    return (
+        actual.length === expected.length &&
+        actual.every((value, index) => value === expected[index])
+    );
+}
+
+function auditFor(position: PositionSeed, status: ApplicationStatus) {
     const unmet =
         status === 'REJECTED' ? position.rubric.mandatoryCriteria.slice(-2)
         : status === 'NEEDS_REVIEW' ? position.rubric.mandatoryCriteria.slice(-1)
@@ -324,7 +345,7 @@ async function createApplicant(
     return { id: user.id, profileId: profile.id };
 }
 
-async function seed(): Promise<void> {
+async function seed(): Promise<Date> {
     assert(
         RECRUITER_SLOT_TIMES.length === RECRUITER_SLOTS_PER_POSITION,
         `Expected ${RECRUITER_SLOTS_PER_POSITION} recruiter slot templates`
@@ -545,7 +566,7 @@ async function seed(): Promise<void> {
             entry.slotIndex,
             applicationsPerPosition.get(entry.positionIndex) ?? 0
         );
-        const audit = auditFor(position.seed, status, index);
+        const audit = auditFor(position.seed, status);
         const appliedAt = new Date(
             now.getTime() -
                 APPLIED_AT_WINDOW_DAYS * DAY_MS +
@@ -615,10 +636,14 @@ async function seed(): Promise<void> {
         await notifyApplicationStatus(application.id, application.status);
     }
     console.log(`Sent ${applications.length} applicant notifications`);
+
+    return now;
 }
 
-async function verifyDatabase(): Promise<void> {
+async function verifyDatabase(seededAt: Date): Promise<void> {
     const domain = TEST_DOMAIN;
+    const testUser = { email: { endsWith: domain } };
+
     const [
         admins,
         recruiters,
@@ -631,21 +656,31 @@ async function verifyDatabase(): Promise<void> {
         messages,
     ] = await Promise.all([
         prisma.user.count({
-            where: { email: { endsWith: domain }, role: 'ADMIN' },
+            where: { ...testUser, role: 'ADMIN' },
         }),
         prisma.user.count({
-            where: { email: { endsWith: domain }, role: 'RECRUITER' },
+            where: { ...testUser, role: 'RECRUITER' },
         }),
         prisma.user.count({
-            where: { email: { endsWith: domain }, role: 'APPLICANT' },
+            where: { ...testUser, role: 'APPLICANT' },
         }),
-        prisma.company.count({ where: { status: 'APPROVED' } }),
-        prisma.company.count({ where: { status: 'PENDING' } }),
-        prisma.position.count(),
-        prisma.application.count(),
-        prisma.interviewEvent.count(),
+        prisma.company.count({
+            where: { status: 'APPROVED', owner: testUser },
+        }),
+        prisma.company.count({
+            where: { status: 'PENDING', owner: testUser },
+        }),
+        prisma.position.count({
+            where: { recruiter: testUser },
+        }),
+        prisma.application.count({
+            where: { applicant: testUser },
+        }),
+        prisma.interviewEvent.count({
+            where: { applicant: testUser },
+        }),
         prisma.message.count({
-            where: { user: { email: { endsWith: domain } } },
+            where: { user: testUser },
         }),
     ]);
 
@@ -675,7 +710,7 @@ async function verifyDatabase(): Promise<void> {
     );
 
     const atlas = await prisma.company.findFirst({
-        where: { name: 'Atlas Cloud' },
+        where: { name: 'Atlas Cloud', owner: testUser },
         include: { _count: { select: { members: true } } },
     });
     assert(
@@ -685,7 +720,7 @@ async function verifyDatabase(): Promise<void> {
 
     const applicantsWithoutApplications = await prisma.user.count({
         where: {
-            email: { endsWith: domain },
+            ...testUser,
             role: 'APPLICANT',
             applications: { none: {} },
         },
@@ -698,6 +733,7 @@ async function verifyDatabase(): Promise<void> {
 
     const applicationsPerApplicant = await prisma.application.groupBy({
         by: ['applicantId'],
+        where: { applicant: testUser },
         _count: { _all: true },
     });
     const applicantsWithTwoApplications = applicationsPerApplicant.filter(
@@ -711,6 +747,7 @@ async function verifyDatabase(): Promise<void> {
 
     const applicationsPerPosition = await prisma.application.groupBy({
         by: ['positionId'],
+        where: { applicant: testUser },
         _count: { _all: true },
     });
     const positionsWithSevenApplications = applicationsPerPosition.filter(
@@ -732,6 +769,7 @@ async function verifyDatabase(): Promise<void> {
 
     const statusCounts = await prisma.application.groupBy({
         by: ['status'],
+        where: { applicant: testUser },
         _count: { _all: true },
     });
     const countStatus = (status: ApplicationStatus) =>
@@ -756,7 +794,7 @@ async function verifyDatabase(): Promise<void> {
     );
 
     const rejected = await prisma.application.findMany({
-        where: { status: 'REJECTED' },
+        where: { status: 'REJECTED', applicant: testUser },
         select: { gapAnalysis: true },
     });
     assert(
@@ -777,6 +815,7 @@ async function verifyDatabase(): Promise<void> {
     );
 
     const deadlines = await prisma.position.findMany({
+        where: { recruiter: testUser },
         select: { deadline: true },
         orderBy: { deadline: 'asc' },
     });
@@ -794,6 +833,102 @@ async function verifyDatabase(): Promise<void> {
         deadlines[deadlines.length - 1].deadline.getTime() - now >
             (MAX_DEADLINE_DAYS - 1) * DAY_MS,
         `The latest position deadline should be about ${MAX_DEADLINE_DAYS} days out`
+    );
+
+    const deadlineOffsets = deadlines.map((row) =>
+        Math.round((row.deadline.getTime() - seededAt.getTime()) / DAY_MS)
+    );
+    assert(
+        arraysEqual(deadlineOffsets, EXPECTED_DEADLINE_OFFSETS),
+        `Expected deadline offsets ${EXPECTED_DEADLINE_OFFSETS.join(',')}, ` +
+            `got ${deadlineOffsets.join(',')}`
+    );
+
+    const positionsByCompany = await prisma.position.findMany({
+        where: { recruiter: testUser },
+        select: { company: { select: { name: true } } },
+    });
+    const positionCountsByCompanyName = new Map<string, number>();
+    for (const row of positionsByCompany) {
+        const companyName = row.company?.name;
+        if (!companyName) continue;
+        positionCountsByCompanyName.set(
+            companyName,
+            (positionCountsByCompanyName.get(companyName) ?? 0) + 1
+        );
+    }
+    const positionsPerCompany = COMPANIES.map(
+        (company) => positionCountsByCompanyName.get(company.name) ?? 0
+    );
+    assert(
+        arraysEqual(positionsPerCompany, EXPECTED_POSITIONS_PER_COMPANY),
+        `Expected positions per company ${EXPECTED_POSITIONS_PER_COMPANY.join(',')}, ` +
+            `got ${positionsPerCompany.join(',')}`
+    );
+
+    const slotsPerPosition = await prisma.recruiterSlot.groupBy({
+        by: ['positionId'],
+        where: { position: { recruiter: testUser } },
+        _count: { _all: true },
+    });
+    assert(
+        slotsPerPosition.length === 16 &&
+            slotsPerPosition.every(
+                (row) => row._count._all === RECRUITER_SLOTS_PER_POSITION
+            ),
+        `Expected ${RECRUITER_SLOTS_PER_POSITION} recruiter slots for each of 16 positions`
+    );
+
+    const interviewTimings = await prisma.interviewEvent.findMany({
+        where: { applicant: testUser },
+        select: {
+            confirmedStart: true,
+            application: {
+                select: { position: { select: { deadline: true } } },
+            },
+        },
+    });
+    assert(
+        interviewTimings.length === 16 &&
+            interviewTimings.every((row) =>
+                row.confirmedStart ?
+                    row.confirmedStart.getTime() ===
+                    row.application.position.deadline.getTime() +
+                        INTERVIEW_LEAD_DAYS * DAY_MS
+                :   false
+            ),
+        'Every interview must start exactly two days after its position deadline'
+    );
+
+    const anonymousIdRows = await prisma.application.findMany({
+        where: { applicant: testUser },
+        select: { anonymousId: true },
+        orderBy: { anonymousId: 'asc' },
+    });
+    const anonymousIds = anonymousIdRows.map((row) => row.anonymousId);
+    assert(
+        arraysEqual(anonymousIds, EXPECTED_ANONYMOUS_IDS),
+        'Application anonymous IDs must be exactly DZ-L0001 through DZ-L0100'
+    );
+
+    const appliedRows = await prisma.application.findMany({
+        where: { applicant: testUser },
+        select: { appliedAt: true },
+    });
+    const appliedAtTimes = appliedRows.map((row) => row.appliedAt.getTime());
+    const earliestAppliedAt = Math.min(...appliedAtTimes);
+    const latestAppliedAt = Math.max(...appliedAtTimes);
+    assert(
+        appliedRows.length === 100 &&
+            earliestAppliedAt >=
+                seededAt.getTime() - APPLIED_AT_WINDOW_DAYS * DAY_MS &&
+            latestAppliedAt <= now,
+        'Every application must be applied within the previous 14 days'
+    );
+    assert(
+        earliestAppliedAt < seededAt.getTime() - 13 * DAY_MS &&
+            latestAppliedAt > seededAt.getTime() - DAY_MS,
+        'Applications must be spread across the previous 14 days'
     );
 
     console.log('\nLarge seed verification');
@@ -833,8 +968,8 @@ async function main(): Promise<void> {
         return;
     }
 
-    await seed();
-    await verifyDatabase();
+    const seededAt = await seed();
+    await verifyDatabase(seededAt);
 
     if (verifyApi) {
         console.log(
