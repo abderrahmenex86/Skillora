@@ -60,7 +60,7 @@ Skillora is built around three principles:
 
 - **Master information library** with 18 sections, including education, work experience, skills, languages, certifications, projects, publications, volunteering, and custom entries.
 - **Tailored resumes** assembled from saved items, with per-role titles, summaries, and skill sets. The seven core categories are attachable to resumes; the extended sections live in the library.
-- **Job explorer** with open positions, rubrics, deadlines, and required evidence.
+- **Public job explorer** with open positions, rubrics, deadlines, and required evidence. Job pages are shareable, deep-linkable, and previewable on LinkedIn.
 - **Application dashboard** showing anonymous candidate IDs, statuses, match scores, and gap analyses.
 - **Notification inbox** for application updates, interview assignments, reschedules, and declines.
 - **Interview logistics**: receive an automatically assigned interview, then reschedule or decline it from the dashboard calendar.
@@ -509,7 +509,8 @@ Backend variables are validated at startup in `backend/src/config/env.ts`.
 |----------|----------|---------|-------------|
 | `PORT` | No | `4000` | API port |
 | `NODE_ENV` | No | `development` | `development`, `production`, or `test` |
-| `CLIENT_URL` | No | `http://localhost:5173` | Allowed CORS origin and cookie origin |
+| `CLIENT_URL` | No | `http://localhost:5173` | Allowed CORS origin, cookie origin, and SPA redirect target |
+| `PUBLIC_SHARE_ORIGIN` | No | `CLIENT_URL` | Public origin that serves `/share/jobs/:id`; set to the backend origin if `/share` is not proxied on the app origin |
 | `DATABASE_URL` | Yes | — | PostgreSQL connection string |
 | `JWT_ACCESS_SECRET` | Yes | — | Access token secret, minimum 32 characters |
 | `JWT_REFRESH_SECRET` | Yes | — | Refresh token secret, minimum 32 characters |
@@ -530,6 +531,7 @@ Example `.env`:
 PORT=4000
 NODE_ENV=development
 CLIENT_URL=http://localhost:5173
+# PUBLIC_SHARE_ORIGIN=https://api.example.com
 
 DATABASE_URL=postgresql://skillora_user:skillora_pass@localhost:5432/skillora_db?schema=public
 
@@ -550,7 +552,14 @@ GROQ_API_KEY=your_groq_api_key
 # OLLAMA_BASE_URL=http://localhost:11434/v1
 ```
 
-The frontend needs no environment file in development; Vite proxies `/api` to `http://localhost:4000`.
+The frontend needs no environment file in development; Vite proxies `/api` and `/share` to `http://localhost:4000`.
+
+For production, set `VITE_SHARE_ORIGIN` to the same public origin as `PUBLIC_SHARE_ORIGIN` if the share bridge is not served from the app origin:
+
+```dotenv
+# frontend/.env
+VITE_SHARE_ORIGIN=https://api.example.com
+```
 
 ---
 
@@ -612,7 +621,7 @@ same agent pipeline and generate its notifications.
 
 Base URL: `http://localhost:4000/api/v1`
 
-All routes except registration and login require a bearer access token. Applicant routes require the `APPLICANT` role; recruiter routes require the `RECRUITER` role.
+Registration, login, and public position discovery do not require a bearer token. Applicant routes require the `APPLICANT` role; recruiter routes require the `RECRUITER` role.
 
 ### Auth
 
@@ -672,12 +681,13 @@ Delete routes use `/:id`, for example `DELETE /applicant/vault/entries/:id`.
 | `POST` | `/recruiter/slots` | Configure an interview slot |
 | `POST` | `/recruiter/upgrade` | Activate a company plan (`months`: 1, 12) |
 
-### Public (authenticated discovery)
+### Public
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `GET` | `/public/positions` | List open positions with future deadlines |
-| `GET` | `/public/positions/:id` | Get a single position |
+| `GET` | `/public/positions/:id` | Get a public position (OPEN or CLOSED); returns mandatory criteria only |
+| `GET` | `/share/jobs/:id` (non-API) | Server-rendered Open Graph share bridge with a redirect to `/jobs/:id` |
 
 ---
 
@@ -709,7 +719,7 @@ Candidate packs include:
 
 Company plans include:
 
-- Pre-deadline manual decision override
+- Post-deadline manual review and seat extension
 - Autonomous document and repository parsing
 - Autonomous calendar dispatch
 - Automated respectful gap analysis
@@ -730,7 +740,9 @@ Candidate packs activate `PRO`; company plans activate `ENTERPRISE`. The confirm
 | `/companies` | Public | Employer value proposition |
 | `/about` | Public | About Skillora |
 | `/auth` | Guests only | Login and registration |
-| `/jobs` | Signed in | Open positions explorer |
+| `/jobs` | Public | Open positions explorer |
+| `/jobs/:jobId` | Public | Shareable job detail; guests register or log in to apply |
+| `/share/jobs/:id` | Public | Backend share bridge (proxied by Vite in development) |
 | `/settings/profile` | Signed in | Profile and password settings |
 | `/applicant/dashboard` | Applicant | Applications and interview logistics |
 | `/applicant/profiles` | Applicant | Resume builder and information library |
@@ -759,6 +771,7 @@ The UI uses a restrained editorial palette with CSS custom properties for instan
 - **No automated test suite.** Validation is currently manual plus TypeScript checks.
 - **Frontend TypeScript config.** The repo has no `frontend/tsconfig.json`, so use `npx vite build` for a production bundle.
 - **No Docker setup.** PostgreSQL and Redis must be provided locally or externally.
+- **No production proxy config.** The host must serve the SPA fallback for `/jobs/*` and route `/share/*` to Express, or `PUBLIC_SHARE_ORIGIN` and `VITE_SHARE_ORIGIN` must point at the backend origin.
 
 ---
 

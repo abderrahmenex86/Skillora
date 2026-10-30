@@ -8,6 +8,7 @@ import { authRoutes } from './modules/auth/auth.routes.js';
 import { applicantRoutes } from './modules/applicant/applicant.routes.js';
 import { recruiterRoutes } from './modules/recruiter/recruiter.routes.js';
 import { publicRoutes } from './modules/public/public.routes.js';
+import { shareRoutes } from './modules/public/share.routes.js';
 
 export const app = express();
 
@@ -29,5 +30,6 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/applicant', applicantRoutes);
 app.use('/api/v1/recruiter', recruiterRoutes);
 app.use('/api/v1/public', publicRoutes);
+app.use('/share', shareRoutes);
 
 app.use(errorHandler);

@@ -9,6 +9,7 @@ const envSchema = z.object({
         .enum(['development', 'production', 'test'])
         .default('development'),
     CLIENT_URL: z.string().url().default('http://localhost:5173'),
+    PUBLIC_SHARE_ORIGIN: z.string().url().optional(),
     DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
     JWT_ACCESS_SECRET: z
         .string()

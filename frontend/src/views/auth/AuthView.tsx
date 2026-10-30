@@ -84,7 +84,6 @@ export default function AuthView() {
                     };
 
             const { data } = await apiClient.post(endpoint, payload);
-            setTokens(data.accessToken, data.user);
 
             const redirect =
                 normalizeRedirect(searchParams.get('redirect')) ??
@@ -92,11 +91,19 @@ export default function AuthView() {
                 normalizeRedirect(consumeStoredRedirect());
 
             if (redirect) {
+                // Navigate before the auth guard sees the new user; otherwise
+                // PublicOnlyRoute can bounce to the role home first.
                 navigate(redirect, { replace: true });
-            } else if (data.user.role === 'RECRUITER') {
-                navigate('/recruiter/positions', { replace: true });
-            } else {
-                navigate('/applicant/dashboard', { replace: true });
+            }
+
+            setTokens(data.accessToken, data.user);
+
+            if (!redirect) {
+                if (data.user.role === 'RECRUITER') {
+                    navigate('/recruiter/positions', { replace: true });
+                } else {
+                    navigate('/applicant/dashboard', { replace: true });
+                }
             }
         } catch (err: any) {
             if (err.response?.data?.issues) {

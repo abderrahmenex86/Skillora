@@ -4,6 +4,7 @@ type ApplicationContext = {
     applicantId: string;
     positionTitle: string;
     companyName: string;
+    positionStatus?: string;
 };
 
 function statusCopy(status: string, context: ApplicationContext) {
@@ -31,9 +32,16 @@ function statusCopy(status: string, context: ApplicationContext) {
                 body: `A recruiter is reviewing your application for ${position}. You will receive another update when a decision is made.`,
             };
         case 'ON_HOLD':
+            if (context.positionStatus === 'CLOSED') {
+                return {
+                    title: 'Position closed',
+                    body: `The position ${position} has closed. Your application remains in the talent pool; we will contact you if the team reopens the role.`,
+                };
+            }
+
             return {
-                title: 'You are on the interview waitlist',
-                body: `Your qualifications meet the rubric for ${position}, but interview capacity is currently full. We will offer you a slot if a selected candidate declines.`,
+                title: 'You are still shortlisted',
+                body: `Your qualifications meet the requirements for ${position}, but other better-suited candidates were selected because the number of interview seats is limited. You are still shortlisted — if one of the top candidates changes their mind, we will send you an invitation.`,
             };
         case 'REJECTED':
             return {
@@ -112,7 +120,12 @@ export async function notifyApplicationStatus(
         select: {
             applicantId: true,
             position: {
-                select: { title: true, companyName: true },
+                select: {
+                    title: true,
+                    companyName: true,
+                    status: true,
+                    deadline: true,
+                },
             },
         },
     });
@@ -130,10 +143,17 @@ export async function notifyApplicationStatus(
 
     if (duplicate) return duplicate;
 
+    const positionStatus =
+        application.position.status === 'CLOSED' ||
+        new Date(application.position.deadline) <= new Date()
+            ? 'CLOSED'
+            : application.position.status;
+
     const copy = statusCopy(status, {
         applicantId: application.applicantId,
         positionTitle: application.position.title,
         companyName: application.position.companyName,
+        positionStatus,
     });
 
     return createApplicantMessage({

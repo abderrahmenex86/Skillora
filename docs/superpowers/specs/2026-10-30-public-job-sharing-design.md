@@ -109,13 +109,14 @@ Rejected for this iteration. It would improve SEO but adds a rendering stack and
 Implementation notes:
 
 - HTML-escape every interpolated value (title, company, department, location).
-- `og:url` is the share bridge URL: `${CLIENT_URL}/share/jobs/:id`.
+- `og:url` is the share bridge URL: `${PUBLIC_SHARE_ORIGIN ?? CLIENT_URL}/share/jobs/:id`.
 - Description: `${department} · ${location}. Apply on Skillora and get a verified outcome.` For closed jobs, “Applications are closed. Browse open roles on Skillora.”
 - Add a default 1200×630 brand image at `frontend/public/og/skillora-og.png` and point `og:image` at `${CLIENT_URL}/og/skillora-og.png`.
 - Unknown IDs return a small 404 HTML page with a link to `${CLIENT_URL}/jobs`.
 - `Cache-Control: public, max-age=300` so a closed job is not cached indefinitely.
 - Add `/share` to the Vite dev proxy.
-- Share origin is configurable: `VITE_SHARE_ORIGIN` lets the frontend construct the bridge URL when the bridge is not proxied on the app origin. The default is the current origin with the `/share` proxy. In production, either proxy `/share` on the public origin or set `VITE_SHARE_ORIGIN` to the backend’s public origin. The bridge derives `og:url` from the incoming request host and redirects to `CLIENT_URL`.
+- Share origin is configurable and must agree on both sides: `PUBLIC_SHARE_ORIGIN` (backend, defaults to `CLIENT_URL`) builds `og:url`, and `VITE_SHARE_ORIGIN` (frontend, defaults to the current origin) builds the URL used by the share buttons. Set both to the same public origin. The default development setup uses the Vite `/share` proxy on the app origin.
+- In production, either proxy `/share` on the public origin or set both origins to the backend’s public origin. The bridge still redirects to `CLIENT_URL/jobs/:id`.
 - Production must also serve the SPA fallback for `/jobs/*`; Vite handles it in development. The repo has no deployment config today, so this is documented as a deployment requirement rather than implemented infrastructure.
 
 ### 4. Share UI
@@ -132,7 +133,7 @@ On the job detail, add a compact share row:
 - Guest: show the full job post and a primary **Create an account to apply** link to `/auth?mode=register&redirect=${encodeURIComponent(`/jobs/${job.id}`)}`. Add a secondary **Already have an account? Log in** link with the same redirect.
 - Signed-in applicant: existing apply flow with tailored resume selection.
 - Signed-in recruiter: existing “Recruiters can’t apply” note.
-- After registration/login, `AuthView` already honors the `redirect` query and returns the user to `/jobs/:jobId`.
+- After registration/login, `AuthView` honors the `redirect` query and returns the user to `/jobs/:jobId`. The `PublicOnlyRoute` guard must allow redirect-bearing auth routes; otherwise it can bounce the newly authenticated user to the role home before `AuthView` navigates back.
 - New applicants with no tailored resume already see the “Create Tailored Resume” prompt inside the apply modal.
 
 ### 6. Public navigation and landing CTAs
@@ -175,7 +176,7 @@ Update `statusCopy('ON_HOLD')` in `backend/src/services/messages.ts`:
 | Public endpoint abuse | Read-only, no applicant data; existing global limits remain. Add rate limiting later if needed. |
 | Sixth public nav item crowds tablet | Measure at 768px; tighten gaps or move About Us into the drawer if required. |
 | Open redirect | Use the existing `normalizeRedirect`; only same-origin `/jobs/:id` values are generated. |
-| Share bridge on a separate origin in production | Document the `/share` reverse-proxy requirement and keep `CLIENT_URL` as the public origin. |
+| Share bridge on a separate origin in production | Document the `/share` reverse-proxy requirement; set `PUBLIC_SHARE_ORIGIN` and `VITE_SHARE_ORIGIN` consistently when it is not proxied. |
 
 ## Testing
 
@@ -191,7 +192,7 @@ The repo has no automated test framework or test script, and the previous audits
 ## Rollout
 
 - Frontend: Vite proxy `/share`; production reverse proxy must send `/share/*` to Express.
-- Backend: `CLIENT_URL` must be the public frontend origin; share bridge uses it for `og:url`, canonical, image, and redirect.
+- Backend: `CLIENT_URL` must be the public frontend origin; `PUBLIC_SHARE_ORIGIN` (optional) is the public share origin used for `og:url`. The bridge uses `CLIENT_URL` for the canonical job URL, OG image, and redirect.
 - Add the default OG image to `frontend/public/og/skillora-og.png`.
 - Update README API/routes documentation and the “public job explorer” feature notes.
 - Re-seed E2E data after interactive on-hold tests.

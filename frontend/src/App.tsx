@@ -33,6 +33,7 @@ import RecruiterPositionsView from './views/recruiter/RecruiterPositionsView';
 import PositionApplicationsView from './views/recruiter/PositionApplicationsView';
 
 import { roleHome } from './data/routes';
+import { redirectFromLocationState } from './lib/redirect';
 import { useThemeStore } from './store/useThemeStore';
 import { useAuthStore } from './store/useAuthStore';
 
@@ -61,7 +62,12 @@ function AppLayout() {
 
 function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
     const user = useAuthStore((state) => state.user);
-    if (user) {
+    const location = useLocation();
+    const hasRedirect =
+        Boolean(new URLSearchParams(location.search).get('redirect')) ||
+        Boolean(redirectFromLocationState(location.state));
+
+    if (user && !hasRedirect) {
         return (
             <Navigate
                 to={roleHome[user.role]}
@@ -166,11 +172,11 @@ export default function App() {
                         />
                         <Route
                             path='/jobs'
-                            element={
-                                <SignedInRoute>
-                                    <JobsExplorerView />
-                                </SignedInRoute>
-                            }
+                            element={<JobsExplorerView />}
+                        />
+                        <Route
+                            path='/jobs/:jobId'
+                            element={<JobsExplorerView />}
                         />
                         <Route
                             path='/about'

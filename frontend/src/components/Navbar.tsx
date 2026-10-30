@@ -48,6 +48,7 @@ const publicItems: NavItem[] = [
     { to: '/', label: 'Home', end: true },
     { to: '/how-it-works', label: 'How It Works' },
     { to: '/pricing', label: 'Pricing' },
+    { to: '/jobs', label: 'Jobs' },
     { to: '/companies', label: 'Companies' },
     { to: '/about', label: 'About Us' },
 ];

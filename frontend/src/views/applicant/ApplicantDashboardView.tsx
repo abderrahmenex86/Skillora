@@ -548,6 +548,18 @@ export default function ApplicantDashboardView() {
                                                 </span>
                                             </div>
 
+                                            {isOnHold && (
+                                                <p className='text-xs text-(--text-sub)'>
+                                                    {app.position.status ===
+                                                        'OPEN' &&
+                                                    new Date(
+                                                        app.position.deadline
+                                                    ) > new Date() ?
+                                                        'You remain shortlisted. We’ll invite you if a seat opens.'
+                                                    :   'The position has closed. Your application remains in the talent pool.'}
+                                                </p>
+                                            )}
+
                                             {gapAnalysis && (
                                                 <div className='mt-4 rounded-lg border border-(--border-line) bg-(--bg-panel) p-5'>
                                                     <p className='font-mono text-[9px] uppercase tracking-[0.16em] text-(--text-sub)'>

@@ -242,10 +242,9 @@ export default function LandingView() {
         : user?.role === 'APPLICANT' ? 'Explore Jobs'
         : 'Get Started';
 
-    const heroSecondaryCta = user ? '/jobs' : '/auth?mode=login';
+    const heroSecondaryCta = '/jobs';
 
-    const heroSecondaryLabel =
-        user ? 'Explore Jobs' : 'Sign In to Explore Jobs';
+    const heroSecondaryLabel = 'Explore Jobs';
 
     const applicantPrimary =
         user?.role === 'APPLICANT' ? '/applicant/profiles'
@@ -259,12 +258,12 @@ export default function LandingView() {
     const applicantSecondary =
         user?.role === 'APPLICANT' ? '/jobs'
         : user?.role === 'RECRUITER' ? '/pricing'
-        : '/auth?mode=login';
+        : '/jobs';
 
     const applicantSecondaryLabel =
         user?.role === 'APPLICANT' ? 'Browse open roles'
         : user?.role === 'RECRUITER' ? 'See hiring plans'
-        : 'Sign in to explore';
+        : 'Explore open roles';
 
     const recruiterPrimary =
         user?.role === 'RECRUITER' ? '/recruiter/positions'
