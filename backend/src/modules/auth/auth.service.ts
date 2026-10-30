@@ -19,6 +19,14 @@ import {
     TokenPayload,
 } from './auth.tokens.js';
 
+function toAuthUser(user: any) {
+    return {
+        ...user,
+        companyStatus: user.company?.status ?? null,
+        companyName: user.company?.name ?? user.companyName,
+    };
+}
+
 export class AuthService {
     async register(input: RegisterInput) {
         const existing = await prisma.user.findUnique({
@@ -32,35 +40,79 @@ export class AuthService {
             );
         }
 
+        if (input.role === 'RECRUITER' && !input.companyName?.trim()) {
+            throw new AppError(
+                400,
+                'Company name is required for recruiter accounts'
+            );
+        }
+
         const salt = await bcrypt.genSalt(12);
         const passwordHash = await bcrypt.hash(input.password, salt);
 
-        const user = await prisma.user.create({
-            data: {
-                email: input.email.toLowerCase().trim(),
-                passwordHash,
-                firstName: input.firstName.trim(),
-                middleName: input.middleName?.trim() || null,
-                lastName: input.lastName.trim(),
-                phone: input.phone?.trim() || null,
-                wilaya: input.wilaya || '16 - Algiers',
-                companyName: input.companyName?.trim() || null,
-                role: input.role,
-                subscriptionTier: 'FREE',
-            },
-            select: {
-                id: true,
-                email: true,
-                firstName: true,
-                middleName: true,
-                lastName: true,
-                phone: true,
-                wilaya: true,
-                companyName: true,
-                role: true,
-                subscriptionTier: true,
-                createdAt: true,
-            },
+        const user = await prisma.$transaction(async (tx) => {
+            const created = await tx.user.create({
+                data: {
+                    email: input.email.toLowerCase().trim(),
+                    passwordHash,
+                    firstName: input.firstName.trim(),
+                    middleName: input.middleName?.trim() || null,
+                    lastName: input.lastName.trim(),
+                    phone: input.phone?.trim() || null,
+                    wilaya: input.wilaya || '16 - Algiers',
+                    companyName: input.companyName?.trim() || null,
+                    role: input.role,
+                    subscriptionTier: 'FREE',
+                },
+                select: {
+                    id: true,
+                    email: true,
+                    firstName: true,
+                    middleName: true,
+                    lastName: true,
+                    phone: true,
+                    wilaya: true,
+                    companyName: true,
+                    companyId: true,
+                    role: true,
+                    subscriptionTier: true,
+                    createdAt: true,
+                },
+            });
+
+            if (created.role !== 'RECRUITER') {
+                return created;
+            }
+
+            const company = await tx.company.create({
+                data: {
+                    name: input.companyName!.trim(),
+                    status: 'DRAFT',
+                    ownerId: created.id,
+                },
+            });
+
+            return tx.user.update({
+                where: { id: created.id },
+                data: { companyId: company.id },
+                select: {
+                    id: true,
+                    email: true,
+                    firstName: true,
+                    middleName: true,
+                    lastName: true,
+                    phone: true,
+                    wilaya: true,
+                    companyName: true,
+                    companyId: true,
+                    role: true,
+                    subscriptionTier: true,
+                    createdAt: true,
+                    company: {
+                        select: { id: true, status: true, name: true },
+                    },
+                },
+            });
         });
 
         const tokenPayload: TokenPayload = {
@@ -81,12 +133,17 @@ export class AuthService {
             },
         });
 
-        return { user, accessToken, refreshToken };
+        return { user: toAuthUser(user), accessToken, refreshToken };
     }
 
     async login(input: LoginInput) {
         const user = await prisma.user.findUnique({
             where: { email: input.email.toLowerCase().trim() },
+            include: {
+                company: {
+                    select: { id: true, status: true, name: true },
+                },
+            },
         });
 
         if (!user) {
@@ -96,6 +153,17 @@ export class AuthService {
         const isMatch = await bcrypt.compare(input.password, user.passwordHash);
         if (!isMatch) {
             throw new AppError(401, 'Invalid email or password');
+        }
+
+        if (
+            user.role === 'RECRUITER' &&
+            user.company &&
+            ['ARCHIVED', 'DELETED'].includes(user.company.status)
+        ) {
+            throw new AppError(
+                403,
+                'This company account is archived or unavailable'
+            );
         }
 
         const tokenPayload: TokenPayload = {
@@ -125,7 +193,9 @@ export class AuthService {
                 lastName: user.lastName,
                 phone: user.phone,
                 wilaya: user.wilaya,
-                companyName: user.companyName,
+                companyId: user.companyId,
+                companyStatus: user.company?.status ?? null,
+                companyName: user.company?.name ?? user.companyName,
                 role: user.role,
                 subscriptionTier: user.subscriptionTier,
                 createdAt: user.createdAt,
@@ -145,7 +215,19 @@ export class AuthService {
 
         const savedToken = await prisma.refreshToken.findUnique({
             where: { token: incomingRefreshToken },
-            include: { user: true },
+            include: {
+                user: {
+                    include: {
+                        company: {
+                            select: {
+                                id: true,
+                                status: true,
+                                name: true,
+                            },
+                        },
+                    },
+                },
+            },
         });
 
         if (!savedToken) {
@@ -161,6 +243,22 @@ export class AuthService {
         if (savedToken.expiresAt < new Date()) {
             await prisma.refreshToken.delete({ where: { id: savedToken.id } });
             throw new AppError(401, 'Refresh token has expired');
+        }
+
+        if (
+            savedToken.user.role === 'RECRUITER' &&
+            savedToken.user.company &&
+            ['ARCHIVED', 'DELETED'].includes(
+                savedToken.user.company.status
+            )
+        ) {
+            await prisma.refreshToken.deleteMany({
+                where: { userId: savedToken.user.id },
+            });
+            throw new AppError(
+                403,
+                'This company account is archived or unavailable'
+            );
         }
 
         await prisma.refreshToken.delete({ where: { id: savedToken.id } });
@@ -192,7 +290,11 @@ export class AuthService {
                 lastName: savedToken.user.lastName,
                 phone: savedToken.user.phone,
                 wilaya: savedToken.user.wilaya,
-                companyName: savedToken.user.companyName,
+                companyId: savedToken.user.companyId,
+                companyStatus: savedToken.user.company?.status ?? null,
+                companyName:
+                    savedToken.user.company?.name ??
+                    savedToken.user.companyName,
                 role: savedToken.user.role,
                 subscriptionTier: savedToken.user.subscriptionTier,
                 createdAt: savedToken.user.createdAt,
@@ -222,10 +324,14 @@ export class AuthService {
                 phone: true,
                 wilaya: true,
                 companyName: true,
+                companyId: true,
                 role: true,
                 subscriptionTier: true,
                 subscriptionExpiresAt: true,
                 createdAt: true,
+                company: {
+                    select: { id: true, status: true, name: true },
+                },
             },
         });
 
@@ -233,7 +339,13 @@ export class AuthService {
             throw new AppError(404, 'User not found');
         }
 
-        return user;
+        return toAuthUser(user);
+    }
+
+    async revokeCompanySessions(companyId: string) {
+        await prisma.refreshToken.deleteMany({
+            where: { user: { companyId } },
+        });
     }
 
     async updateProfile(userId: string, input: UpdateProfileInput) {

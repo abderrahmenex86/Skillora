@@ -1,12 +1,14 @@
 import { Router } from 'express';
 import { Role } from '@prisma/client';
 import { requireAuth, requireRole } from '../../middleware/auth.middleware.js';
+import { loadCompanyStatus } from '../../middleware/company.middleware.js';
 import { companyController } from './company.controller.js';
 
 const router = Router();
 
 router.use(requireAuth);
 router.use(requireRole(Role.RECRUITER));
+router.use(loadCompanyStatus);
 
 router.get('/', (req, res, next) =>
     companyController.getCompany(req, res, next)

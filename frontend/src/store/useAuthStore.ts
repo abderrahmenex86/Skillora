@@ -10,6 +10,16 @@ export interface User {
     phone?: string | null;
     wilaya?: string | null;
     companyName?: string | null;
+    companyId?: string | null;
+    companyStatus?:
+        | 'DRAFT'
+        | 'PENDING'
+        | 'APPROVED'
+        | 'REJECTED'
+        | 'FROZEN'
+        | 'ARCHIVED'
+        | 'DELETED'
+        | null;
     role: 'APPLICANT' | 'RECRUITER' | 'ADMIN';
     subscriptionTier: 'FREE' | 'PRO' | 'ENTERPRISE';
 }
