@@ -30,6 +30,7 @@ import ProfilesView from './views/applicant/ProfilesView';
 import InsightsView from './views/applicant/InsightsView';
 
 import RecruiterPositionsView from './views/recruiter/RecruiterPositionsView';
+import NewPositionView from './views/recruiter/NewPositionView';
 import PositionApplicationsView from './views/recruiter/PositionApplicationsView';
 import CompanyOnboardingView from './views/recruiter/CompanyOnboardingView';
 import AdminCompaniesView from './views/admin/AdminCompaniesView';
@@ -389,6 +390,14 @@ export default function App() {
                             element={
                                 <ApprovedCompanyRoute>
                                     <RecruiterPositionsView />
+                                </ApprovedCompanyRoute>
+                            }
+                        />
+                        <Route
+                            path='/recruiter/positions/new'
+                            element={
+                                <ApprovedCompanyRoute>
+                                    <NewPositionView />
                                 </ApprovedCompanyRoute>
                             }
                         />

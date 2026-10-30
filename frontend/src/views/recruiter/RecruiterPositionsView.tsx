@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../../api/apiClient';
 import { Link } from 'react-router-dom';
 import {
@@ -11,29 +10,11 @@ import {
     FolderOpen,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuthStore';
-import {
-    formatDate,
-    parseAlgeriaDateTime,
-    toAlgeriaDateTimeLocal,
-} from '../../lib/dateTime';
+import { formatDate } from '../../lib/dateTime';
 
 export default function RecruiterPositionsView() {
-    const queryClient = useQueryClient();
     const user = useAuthStore((state) => state.user);
     const isFrozen = user?.companyStatus === 'FROZEN';
-    const [showCreateModal, setShowCreateModal] = useState(false);
-
-    const [companyName, setCompanyName] = useState('');
-    const [title, setTitle] = useState('');
-    const [department, setDepartment] = useState('');
-    const [location, setLocation] = useState('Algiers (Hybrid)');
-    const [deadline, setDeadline] = useState('');
-    const [interviewCapacity, setInterviewCapacity] = useState('10');
-    const [interviewRangeStart, setInterviewRangeStart] = useState('');
-    const [interviewRangeEnd, setInterviewRangeEnd] = useState('');
-    const [formError, setFormError] = useState('');
-    const [criteriaStr, setCriteriaStr] = useState('');
-
     const { data: positions, isLoading } = useQuery({
         queryKey: ['recruiter-positions'],
         queryFn: async () => {
@@ -42,98 +23,7 @@ export default function RecruiterPositionsView() {
         },
     });
 
-    const createPositionMutation = useMutation({
-        mutationFn: async (payload: any) => {
-            const { data } = await apiClient.post(
-                '/recruiter/positions',
-                payload
-            );
-            return data.position;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: ['recruiter-positions'],
-            });
-            setShowCreateModal(false);
-            setCompanyName('');
-            setTitle('');
-            setDepartment('');
-            setDeadline('');
-            setInterviewCapacity('10');
-            setInterviewRangeStart('');
-            setInterviewRangeEnd('');
-            setCriteriaStr('');
-            setFormError('');
-        },
-    });
-
-    const handleCreate = (e: React.FormEvent) => {
-        e.preventDefault();
-        setFormError('');
-
-        const mandatoryCriteria = criteriaStr
-            .split(',')
-            .map((c) => c.trim())
-            .filter(Boolean);
-
-        if (!deadline || !interviewRangeStart || !interviewRangeEnd) {
-            setFormError(
-                'Application deadline and interview range are required.'
-            );
-            return;
-        }
-
-        const deadlineDate = parseAlgeriaDateTime(deadline);
-        const rangeStart = parseAlgeriaDateTime(interviewRangeStart);
-        const rangeEnd = parseAlgeriaDateTime(interviewRangeEnd);
-        const capacity = Number(interviewCapacity);
-
-        if (!deadlineDate || !rangeStart || !rangeEnd) {
-            setFormError('Enter valid dates and times.');
-            return;
-        }
-
-        if (deadlineDate <= new Date()) {
-            setFormError('The application deadline must be in the future.');
-            return;
-        }
-
-        if (rangeStart < deadlineDate) {
-            setFormError(
-                'Interviews cannot start before applications close.'
-            );
-            return;
-        }
-
-        if (rangeEnd <= rangeStart) {
-            setFormError('The interview range must end after it starts.');
-            return;
-        }
-
-        if (!Number.isInteger(capacity) || capacity < 1) {
-            setFormError('Interview capacity must be at least 1.');
-            return;
-        }
-
-        createPositionMutation.mutate({
-            companyName,
-            title,
-            department,
-            location,
-            deadline: deadlineDate.toISOString(),
-            interviewCapacity: capacity,
-            interviewRangeStart: rangeStart.toISOString(),
-            interviewRangeEnd: rangeEnd.toISOString(),
-            rubric: {
-                mandatoryCriteria,
-                preferredCriteria: [],
-                minimumScoreThreshold: 70,
-            },
-        });
-    };
-
     const now = new Date();
-    const minDateTime = toAlgeriaDateTimeLocal(now);
     const openPositions = positions?.filter(
         (p: any) => p.status === 'OPEN' && new Date(p.deadline) > now
     );
@@ -149,12 +39,17 @@ export default function RecruiterPositionsView() {
                         Positions History
                     </h1>
                 </div>
-                <button
-                    onClick={() => setShowCreateModal(true)}
-                    disabled={isFrozen}
-                    className='px-4 py-2 bg-(--btn-main-bg) text-(--btn-main-text) text-sm font-medium rounded-md hover:opacity-90 inline-flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-50'>
-                    <Plus size={16} /> Open New Position
-                </button>
+                {isFrozen ? (
+                    <span className='px-4 py-2 bg-(--btn-main-bg) text-(--btn-main-text) text-sm font-medium rounded-md opacity-50 inline-flex items-center gap-2 cursor-not-allowed'>
+                        <Plus size={16} /> Open New Position
+                    </span>
+                ) : (
+                    <Link
+                        to='/recruiter/positions/new'
+                        className='px-4 py-2 bg-(--btn-main-bg) text-(--btn-main-text) text-sm font-medium rounded-md hover:opacity-90 inline-flex items-center gap-2'>
+                        <Plus size={16} /> Open New Position
+                    </Link>
+                )}
             </div>
 
             {isFrozen && (
@@ -168,194 +63,6 @@ export default function RecruiterPositionsView() {
                         candidates, but creating, editing, and pipeline actions
                         are disabled.
                     </p>
-                </div>
-            )}
-
-            {showCreateModal && (
-                <div className='modal-backdrop fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4'>
-                    <div className='modal-panel bg-(--bg-canvas) border border-(--border-line) rounded-lg p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto space-y-4'>
-                        <h3 className='font-grotesque font-bold text-2xl text-(--text-main)'>
-                            Create Verifiable Position
-                        </h3>
-                        <form
-                            onSubmit={handleCreate}
-                            className='space-y-3'>
-                            <label className='block'>
-                                <span className='mb-1 block font-mono text-[9px] uppercase tracking-[0.14em] text-(--text-sub)'>
-                                    Company
-                                </span>
-                                <input
-                                    type='text'
-                                    required
-                                    placeholder='e.g. Sonatrach, TechCorp DZ'
-                                    value={companyName}
-                                    onChange={(e) =>
-                                        setCompanyName(e.target.value)
-                                    }
-                                    className='w-full px-3 py-2 text-xs rounded border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none'
-                                />
-                            </label>
-                            <label className='block'>
-                                <span className='mb-1 block font-mono text-[9px] uppercase tracking-[0.14em] text-(--text-sub)'>
-                                    Job title
-                                </span>
-                                <input
-                                    type='text'
-                                    required
-                                    placeholder='e.g. Junior Cloud Engineer, Corporate Counsel'
-                                    value={title}
-                                    onChange={(e) => setTitle(e.target.value)}
-                                    className='w-full px-3 py-2 text-xs rounded border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none'
-                                />
-                            </label>
-                            <label className='block'>
-                                <span className='mb-1 block font-mono text-[9px] uppercase tracking-[0.14em] text-(--text-sub)'>
-                                    Department
-                                </span>
-                                <input
-                                    type='text'
-                                    required
-                                    placeholder='e.g. Cloud & Systems, Legal Affairs'
-                                    value={department}
-                                    onChange={(e) =>
-                                        setDepartment(e.target.value)
-                                    }
-                                    className='w-full px-3 py-2 text-xs rounded border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none'
-                                />
-                            </label>
-                            <label className='block'>
-                                <span className='mb-1 block font-mono text-[9px] uppercase tracking-[0.14em] text-(--text-sub)'>
-                                    Location
-                                </span>
-                                <input
-                                    type='text'
-                                    required
-                                    placeholder='e.g. Algiers (Hybrid), Oran'
-                                    value={location}
-                                    onChange={(e) =>
-                                        setLocation(e.target.value)
-                                    }
-                                    className='w-full px-3 py-2 text-xs rounded border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none'
-                                />
-                            </label>
-                            <div className='grid grid-cols-1 gap-3 sm:grid-cols-2'>
-                                <label className='block'>
-                                    <span className='mb-1 block font-mono text-[9px] uppercase tracking-[0.14em] text-(--text-sub)'>
-                                        Applications close
-                                    </span>
-                                    <input
-                                        type='datetime-local'
-                                        required
-                                        min={minDateTime}
-                                        value={deadline}
-                                        onChange={(e) =>
-                                            setDeadline(e.target.value)
-                                        }
-                                        className='w-full px-3 py-2 text-xs rounded border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none'
-                                    />
-                                </label>
-                                <label className='block'>
-                                    <span className='mb-1 block font-mono text-[9px] uppercase tracking-[0.14em] text-(--text-sub)'>
-                                        Interview capacity
-                                    </span>
-                                    <input
-                                        type='number'
-                                        min={1}
-                                        max={500}
-                                        required
-                                        value={interviewCapacity}
-                                        onChange={(e) =>
-                                            setInterviewCapacity(
-                                                e.target.value
-                                            )
-                                        }
-                                        className='w-full px-3 py-2 text-xs rounded border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none'
-                                    />
-                                </label>
-                                <label className='block'>
-                                    <span className='mb-1 block font-mono text-[9px] uppercase tracking-[0.14em] text-(--text-sub)'>
-                                        Interviews from
-                                    </span>
-                                    <input
-                                        type='datetime-local'
-                                        required
-                                        min={deadline || minDateTime}
-                                        value={interviewRangeStart}
-                                        onChange={(e) =>
-                                            setInterviewRangeStart(
-                                                e.target.value
-                                            )
-                                        }
-                                        className='w-full px-3 py-2 text-xs rounded border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none'
-                                    />
-                                </label>
-                                <label className='block'>
-                                    <span className='mb-1 block font-mono text-[9px] uppercase tracking-[0.14em] text-(--text-sub)'>
-                                        Interviews until
-                                    </span>
-                                    <input
-                                        type='datetime-local'
-                                        required
-                                        min={
-                                            interviewRangeStart ||
-                                            deadline ||
-                                            minDateTime
-                                        }
-                                        value={interviewRangeEnd}
-                                        onChange={(e) =>
-                                            setInterviewRangeEnd(
-                                                e.target.value
-                                            )
-                                        }
-                                        className='w-full px-3 py-2 text-xs rounded border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none'
-                                    />
-                                </label>
-                            </div>
-
-                            <p className='font-mono text-[9px] uppercase tracking-[0.12em] text-(--text-sub)'>
-                                Times are Africa/Algiers (UTC+1).
-                            </p>
-
-                            {formError && (
-                                <p
-                                    role='alert'
-                                    className='text-xs text-red-600 dark:text-red-400'>
-                                    {formError}
-                                </p>
-                            )}
-
-                            <label className='block'>
-                                <span className='mb-1 block font-mono text-[9px] uppercase tracking-[0.14em] text-(--text-sub)'>
-                                    Mandatory rubric criteria
-                                </span>
-                                <textarea
-                                    rows={2}
-                                    required
-                                    placeholder='Comma-separated: Docker, Linux, CI/CD'
-                                    value={criteriaStr}
-                                    onChange={(e) =>
-                                        setCriteriaStr(e.target.value)
-                                    }
-                                    className='w-full px-3 py-2 text-xs rounded border border-(--border-line) bg-(--bg-canvas) text-(--text-main) focus:outline-none'
-                                />
-                            </label>
-
-                            <div className='flex justify-end gap-2 pt-2'>
-                                <button
-                                    type='button'
-                                    onClick={() => setShowCreateModal(false)}
-                                    className='px-4 py-2 border border-(--border-line) text-xs font-semibold rounded'>
-                                    Cancel
-                                </button>
-                                <button
-                                    type='submit'
-                                    disabled={createPositionMutation.isPending}
-                                    className='px-4 py-2 bg-(--btn-main-bg) text-(--btn-main-text) text-xs font-semibold rounded hover:opacity-90'>
-                                    Create Opening
-                                </button>
-                            </div>
-                        </form>
-                    </div>
                 </div>
             )}
 
