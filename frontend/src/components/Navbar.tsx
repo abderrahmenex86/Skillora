@@ -67,6 +67,10 @@ const recruiterItems: NavItem[] = [
     { to: '/pricing', label: 'Plans' },
 ];
 
+const adminItems: NavItem[] = [
+    { to: '/admin/companies', label: 'Companies' },
+];
+
 export default function Navbar() {
     const { isDark, toggleTheme } = useThemeStore();
     const { user, logout } = useAuthStore();
@@ -99,6 +103,7 @@ export default function Navbar() {
                     },
                 ]
             :   recruiterItems
+        : user.role === 'ADMIN' ? adminItems
         :   [];
 
     const isProLocked = (item: NavItem) =>
@@ -281,6 +286,7 @@ export default function Navbar() {
         Boolean(user) &&
         user?.subscriptionTier !== 'PRO' &&
         user?.subscriptionTier !== 'ENTERPRISE' &&
+        user?.role !== 'ADMIN' &&
         (user?.role !== 'RECRUITER' ||
             ['APPROVED', 'FROZEN'].includes(user.companyStatus ?? ''));
 

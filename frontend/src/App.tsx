@@ -32,6 +32,8 @@ import InsightsView from './views/applicant/InsightsView';
 import RecruiterPositionsView from './views/recruiter/RecruiterPositionsView';
 import PositionApplicationsView from './views/recruiter/PositionApplicationsView';
 import CompanyOnboardingView from './views/recruiter/CompanyOnboardingView';
+import AdminCompaniesView from './views/admin/AdminCompaniesView';
+import AdminCompanyDetailView from './views/admin/AdminCompanyDetailView';
 
 import { homeForUser } from './data/routes';
 import { redirectFromLocationState } from './lib/redirect';
@@ -184,6 +186,32 @@ function ApprovedCompanyRoute({
         return (
             <Navigate
                 to='/'
+                replace
+            />
+        );
+    }
+
+    return <>{children}</>;
+}
+
+function AdminRoute({ children }: { children: React.ReactNode }) {
+    const user = useAuthStore((state) => state.user);
+    const location = useLocation();
+
+    if (!user) {
+        return (
+            <Navigate
+                to='/auth?mode=login'
+                state={{ from: location }}
+                replace
+            />
+        );
+    }
+
+    if (user.role !== 'ADMIN') {
+        return (
+            <Navigate
+                to={homeForUser(user)}
                 replace
             />
         );
@@ -370,6 +398,32 @@ export default function App() {
                                 <ApprovedCompanyRoute>
                                     <PositionApplicationsView />
                                 </ApprovedCompanyRoute>
+                            }
+                        />
+
+                        <Route
+                            path='/admin'
+                            element={
+                                <Navigate
+                                    to='/admin/companies'
+                                    replace
+                                />
+                            }
+                        />
+                        <Route
+                            path='/admin/companies'
+                            element={
+                                <AdminRoute>
+                                    <AdminCompaniesView />
+                                </AdminRoute>
+                            }
+                        />
+                        <Route
+                            path='/admin/companies/:id'
+                            element={
+                                <AdminRoute>
+                                    <AdminCompanyDetailView />
+                                </AdminRoute>
                             }
                         />
                     </Route>
