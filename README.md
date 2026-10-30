@@ -4,7 +4,7 @@
 
 Skillora is a full-stack recruitment platform built for the Algerian talent market. Instead of keyword filtering, it evaluates candidates against recruiter-defined rubrics and guarantees a deterministic outcome for every application: an interview invitation or an actionable learning roadmap.
 
-Candidates build a reusable information library and tailored resumes, apply to open roles, receive auto-assigned interviews they can reschedule or decline, and track their progress. Recruiters publish positions with evidence rubrics, review anonymized ranked candidates, and let the platform handle scheduling and feedback.
+Candidates build a reusable information library and tailored resumes, apply to open roles, receive auto-assigned interviews they can reschedule or decline, and track their progress. Recruiters complete a company profile, get it approved by a Skillora admin, then publish positions with a job description, evidence rubric, and an optional soft experience target. The platform handles scheduling and feedback.
 
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript&logoColor=white)
@@ -60,7 +60,7 @@ Skillora is built around three principles:
 
 - **Master information library** with 18 sections, including education, work experience, skills, languages, certifications, projects, publications, volunteering, and custom entries.
 - **Tailored resumes** assembled from saved items, with per-role titles, summaries, and skill sets. The seven core categories are attachable to resumes; the extended sections live in the library.
-- **Public job explorer** with open positions, rubrics, deadlines, and required evidence. Job pages are shareable, deep-linkable, and previewable on LinkedIn.
+- **Public job explorer** with open positions, job descriptions, preferred experience, rubrics, and deadlines. Job pages are shareable, deep-linkable, and previewable on LinkedIn.
 - **Application dashboard** showing anonymous candidate IDs, statuses, match scores, and gap analyses.
 - **Notification inbox** for application updates, interview assignments, reschedules, and declines.
 - **Interview logistics**: receive an automatically assigned interview, then reschedule or decline it from the dashboard calendar.
@@ -69,7 +69,9 @@ Skillora is built around three principles:
 
 ### For recruiters
 
-- **Position management** with mandatory criteria, preferred criteria, a minimum score threshold, an application deadline, final-round interview capacity, and an interview window.
+- **Company onboarding** with company size, industry, website, description, departments, and branches. A company profile is reviewed by a Skillora admin before the recruiter can publish jobs.
+- **Dedicated job creation page** with company, department, and branch context fixed to the approved company profile; mandatory job description; optional preferred years of experience; evidence rubric; and three custom date calendars with disabled dates visibly struck through.
+- **Position management** with mandatory criteria, preferred criteria, a minimum score threshold, an application deadline, final-round interview capacity, and an interview window. Company, department, and location snapshots stay in sync with the company profile.
 - **Anonymized candidate pipeline** ranked by match score, with full resume previews built from selected candidate sections.
 - **Manual review decisions**: promote using an existing seat, promote while adding a seat, keep on hold, or reject, with required reviewer notes.
 - **Deadline extension** while a position is still accepting applications.
@@ -79,6 +81,8 @@ Skillora is built around three principles:
 
 ### Platform
 
+- **Company lifecycle admin console** with approval, rejection, freeze/unfreeze, archive/restore, and soft delete. Every action is written to a company audit trail and archived or deleted companies have their sessions revoked.
+- **Company-status access control:** draft, pending, and rejected companies can complete onboarding; approved companies can publish and manage jobs; frozen companies keep read-only access; archived and deleted companies cannot sign in.
 - JWT access and refresh tokens, bcrypt password hashing, and role-based route guards.
 - Refresh token rotation with reuse detection and automatic session revocation.
 - Zod validation at the API boundary and a centralized error handler.
@@ -93,11 +97,13 @@ Skillora is built around three principles:
 
 ```mermaid
 flowchart TD
-    A[Recruiter publishes a position and rubric] --> B[Candidate builds a tailored resume from the master library]
+    A[Recruiter completes company profile] --> A2[Admin reviews and approves the company]
+    A2 --> A3[Recruiter publishes a position with description and rubric]
+    A3 --> B[Candidate builds a tailored resume from the master library]
     B --> C[Candidate applies with the selected resume]
     C --> D[Application is anonymized as DZ-xxx]
     D --> E[Ingestion agent extracts evidence]
-    E --> F[Matcher agent audits the rubric]
+    E --> F[Matcher audits rubric, description alignment, and soft experience]
     F --> G{Evaluation outcome}
     G -->|Eligible| H[Rank eligible; auto-assign an interview]
     G -->|Needs review| I[Recruiter reviews the application]
@@ -178,6 +184,7 @@ sequenceDiagram
     autonumber
     actor C as Candidate
     actor R as Recruiter
+    actor A as Admin
     participant UI as React app
     participant API as Express API
     participant Q as BullMQ + Redis
@@ -185,8 +192,12 @@ sequenceDiagram
     participant O as Agent orchestrator
     participant DB as PostgreSQL
 
-    R->>API: POST /recruiter/positions
-    API->>DB: Create Position with rubric
+    R->>API: Complete company profile and submit for review
+    API->>DB: Save Company (PENDING) + CompanyEvent
+    A->>API: POST /admin/companies/:id/approve
+    API->>DB: Company APPROVED + CompanyEvent
+    R->>API: POST /recruiter/positions with description, rubric, and preferred years
+    API->>DB: Create Position tied to the approved company
 
     C->>UI: Assemble a tailored resume
     UI->>API: POST /applicant/profiles
@@ -202,7 +213,7 @@ sequenceDiagram
     W->>O: evaluateApplication(applicationId)
     O->>DB: Set status EVALUATING
     O->>O: Ingestion extracts evidence
-    O->>O: Matcher audits rubric
+    O->>O: Matcher audits rubric, description, and soft experience
 
     alt Eligible with capacity
         O->>O: Coordinator auto-assigns the first available slot
@@ -227,6 +238,8 @@ sequenceDiagram
     API->>API: Promote highest-scoring ON_HOLD candidate
 ```
 
+The matcher combines three signals: rubric coverage (70%), description alignment (20% when a years target is set, otherwise 30%), and a soft experience signal (10% when a years target is set). Mandatory criteria remain hard gates, and a candidate is never rejected solely for fewer years; strong portfolio evidence can compensate.
+
 Each agent writes an `AgentExecutionLog` with its structured output, giving recruiters and operators a full audit trail.
 
 ### LLM adapter
@@ -241,7 +254,7 @@ All four agents resolve their model through a single factory in `backend/src/age
 Set `LLM_MODEL` to override the default for either provider. Each agent calls `generateObject` with its Zod schema and records the model that produced the result (`llm:groq:<model>` or `llm:ollama:<model>`).
 
 - **Ingestion** strips PII, normalizes Algerian degrees and institutions, and extracts skills and verifiable artifacts from a resume-scoped dossier.
-- **Matcher** audits every mandatory criterion against evidence and returns a 0–100 score with `ELIGIBLE`, `NEEDS_REVIEW`, or a rejected outcome.
+- **Matcher** audits every mandatory criterion against evidence, scores description alignment and the soft experience signal, and returns a combined 0–100 score with `ELIGIBLE`, `NEEDS_REVIEW`, or `REDIRECTED`. The structured audit includes `rubricScore`, `descriptionAudit`, and `experienceAudit`; older audits render a neutral “Not evaluated” state.
 - **Growth** writes a formal, constructive feedback letter for rejected candidates, plus domain-specific, artifact-producing milestones.
 - **Coordinator** auto-assigns the first available slot inside the recruiter's interview window and builds the Google Meet payload.
 
@@ -261,6 +274,12 @@ erDiagram
     User ||--o{ Application : submits
     User ||--o{ Position : posts
     User ||--o{ RefreshToken : holds
+    User ||--o| Company : owns
+    User }o--o| Company : member_of
+    Company ||--o{ CompanyDepartment : has
+    Company ||--o{ CompanyBranch : has
+    Company ||--o{ Position : publishes
+    Company ||--o{ CompanyEvent : records
     User ||--o{ VaultEducation : stores
     User ||--o{ VaultExperience : stores
     User ||--o{ VaultProject : stores
@@ -286,6 +305,48 @@ erDiagram
         string subscriptionTier
         datetime subscriptionExpiresAt
         string companyName
+        string companyId FK
+    }
+
+    Company {
+        string id PK
+        string name
+        int employeeCount
+        string industry
+        string website
+        string description
+        string status
+        string rejectionReason
+        datetime submittedAt
+        datetime reviewedAt
+        string ownerId FK
+        string reviewedById FK
+    }
+
+    CompanyDepartment {
+        string id PK
+        string companyId FK
+        string name
+        boolean isActive
+    }
+
+    CompanyBranch {
+        string id PK
+        string companyId FK
+        string label
+        string wilaya
+        string address
+        boolean isHeadquarters
+        boolean isActive
+    }
+
+    CompanyEvent {
+        string id PK
+        string companyId FK
+        string adminId FK
+        string type
+        string note
+        datetime createdAt
     }
 
     ApplicantProfile {
@@ -303,10 +364,15 @@ erDiagram
     Position {
         string id PK
         string recruiterId FK
+        string companyId FK
+        string departmentId FK
+        string branchId FK
         string companyName
         string title
         string department
         string location
+        string description
+        int minimumYearsExperience
         datetime deadline
         string status
         json rubric
@@ -403,6 +469,9 @@ skillora/
 │   ├── prisma/
 │   │   ├── schema.prisma          # Data model and enums
 │   │   └── seed.ts                # Demo users, positions, resumes, applications
+│   ├── scripts/
+│   │   ├── backfill-companies.ts  # Create approved companies for legacy recruiters
+│   │   └── e2e-test-data.ts       # E2E companies, admin, recruiters, applicants, jobs
 │   └── src/
 │       ├── agents/                # Ingestion, matcher, growth, coordinator, orchestrator
 │       │   ├── model.factory.ts   # Groq / Ollama model selection
@@ -414,8 +483,10 @@ skillora/
 │       ├── modules/
 │       │   ├── auth/              # Register, login, refresh, profile, password
 │       │   ├── applicant/         # Resumes, applications, vault, interviews, insights
+│       │   ├── company/           # Recruiter company profile, departments, branches, submit
 │       │   ├── recruiter/         # Positions, pipeline, overrides, slots, plans
-│       │   └── public/            # Open position discovery
+│       │   ├── admin/             # Company review, lifecycle transitions, audit history
+│       │   └── public/            # Open position discovery and share bridge
 │       ├── queues/                # BullMQ queue config and evaluation worker
 │       ├── app.ts                 # Express app and route mounting
 │       └── server.ts              # Startup, database connection, worker bootstrap
@@ -423,14 +494,15 @@ skillora/
 │   ├── index.html
 │   └── src/
 │       ├── api/                   # Axios client and TanStack Query client
-│       ├── components/            # Navbar, error boundary, sketches
+│       ├── components/            # Navbar, DateCalendar, error boundary, sketches
 │       ├── data/                  # Plans, routes, Algeria reference data
 │       ├── store/                 # Zustand auth and theme stores
 │       └── views/
 │           ├── guest/             # Landing, how it works, pricing, companies, about, jobs
 │           ├── auth/              # Login and registration
 │           ├── applicant/         # Dashboard, resume builder, information library, insights
-│           ├── recruiter/         # Positions and application pipeline
+│           ├── recruiter/         # Company onboarding, new position page, pipeline
+│           ├── admin/             # Company review list and detail/audit view
 │           └── settings/          # Profile and password settings
 ├── packages/shared/src/           # Shared Zod schemas and agent contracts
 └── docs/assets/                   # README screenshots
@@ -467,8 +539,11 @@ Edit `.env` with your database URL and two JWT secrets of at least 32 characters
 npx prisma generate
 npx prisma db push
 npm run prisma:seed
+npx tsx scripts/backfill-companies.ts
 npm run dev
 ```
+
+The backfill creates one approved company per legacy recruiter and links their existing positions to company departments and branches. New recruiter signups start with a `DRAFT` company and complete the onboarding flow at `/recruiter/onboarding`.
 
 The API starts on `http://localhost:4000`. Health check: `GET http://localhost:4000/health`.
 
@@ -498,6 +573,8 @@ After seeding, all demo accounts use the password `password123`.
 | Applicant | `lina.bensalem@design.dz` |
 
 The seed also creates positions across tech, legal, finance, and operations, along with tailored resumes and applications.
+
+The demo seed does not create an `ADMIN` account. To use the company review console at `/admin/companies`, promote an account to `ADMIN` in the database or use the E2E seed below, which creates `admin@skillora.test` with password `password123`.
 
 ---
 
@@ -575,7 +652,9 @@ VITE_SHARE_ORIGIN=https://api.example.com
 | `npm run prisma:generate` | Regenerate the Prisma client |
 | `npm run prisma:migrate` | Create and apply a development migration |
 | `npm run prisma:seed` | Seed demo data |
-| `npm run e2e:seed` | Create 6 recruiters, 3 one-minute jobs, 35 applicants, and 45 applications |
+| `npx tsx scripts/backfill-companies.ts` | Create approved companies for legacy recruiters and link their positions |
+| `npx tsx scripts/backfill-companies.ts --dry-run` | Preview the company backfill without writing |
+| `npm run e2e:seed` | Create an admin, 6 approved companies/recruiters, pending and rejected companies, 3 jobs, 35 applicants, and 45 applications |
 | `npm run e2e:test` | Seed the E2E dataset and verify it through the running API |
 | `npm run db:clean` | Delete all users and dependent data after interactive confirmation |
 | `npm run db:clean:yes` | Delete all users and dependent data without prompting |
@@ -587,10 +666,14 @@ VITE_SHARE_ORIGIN=https://api.example.com
 
 All generated accounts use the `.test` domain and password `password123`.
 
-- **Recruiters:** `e2e.recruiter1@skillora.test` through `e2e.recruiter6@skillora.test`
+- **Admin:** `admin@skillora.test`
+- **Approved companies:** Atlas Cloud (2 recruiters), Numidia Systems (2), Tell Platform (2)
+- **Approved recruiters:** `e2e.recruiter1@skillora.test` through `e2e.recruiter6@skillora.test`
+- **Pending company:** `e2e.pending@skillora.test` (Cedar Mobility, `PENDING`)
+- **Rejected company:** `e2e.rejected@skillora.test` (Atlas Freight, `REJECTED`)
 - **Applicants:** `e2e.applicant01@skillora.test` through `e2e.applicant35@skillora.test`
-- **Jobs:** 15 applications, 10 applications, and 20 applications respectively
-- **Job deadline:** 1 minute after creation (configurable with `--deadline-minutes=N`)
+- **Jobs:** 15 applications, 10 applications, and 20 applications respectively, each with a description and a soft years target
+- **Job deadline:** 1 minute after creation by default; use `--deadline-minutes=120` for a working session
 
 Because 45 applications are distributed across 35 applicants, applicants 16–25 each
 apply to two positions. Seeded applications use completed evaluation statuses and
@@ -621,7 +704,7 @@ same agent pipeline and generate its notifications.
 
 Base URL: `http://localhost:4000/api/v1`
 
-Registration, login, and public position discovery do not require a bearer token. Applicant routes require the `APPLICANT` role; recruiter routes require the `RECRUITER` role.
+Registration, login, and public position discovery do not require a bearer token. Applicant routes require the `APPLICANT` role; recruiter routes require the `RECRUITER` role; admin routes require the `ADMIN` role. Recruiter reads are available to approved and frozen companies; mutations require an approved company. Archived and deleted companies cannot authenticate.
 
 ### Auth
 
@@ -666,11 +749,25 @@ Registration, login, and public position discovery do not require a bearer token
 
 Delete routes use `/:id`, for example `DELETE /applicant/vault/entries/:id`.
 
+### Recruiter company
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/recruiter/company` | Get the recruiter's company with departments, branches, and recent events |
+| `PATCH` | `/recruiter/company` | Update company name, size, industry, website, and description |
+| `POST` | `/recruiter/company/departments` | Add a department |
+| `PATCH` | `/recruiter/company/departments/:id` | Rename or deactivate a department; renames update position snapshots |
+| `POST` | `/recruiter/company/branches` | Add a branch |
+| `PATCH` | `/recruiter/company/branches/:id` | Rename, relocate, or deactivate a branch; updates position snapshots |
+| `POST` | `/recruiter/company/submit` | Submit the profile for admin review (`PENDING`) |
+
+Every company mutation writes a `CompanyEvent`. A profile needs an employee count, at least one active department, and at least one active branch before it can be submitted.
+
 ### Recruiter
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/recruiter/positions` | Create a position with a rubric, interview capacity, and interview window |
+| `POST` | `/recruiter/positions` | Create a position for the approved company with a department, branch, description, rubric, interview capacity, and interview window |
 | `GET` | `/recruiter/positions` | List the recruiter's positions |
 | `GET` | `/recruiter/positions/:id` | Get a position and its slots |
 | `PATCH` | `/recruiter/positions/:id/close` | Close a position |
@@ -681,12 +778,26 @@ Delete routes use `/:id`, for example `DELETE /applicant/vault/entries/:id`.
 | `POST` | `/recruiter/slots` | Configure an interview slot |
 | `POST` | `/recruiter/upgrade` | Activate a company plan (`months`: 1, 12) |
 
+### Admin
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/admin/companies?status=&search=` | List companies with owner and counts |
+| `GET` | `/admin/companies/:id` | Company detail with owner, departments, branches, positions, and event history |
+| `POST` | `/admin/companies/:id/approve` | Approve a pending company |
+| `POST` | `/admin/companies/:id/reject` | Reject a pending company with a reason |
+| `POST` | `/admin/companies/:id/freeze` | Freeze an approved company (read-only recruiter access) |
+| `POST` | `/admin/companies/:id/unfreeze` | Return a frozen company to approved |
+| `POST` | `/admin/companies/:id/archive` | Archive a company and revoke recruiter sessions |
+| `POST` | `/admin/companies/:id/restore` | Restore an archived company to approved |
+| `DELETE` | `/admin/companies/:id` | Soft delete a company with a required reason and revoke sessions |
+
 ### Public
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/public/positions` | List open positions with future deadlines |
-| `GET` | `/public/positions/:id` | Get a public position (OPEN or CLOSED); returns mandatory criteria only |
+| `GET` | `/public/positions` | List open positions from approved companies with future deadlines |
+| `GET` | `/public/positions/:id` | Get a public position (OPEN or CLOSED); returns description, soft years, and mandatory criteria only |
 | `GET` | `/share/jobs/:id` (non-API) | Server-rendered Open Graph share bridge with a redirect to `/jobs/:id` |
 
 ---
@@ -747,8 +858,12 @@ Candidate packs activate `PRO`; company plans activate `ENTERPRISE`. The confirm
 | `/applicant/dashboard` | Applicant | Applications and interview logistics |
 | `/applicant/profiles` | Applicant | Resume builder and information library |
 | `/applicant/insights` | Applicant (Pro) | Cross-round analytics |
-| `/recruiter/positions` | Recruiter | Position management |
-| `/recruiter/positions/:id/applications` | Recruiter | Applicant pipeline and resume preview |
+| `/recruiter/onboarding` | Recruiter | Company profile, departments, branches, and review status |
+| `/recruiter/positions` | Approved or frozen recruiter | Position management |
+| `/recruiter/positions/new` | Approved recruiter | Dedicated job creation page with custom date calendars |
+| `/recruiter/positions/:id/applications` | Approved or frozen recruiter | Applicant pipeline, rubric/description/experience audits, and resume preview |
+| `/admin/companies` | Admin | Company review queue with status tabs and search |
+| `/admin/companies/:id` | Admin | Company detail, lifecycle actions, and audit timeline |
 | `*` | Public | Not found |
 
 ---
@@ -767,6 +882,7 @@ The UI uses a restrained editorial palette with CSS custom properties for instan
 ## Current limitations
 
 - **No payment gateway.** Upgrades are test-mode only: the pricing page asks for confirmation and then the existing endpoints activate tiers and expiry dates directly. No payment is collected.
+- **Company membership is data-only.** A company can have multiple recruiter members, but positions remain owned by the recruiter who created them and there is no invite/join flow yet. New signups create one company per recruiter; legacy data is handled by the backfill script.
 - **LLM-dependent evaluation quality.** Ingestion, matching, growth, and coordination are LLM-first with deterministic fallbacks. Output quality depends on the configured model; the heuristic path is coarser but keeps the pipeline available when the provider is offline.
 - **No automated test suite.** Validation is currently manual plus TypeScript checks.
 - **Frontend TypeScript config.** The repo has no `frontend/tsconfig.json`, so use `npx vite build` for a production bundle.

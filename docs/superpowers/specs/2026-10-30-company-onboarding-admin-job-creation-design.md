@@ -370,7 +370,7 @@ category: ELIGIBLE | NEEDS_REVIEW | REDIRECTED
 - **Description score:** 20% when a years target is set; 30% when it is not.
 - **Experience score:** 10% when a years target is set; it is a soft curve, not a pass/fail. A candidate below the target is not zeroed out; strong portfolio evidence in the description audit can compensate. A candidate above the target does not automatically become eligible.
 - If the dossier cannot prove years, use a neutral experience score and state “years not verifiable” in the audit. The candidate can still be eligible.
-- The existing `minimumScoreThreshold` (default 70) applies to the combined score. The `category` mapping stays the current logic: mandatory failure or a combined score below threshold → `NEEDS_REVIEW`/`REDIRECTED` per existing rules, with description/experience included in the score.
+- The existing `minimumScoreThreshold` (default 70) applies to the combined score. The `category` mapping keeps the current one-unmet behavior. When every mandatory criterion is satisfied, the result is `ELIGIBLE` above the threshold and `NEEDS_REVIEW` below it — never `REDIRECTED` — so description/experience scores and years cannot turn an evidence-complete candidate into a redirect.
 - The LLM prompt includes the description and years with explicit instructions: years are a soft signal; do not reject solely for years; evaluate the portfolio and evidence.
 - The heuristic fallback:
   - keeps mandatory criterion matching
