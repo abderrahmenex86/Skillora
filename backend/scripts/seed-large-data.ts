@@ -5,7 +5,10 @@ export const TEST_PASSWORD = 'password123';
 
 export const ADMIN_EMAILS = [`admin${TEST_DOMAIN}`, `admin2${TEST_DOMAIN}`] as const;
 
-/** Every position gets this many recruiter slots and interview seats. */
+/**
+ * Intentionally shared by each position's `interviewCapacity` and Task 2's
+ * recruiter availability rows, so every position can host three interviews.
+ */
 export const RECRUITER_SLOTS_PER_POSITION = 3;
 
 export type BranchSeed = {
@@ -814,7 +817,7 @@ export const APPLICANTS: ApplicantSeed[] = Array.from({ length: 100 }, (_, index
 });
 
 export function deadlineOffsetFor(positionIndex: number): number {
-    return Math.round(1 + (29 * positionIndex) / 15);
+    return Math.min(30, 2 * positionIndex + 1);
 }
 
 export function buildApplicationPlan(): ApplicationPlanEntry[] {
