@@ -81,9 +81,11 @@ assert(
 );
 
 const offsets = POSITIONS.map((_, index) => deadlineOffsetFor(index));
-assert(offsets[0] === 1, 'first deadline is tomorrow');
-assert(offsets[15] === 30, 'last deadline is 30 days out');
-assert(offsets.every((v) => v >= 1 && v <= 30), 'all deadlines within 30 days');
+assert(
+    JSON.stringify(offsets) ===
+        JSON.stringify([1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 30]),
+    `deadline offsets: ${offsets}`
+);
 
 const plan = buildApplicationPlan();
 assert(plan.length === 100, '100 applications');
@@ -141,7 +143,7 @@ Position data:
 `deadlineOffsetFor(index)` returns:
 
 ```ts
-Math.round(1 + (29 * index) / 15);
+Math.min(30, 2 * index + 1);
 ```
 
 `buildApplicationPlan()`:
