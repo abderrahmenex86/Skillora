@@ -1012,20 +1012,29 @@ async function verifyApi(): Promise<void> {
         '/admin/companies?status=PENDING',
         admin
     );
-    assert(pending.companies.length === 2, 'admin sees 2 pending companies');
+    assert(
+        pending.companies.length === 2,
+        `admin sees 2 pending companies, got ${pending.companies.length}`
+    );
 
     const recruiter = await apiLogin(RECRUITERS[0].email);
     const positions = await apiGet<{ positions: unknown[] }>(
         '/recruiter/positions',
         recruiter
     );
-    assert(positions.positions.length === 3, 'recruiter1 owns 3 positions');
+    assert(
+        positions.positions.length === 3,
+        `recruiter1 owns 3 positions, got ${positions.positions.length}`
+    );
 
-    const pendingRecruiter = await apiLogin(`e2e.pending${TEST_DOMAIN}`);
+    const pendingRecruiter = await apiLogin(RECRUITERS[6].email);
     const blocked = await fetch(`${API_BASE}/recruiter/positions`, {
         headers: { authorization: `Bearer ${pendingRecruiter}` },
     });
-    assert(blocked.status === 403, 'pending recruiter is blocked');
+    assert(
+        blocked.status === 403,
+        `pending recruiter is blocked, got HTTP ${blocked.status}`
+    );
 
     const applicant = await apiLogin(APPLICANTS[0].email);
     const applications = await apiGet<{ applications: unknown[] }>(
@@ -1034,13 +1043,16 @@ async function verifyApi(): Promise<void> {
     );
     assert(
         applications.applications.length === 2,
-        'applicant01 has 2 applications'
+        `applicant01 has 2 applications, got ${applications.applications.length}`
     );
 
     const publicJobs = await apiGet<{ positions: unknown[] }>(
         '/public/positions'
     );
-    assert(publicJobs.positions.length === 16, '16 public jobs');
+    assert(
+        publicJobs.positions.length === 16,
+        `16 public jobs, got ${publicJobs.positions.length}`
+    );
 
     console.log(
         'API verification passed: admins, recruiters, applicants, and public jobs all match.'
