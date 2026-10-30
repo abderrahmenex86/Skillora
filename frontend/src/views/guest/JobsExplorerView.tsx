@@ -426,6 +426,29 @@ export default function JobsExplorerView() {
                                     </div>
                                 </div>
 
+                                {selectedJob.description && (
+                                    <div className='border-t border-(--border-line) pt-4'>
+                                        <span className='mb-2 block font-mono text-xs uppercase tracking-wider text-(--text-sub)'>
+                                            About this role
+                                        </span>
+                                        <p className='whitespace-pre-line text-sm leading-relaxed text-(--text-main)'>
+                                            {selectedJob.description}
+                                        </p>
+                                        {selectedJob.minimumYearsExperience !==
+                                            null &&
+                                            selectedJob.minimumYearsExperience !==
+                                                undefined && (
+                                                <p className='mt-3 inline-flex rounded border border-(--border-line) bg-(--bg-panel) px-2.5 py-1 font-mono text-[10px] text-(--text-sub)'>
+                                                    Preferred proven experience:{' '}
+                                                    {
+                                                        selectedJob.minimumYearsExperience
+                                                    }
+                                                    + years · portfolio considered
+                                                </p>
+                                            )}
+                                    </div>
+                                )}
+
                                 <div className='border-t border-(--border-line) pt-4'>
                                     <span className='font-mono text-xs text-(--text-sub) uppercase tracking-wider block mb-2'>
                                         MANDATORY RUBRIC CRITERIA
