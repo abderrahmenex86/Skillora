@@ -6,6 +6,8 @@ import bcrypt from 'bcryptjs';
 import { notifyApplicationStatus } from '../src/services/messages.js';
 import {
     ApplicationStatus,
+    CompanyEventType,
+    CompanyStatus,
     InterviewStatus,
     PositionStatus,
     Prisma,
@@ -28,6 +30,9 @@ const prisma = new PrismaClient();
 const TEST_DOMAIN = '@skillora.test';
 const TEST_PASSWORD = 'password123';
 const DEFAULT_DEADLINE_MINUTES = 1;
+const ADMIN_EMAIL = `admin${TEST_DOMAIN}`;
+const PENDING_RECRUITER_EMAIL = `e2e.pending${TEST_DOMAIN}`;
+const REJECTED_RECRUITER_EMAIL = `e2e.rejected${TEST_DOMAIN}`;
 
 type RecruiterSeed = {
     email: string;
@@ -42,12 +47,118 @@ type PositionSeed = {
     title: string;
     department: string;
     location: string;
+    branchLabel: string;
+    description: string;
+    minimumYearsExperience: number;
     recruiterIndex: number;
     rubric: {
         mandatoryCriteria: string[];
         preferredCriteria: string[];
         minimumScoreThreshold: number;
     };
+};
+
+type CompanySeed = {
+    name: string;
+    employeeCount: number;
+    industry: string;
+    website: string;
+    description: string;
+    memberIndexes: number[];
+    departments: string[];
+    branches: Array<{ label: string; wilaya: string; headquarters?: boolean }>;
+};
+
+const COMPANIES: CompanySeed[] = [
+    {
+        name: 'Atlas Cloud',
+        employeeCount: 180,
+        industry: 'Cloud infrastructure',
+        website: 'https://atlas-cloud.example',
+        description:
+            'Atlas Cloud builds reliable cloud infrastructure for Algerian enterprises.',
+        memberIndexes: [0, 3],
+        departments: ['Cloud & Systems', 'Platform Reliability'],
+        branches: [
+            { label: 'Algiers HQ', wilaya: '16 - Alger', headquarters: true },
+            { label: 'Blida Operations', wilaya: '09 - Blida' },
+        ],
+    },
+    {
+        name: 'Numidia Systems',
+        employeeCount: 90,
+        industry: 'Software engineering',
+        website: 'https://numidia-systems.example',
+        description:
+            'Numidia Systems designs core transaction and data services for regional teams.',
+        memberIndexes: [1, 4],
+        departments: ['Core Services', 'Data Engineering'],
+        branches: [
+            { label: 'Algiers Remote Hub', wilaya: '16 - Alger', headquarters: true },
+            { label: 'Constantine Office', wilaya: '25 - Constantine' },
+        ],
+    },
+    {
+        name: 'Tell Platform',
+        employeeCount: 240,
+        industry: 'Developer platform',
+        website: 'https://tell-platform.example',
+        description:
+            'Tell Platform runs the internal developer platform for high-growth teams.',
+        memberIndexes: [2, 5],
+        departments: ['Infrastructure', 'Developer Experience'],
+        branches: [
+            { label: 'Oran Office', wilaya: '31 - Oran', headquarters: true },
+            { label: 'Algiers Office', wilaya: '16 - Alger' },
+        ],
+    },
+];
+
+const PENDING_COMPANY: CompanySeed = {
+    name: 'Cedar Mobility',
+    employeeCount: 120,
+    industry: 'Mobility',
+    website: 'https://cedar-mobility.example',
+    description:
+        'Cedar Mobility is building intercity mobility infrastructure across northern Algeria.',
+    memberIndexes: [],
+    departments: ['Engineering', 'Operations'],
+    branches: [
+        { label: 'Algiers HQ', wilaya: '16 - Alger', headquarters: true },
+        { label: "M'Sila Plant", wilaya: "28 - M'Sila" },
+    ],
+};
+
+const REJECTED_COMPANY: CompanySeed = {
+    name: 'Atlas Freight',
+    employeeCount: 45,
+    industry: 'Logistics',
+    website: 'https://atlas-freight.example',
+    description:
+        'Atlas Freight coordinates freight forwarding and warehouse operations.',
+    memberIndexes: [],
+    departments: ['Logistics'],
+    branches: [
+        { label: 'Oran Depot', wilaya: '31 - Oran', headquarters: true },
+    ],
+};
+
+const PENDING_RECRUITER: RecruiterSeed = {
+    email: PENDING_RECRUITER_EMAIL,
+    firstName: 'Meriem',
+    lastName: 'Saidi',
+    phone: '+213 550 10 00 07',
+    wilaya: '16 - Alger',
+    companyName: PENDING_COMPANY.name,
+};
+
+const REJECTED_RECRUITER: RecruiterSeed = {
+    email: REJECTED_RECRUITER_EMAIL,
+    firstName: 'Karim',
+    lastName: 'Belaid',
+    phone: '+213 550 10 00 08',
+    wilaya: '31 - Oran',
+    companyName: REJECTED_COMPANY.name,
 };
 
 type ApplicantSeed = {
@@ -124,7 +235,7 @@ const RECRUITERS: RecruiterSeed[] = [
         lastName: 'Rahmani',
         phone: '+213 550 10 00 04',
         wilaya: '25 - Constantine',
-        companyName: 'Sahara Telecom',
+        companyName: 'Atlas Cloud',
     },
     {
         email: 'e2e.recruiter5@skillora.test',
@@ -132,7 +243,7 @@ const RECRUITERS: RecruiterSeed[] = [
         lastName: 'Meziane',
         phone: '+213 550 10 00 05',
         wilaya: '16 - Alger',
-        companyName: 'Mediterranean Bank',
+        companyName: 'Numidia Systems',
     },
     {
         email: 'e2e.recruiter6@skillora.test',
@@ -140,7 +251,7 @@ const RECRUITERS: RecruiterSeed[] = [
         lastName: 'Boudiaf',
         phone: '+213 550 10 00 06',
         wilaya: '19 - Sétif',
-        companyName: 'Aurassi Energy',
+        companyName: 'Tell Platform',
     },
 ];
 
@@ -148,7 +259,11 @@ const POSITIONS: PositionSeed[] = [
     {
         title: 'Cloud Infrastructure Engineer',
         department: 'Cloud & Systems',
-        location: 'Algiers (Hybrid)',
+        location: 'Algiers HQ · 16 - Alger',
+        branchLabel: 'Algiers HQ',
+        description:
+            'Own our cloud infrastructure across Docker, Linux, and CI/CD. You will build reliable deployment pipelines, harden production systems, and partner with product teams on capacity and reliability.',
+        minimumYearsExperience: 3,
         recruiterIndex: 0,
         rubric: {
             mandatoryCriteria: ['Docker', 'Linux', 'CI/CD'],
@@ -159,7 +274,11 @@ const POSITIONS: PositionSeed[] = [
     {
         title: 'Backend Developer',
         department: 'Core Services',
-        location: 'Algiers (Remote)',
+        location: 'Algiers Remote Hub · 16 - Alger',
+        branchLabel: 'Algiers Remote Hub',
+        description:
+            'Design and ship Go services backed by PostgreSQL and Docker. You will own APIs, data models, and production reliability for the core platform while collaborating closely with product and data teams.',
+        minimumYearsExperience: 2,
         recruiterIndex: 1,
         rubric: {
             mandatoryCriteria: ['Go', 'PostgreSQL', 'Docker'],
@@ -170,7 +289,11 @@ const POSITIONS: PositionSeed[] = [
     {
         title: 'Platform Engineer',
         department: 'Infrastructure',
-        location: 'Oran (Hybrid)',
+        location: 'Oran Office · 31 - Oran',
+        branchLabel: 'Oran Office',
+        description:
+            'Build the internal platform on Linux, Kubernetes, and Terraform. You will automate environments, improve developer experience across teams, and make reliable delivery the default.',
+        minimumYearsExperience: 4,
         recruiterIndex: 2,
         rubric: {
             mandatoryCriteria: ['Linux', 'Kubernetes', 'Terraform'],
@@ -489,9 +612,23 @@ async function seed(): Promise<{
     });
 
     const passwordHash = await bcrypt.hash(TEST_PASSWORD, 10);
-    const recruiters = [];
 
-    for (const seedRecruiter of RECRUITERS) {
+    const admin = await prisma.user.create({
+        data: {
+            email: ADMIN_EMAIL,
+            passwordHash,
+            firstName: 'Skillora',
+            lastName: 'Admin',
+            role: Role.ADMIN,
+        },
+    });
+
+    const recruiters = [];
+    for (const seedRecruiter of [
+        ...RECRUITERS,
+        PENDING_RECRUITER,
+        REJECTED_RECRUITER,
+    ]) {
         const recruiter = await prisma.user.create({
             data: {
                 email: seedRecruiter.email,
@@ -508,9 +645,150 @@ async function seed(): Promise<{
         recruiters.push(recruiter);
     }
 
-    console.log(`Created ${recruiters.length} recruiters`);
+    console.log(`Created ${recruiters.length + 1} hiring-side accounts (6 approved recruiters, 1 pending, 1 rejected, 1 admin)`);
 
     const now = new Date();
+    const companyByRecruiterIndex = new Map<
+        number,
+        {
+            companyId: string;
+            departments: Map<string, string>;
+            branches: Map<string, string>;
+        }
+    >();
+
+    for (const seedCompany of COMPANIES) {
+        const owner = recruiters[seedCompany.memberIndexes[0]];
+        const company = await prisma.company.create({
+            data: {
+                name: seedCompany.name,
+                employeeCount: seedCompany.employeeCount,
+                industry: seedCompany.industry,
+                website: seedCompany.website,
+                description: seedCompany.description,
+                status: CompanyStatus.APPROVED,
+                ownerId: owner.id,
+                submittedAt: now,
+                reviewedAt: now,
+                reviewedById: admin.id,
+                departments: {
+                    create: seedCompany.departments.map((name) => ({ name })),
+                },
+                branches: {
+                    create: seedCompany.branches.map((branch) => ({
+                        label: branch.label,
+                        wilaya: branch.wilaya,
+                        isHeadquarters: branch.headquarters ?? false,
+                    })),
+                },
+            },
+            include: { departments: true, branches: true },
+        });
+
+        for (const memberIndex of seedCompany.memberIndexes) {
+            await prisma.user.update({
+                where: { id: recruiters[memberIndex].id },
+                data: { companyId: company.id },
+            });
+            companyByRecruiterIndex.set(memberIndex, {
+                companyId: company.id,
+                departments: new Map(
+                    company.departments.map((department) => [
+                        department.name,
+                        department.id,
+                    ])
+                ),
+                branches: new Map(
+                    company.branches.map((branch) => [branch.label, branch.id])
+                ),
+            });
+        }
+
+        await prisma.companyEvent.create({
+            data: {
+                companyId: company.id,
+                adminId: admin.id,
+                type: CompanyEventType.APPROVED,
+                note: 'Seeded approved company.',
+            },
+        });
+    }
+
+    const pendingRecruiter = recruiters[RECRUITERS.length];
+    const pendingCompany = await prisma.company.create({
+        data: {
+            name: PENDING_COMPANY.name,
+            employeeCount: PENDING_COMPANY.employeeCount,
+            industry: PENDING_COMPANY.industry,
+            website: PENDING_COMPANY.website,
+            description: PENDING_COMPANY.description,
+            status: CompanyStatus.PENDING,
+            ownerId: pendingRecruiter.id,
+            submittedAt: now,
+            departments: {
+                create: PENDING_COMPANY.departments.map((name) => ({ name })),
+            },
+            branches: {
+                create: PENDING_COMPANY.branches.map((branch) => ({
+                    label: branch.label,
+                    wilaya: branch.wilaya,
+                    isHeadquarters: branch.headquarters ?? false,
+                })),
+            },
+        },
+    });
+    await prisma.user.update({
+        where: { id: pendingRecruiter.id },
+        data: { companyId: pendingCompany.id },
+    });
+    await prisma.companyEvent.create({
+        data: {
+            companyId: pendingCompany.id,
+            type: CompanyEventType.SUBMITTED,
+            note: 'Seeded pending company awaiting review.',
+        },
+    });
+
+    const rejectedRecruiter = recruiters[RECRUITERS.length + 1];
+    const rejectedCompany = await prisma.company.create({
+        data: {
+            name: REJECTED_COMPANY.name,
+            employeeCount: REJECTED_COMPANY.employeeCount,
+            industry: REJECTED_COMPANY.industry,
+            website: REJECTED_COMPANY.website,
+            description: REJECTED_COMPANY.description,
+            status: CompanyStatus.REJECTED,
+            ownerId: rejectedRecruiter.id,
+            submittedAt: now,
+            reviewedAt: now,
+            reviewedById: admin.id,
+            rejectionReason:
+                'The company profile could not be verified. Add a registered address and a reachable company website, then resubmit.',
+            departments: {
+                create: REJECTED_COMPANY.departments.map((name) => ({ name })),
+            },
+            branches: {
+                create: REJECTED_COMPANY.branches.map((branch) => ({
+                    label: branch.label,
+                    wilaya: branch.wilaya,
+                    isHeadquarters: branch.headquarters ?? false,
+                })),
+            },
+        },
+    });
+    await prisma.user.update({
+        where: { id: rejectedRecruiter.id },
+        data: { companyId: rejectedCompany.id },
+    });
+    await prisma.companyEvent.create({
+        data: {
+            companyId: rejectedCompany.id,
+            adminId: admin.id,
+            type: CompanyEventType.REJECTED,
+            note: 'The company profile could not be verified. Add a registered address and a reachable company website, then resubmit.',
+        },
+    });
+
     const expiresAt = new Date(
         now.getTime() + deadlineMinutes * 60 * 1000
     );
@@ -526,13 +804,34 @@ async function seed(): Promise<{
     for (let index = 0; index < POSITIONS.length; index += 1) {
         const seedPosition = POSITIONS[index];
         const recruiter = recruiters[seedPosition.recruiterIndex];
+        const companyEntry = companyByRecruiterIndex.get(
+            seedPosition.recruiterIndex
+        );
+        const departmentId = companyEntry?.departments.get(
+            seedPosition.department
+        );
+        const branchId = companyEntry?.branches.get(
+            seedPosition.branchLabel
+        );
+
+        if (!companyEntry || !departmentId || !branchId) {
+            throw new Error(
+                `Could not resolve company/department/branch for ${seedPosition.title}`
+            );
+        }
+
         const position = await prisma.position.create({
             data: {
                 recruiterId: recruiter.id,
+                companyId: companyEntry.companyId,
+                departmentId,
+                branchId,
                 companyName: recruiter.companyName ?? 'E2E Company',
                 title: seedPosition.title,
                 department: seedPosition.department,
                 location: seedPosition.location,
+                description: seedPosition.description,
+                minimumYearsExperience: seedPosition.minimumYearsExperience,
                 createdAt: now,
                 deadline: expiresAt,
                 interviewCapacity: interviewCapacities[index],
@@ -770,7 +1069,8 @@ async function verifySeedThroughApi(
 function printPlan(expiresAt: Date): void {
     console.log('\nE2E test data plan');
     console.log('------------------------------------------------------------');
-    console.log(`Recruiters: ${RECRUITERS.length}`);
+    console.log(`Recruiters: ${RECRUITERS.length + 2} (6 approved, 1 pending, 1 rejected)`);
+    console.log(`Admin: ${ADMIN_EMAIL}`);
     console.log(`Positions: ${POSITIONS.length} (expire in ${deadlineMinutes} minutes at ${expiresAt.toISOString()})`);
     console.log(`Applicants: ${APPLICANTS.length}`);
     console.log('Applications: 45 total');
@@ -780,6 +1080,9 @@ function printPlan(expiresAt: Date): void {
     console.log('Applicants with two applications: 10 (applicants 16-25)');
     console.log('All accounts use password:', TEST_PASSWORD);
     console.log(`Recruiter login: ${RECRUITERS[0].email}`);
+    console.log(`Pending company login: ${PENDING_RECRUITER_EMAIL}`);
+    console.log(`Rejected company login: ${REJECTED_RECRUITER_EMAIL}`);
+    console.log(`Admin login: ${ADMIN_EMAIL}`);
     console.log(`Applicant login: ${APPLICANTS[0].email}`);
     console.log('------------------------------------------------------------');
 }
@@ -817,12 +1120,15 @@ async function main(): Promise<void> {
 
     console.log('\nE2E dataset ready');
     console.log('------------------------------------------------------------');
-    console.log(`Recruiters: ${RECRUITERS.length}`);
+    console.log(`Recruiters: ${RECRUITERS.length + 2} (6 approved, 1 pending, 1 rejected)`);
     console.log(`Positions: ${result.positions.length} (deadline ${result.expiresAt.toISOString()})`);
     console.log(`Applicants: ${result.applicants.length}`);
     console.log(`Applications: ${result.totalApplications}`);
     console.log('All E2E accounts use password:', TEST_PASSWORD);
     console.log(`Recruiter login: ${RECRUITERS[0].email}`);
+    console.log(`Pending company login: ${PENDING_RECRUITER_EMAIL}`);
+    console.log(`Rejected company login: ${REJECTED_RECRUITER_EMAIL}`);
+    console.log(`Admin login: ${ADMIN_EMAIL}`);
     console.log(`Applicant login: ${APPLICANTS[0].email}`);
     console.log('------------------------------------------------------------');
 
