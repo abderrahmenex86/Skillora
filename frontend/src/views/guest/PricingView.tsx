@@ -240,6 +240,17 @@ export default function PricingView() {
             };
         }
 
+        if (
+            audience === 'company' &&
+            user?.role === 'RECRUITER' &&
+            user.companyStatus === 'FROZEN'
+        ) {
+            return {
+                label: 'Company frozen',
+                disabled: true,
+            };
+        }
+
         const activeTier =
             audience === 'candidate' ? 'PRO' : 'ENTERPRISE';
         const isActive = user?.subscriptionTier === activeTier;
@@ -367,6 +378,15 @@ export default function PricingView() {
                             adds its duration from your existing expiry date.
                         </div>
                     )}
+
+                    {user?.role === 'RECRUITER' &&
+                        user.companyStatus === 'FROZEN' && (
+                            <div className='mb-5 rounded border border-amber-accent/30 bg-amber-accent/10 px-3 py-2 text-xs text-(--text-main)'>
+                                Your company is frozen. Plan changes are
+                                disabled until a Skillora admin restores the
+                                account.
+                            </div>
+                        )}
 
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-6 tall:gap-8'>
                         {COMPANY_PLANS.map((plan) => {

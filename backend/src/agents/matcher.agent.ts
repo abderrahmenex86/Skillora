@@ -407,7 +407,7 @@ function categorize(
     return 'REDIRECTED';
 }
 
-function enforceEvaluation(
+export function enforceEvaluation(
     evaluation: MatcherOutput,
     telemetry: IngestionOutput,
     context: MatcherContext
@@ -439,7 +439,7 @@ function enforceEvaluation(
     const provenYears =
         typeof llmProvenYears === 'number' &&
         Number.isFinite(llmProvenYears) &&
-        llmProvenYears >= 0 ?
+        llmProvenYears > 0 ?
             Math.round(llmProvenYears * 10) / 10
         :   deriveProvenYears(telemetry);
     const experience = scoreExperience(provenYears, targetYears);

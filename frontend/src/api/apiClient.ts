@@ -6,6 +6,8 @@ export const apiClient = axios.create({
     withCredentials: true,
 });
 
+let companyUnavailableHandled = false;
+
 apiClient.interceptors.request.use((config) => {
     const token = useAuthStore.getState().accessToken;
     if (token) {
@@ -31,12 +33,17 @@ apiClient.interceptors.response.use(
             error.response?.status === 403 &&
             error.response?.data?.code === 'COMPANY_UNAVAILABLE'
         ) {
-            useAuthStore.getState().logout();
+            if (!companyUnavailableHandled) {
+                companyUnavailableHandled = true;
+                useAuthStore.getState().logout();
 
-            if (!window.location.pathname.startsWith('/auth')) {
-                window.location.assign(
-                    '/auth?mode=login&reason=company-unavailable'
-                );
+                if (!window.location.pathname.startsWith('/auth')) {
+                    window.setTimeout(() => {
+                        window.location.replace(
+                            '/auth?mode=login&reason=company-unavailable'
+                        );
+                    }, 0);
+                }
             }
 
             return Promise.reject(error);

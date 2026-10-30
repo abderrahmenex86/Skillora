@@ -53,7 +53,6 @@ export const UpdateProfileSchema = z.object({
         .optional()
         .or(z.literal('')),
     wilaya: z.string().min(2, 'Wilaya of residence required').optional(),
-    companyName: z.string().optional(),
 });
 
 export const UpdatePasswordSchema = z

@@ -256,11 +256,30 @@ export class CompanyService {
             throw new AppError(404, 'Branch not found');
         }
 
-        if (input.isActive === false && input.isHeadquarters === true) {
+        const willBeActive = input.isActive ?? branch.isActive;
+
+        if (input.isHeadquarters === true && !willBeActive) {
             throw new AppError(
                 400,
                 'The headquarters branch must stay active'
             );
+        }
+
+        if (input.isActive === false && branch.isActive) {
+            const otherActiveBranches = await prisma.companyBranch.count({
+                where: {
+                    companyId: company.id,
+                    id: { not: branch.id },
+                    isActive: true,
+                },
+            });
+
+            if (otherActiveBranches === 0) {
+                throw new AppError(
+                    400,
+                    'At least one active branch is required'
+                );
+            }
         }
 
         const nextLabel = input.label?.trim();

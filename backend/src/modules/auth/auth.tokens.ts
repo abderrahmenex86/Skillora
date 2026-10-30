@@ -1,5 +1,5 @@
 import jwt, { SignOptions } from 'jsonwebtoken';
-import { createHash } from 'crypto';
+import { createHash, randomUUID } from 'crypto';
 import { Response } from 'express';
 import { env } from '../../config/env.js';
 import { Role, SubscriptionTier } from '@prisma/client';
@@ -20,6 +20,7 @@ export const generateAccessToken = (payload: TokenPayload): string => {
 export const generateRefreshToken = (payload: TokenPayload): string => {
     const options: SignOptions = {
         expiresIn: '7d',
+        jwtid: randomUUID(),
     };
     return jwt.sign(payload, env.JWT_REFRESH_SECRET, options);
 };
