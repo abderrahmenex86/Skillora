@@ -754,67 +754,20 @@ const SUMMARY_BUILDERS = [
         `${title} focused on measurable outcomes, clear communication, and maintainable systems.`,
 ];
 
-export const APPLICANTS: ApplicantSeed[] = Array.from({ length: 100 }, (_, index) => {
-    const number = index + 1;
-    const title = TITLES[index % TITLES.length];
-    const skills = SKILLS_BY_TITLE[title];
-    const graduationYear = 2018 + (index % 6);
-    const certification = CERTIFICATIONS[index % CERTIFICATIONS.length];
-    const projectTitle = PROJECT_TITLES[index % PROJECT_TITLES.length];
-    const portfolioUrl = `https://portfolio.skillora.test/applicant-${String(number).padStart(3, '0')}`;
+/**
+ * Generic, non-rubric skills used to pad every applicant profile to five
+ * skills. None of these appear in any position's mandatory criteria, so they
+ * never turn an unmet rubric requirement into a false match.
+ */
+const GENERIC_SKILLS = [
+    'Communication',
+    'Documentation',
+    'Problem Solving',
+    'Teamwork',
+    'Agile',
+] as const;
 
-    return {
-        email: `e2e.applicant${String(number).padStart(2, '0')}${TEST_DOMAIN}`,
-        firstName: FIRST_NAMES[index % FIRST_NAMES.length],
-        lastName: LAST_NAMES[Math.floor(index / FIRST_NAMES.length) % LAST_NAMES.length],
-        phone: `+213 550 40 ${String(number).padStart(2, '0')} ${String((index % 10) + 1).padStart(2, '0')}`,
-        wilaya: WILAYAS[index % WILAYAS.length],
-        title,
-        summary: SUMMARY_BUILDERS[index % SUMMARY_BUILDERS.length](title),
-        skills: [...skills],
-        education: {
-            degree: DEGREES[index % DEGREES.length],
-            institution: INSTITUTIONS[index % INSTITUTIONS.length],
-            field: FIELDS[index % FIELDS.length],
-            startDate: `${graduationYear - 4}-09`,
-            endDate: `${graduationYear}-06`,
-        },
-        experience: {
-            company: EXPERIENCE_COMPANIES[index % EXPERIENCE_COMPANIES.length],
-            role: title,
-            location: WILAYAS[index % WILAYAS.length],
-            startDate: `${graduationYear}-09`,
-            endDate: null,
-            highlights: [
-                `Delivered ${title.toLowerCase()} features used by internal and customer-facing teams.`,
-                `Worked daily with ${skills[0]} and ${skills[1]} in a production codebase.`,
-            ],
-        },
-        project: {
-            title: projectTitle,
-            projectUrl: `${portfolioUrl}/projects/${projectTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
-            description: `A ${title.toLowerCase()} portfolio project focused on ${skills[2].toLowerCase()} and measurable user outcomes.`,
-            date: `${2023 + (index % 3)}`,
-            tags: skills.slice(0, 3),
-            narratives: {
-                challenge: `The team needed a dependable ${title.toLowerCase()} workflow without adding operational overhead.`,
-                action: `Designed and built the feature with ${skills[0]}, ${skills[1]}, and ${skills[3]}, then validated it with users.`,
-                result: 'Shipped a documented release that reduced manual work and improved delivery confidence.',
-            },
-        },
-        certification: {
-            name: certification.name,
-            issuer: certification.issuer,
-            issueDate: `${2022 + (index % 4)}-${String((index % 12) + 1).padStart(2, '0')}`,
-            credentialId: `SKL-${String(number).padStart(4, '0')}-${index % 10}`,
-        },
-        link: {
-            label: 'Portfolio',
-            url: portfolioUrl,
-            type: 'portfolio',
-        },
-    };
-});
+export const APPLICANT_COUNT = 100;
 
 export function deadlineOffsetFor(positionIndex: number): number {
     return Math.min(30, 2 * positionIndex + 1);
@@ -831,7 +784,11 @@ export function buildApplicationPlan(): ApplicationPlanEntry[] {
     };
 
     // Applicants 95-99 stay unassigned; applicants 0-4 apply a second time below.
-    for (let applicantIndex = 0; applicantIndex < APPLICANTS.length - 5; applicantIndex += 1) {
+    for (
+        let applicantIndex = 0;
+        applicantIndex < APPLICANT_COUNT - 5;
+        applicantIndex += 1
+    ) {
         add(applicantIndex % POSITIONS.length, applicantIndex);
     }
 
@@ -854,6 +811,39 @@ export function statusForSlot(
     return 'REJECTED';
 }
 
+/**
+ * Builds the skills an applicant can legitimately claim from their first
+ * application: all mandatory criteria for a scheduled or on-hold outcome, all
+ * but one for needs-review, and all but two for a rejection.
+ */
+export function skillsForApplication(
+    positionIndex: number,
+    status: ApplicationStatus
+): string[] {
+    const mandatory = POSITIONS[positionIndex].rubric.mandatoryCriteria;
+    const retainedCount =
+        status === 'INTERVIEW_SCHEDULED' || status === 'ON_HOLD' ?
+            mandatory.length
+        : status === 'NEEDS_REVIEW' ? Math.max(0, mandatory.length - 1)
+        : Math.max(0, mandatory.length - 2);
+
+    const skills = mandatory.slice(0, retainedCount);
+    for (const genericSkill of GENERIC_SKILLS) {
+        if (skills.length >= 5) break;
+        skills.push(genericSkill);
+    }
+    return skills;
+}
+
+export function unmetMandatoryFor(
+    positionIndex: number,
+    skills: readonly string[]
+): string[] {
+    return POSITIONS[positionIndex].rubric.mandatoryCriteria.filter(
+        (criterion) => !skills.includes(criterion)
+    );
+}
+
 const PLANNED_APPLICATIONS = buildApplicationPlan();
 const APPLICATIONS_BY_POSITION = new Map<number, number>();
 const APPLICATIONS_BY_APPLICANT = new Map<number, number>();
@@ -870,7 +860,108 @@ for (const entry of PLANNED_APPLICATIONS) {
 }
 
 const PLANNED_STATUSES = PLANNED_APPLICATIONS.map((entry) =>
-    statusForSlot(entry.slotIndex, APPLICATIONS_BY_POSITION.get(entry.positionIndex) ?? 0)
+    statusForSlot(
+        entry.slotIndex,
+        APPLICATIONS_BY_POSITION.get(entry.positionIndex) ?? 0
+    )
+);
+
+const FIRST_APPLICATION_BY_APPLICANT = new Map<
+    number,
+    { positionIndex: number; status: ApplicationStatus }
+>();
+
+for (const [index, entry] of PLANNED_APPLICATIONS.entries()) {
+    if (FIRST_APPLICATION_BY_APPLICANT.has(entry.applicantIndex)) continue;
+    FIRST_APPLICATION_BY_APPLICANT.set(entry.applicantIndex, {
+        positionIndex: entry.positionIndex,
+        status: PLANNED_STATUSES[index],
+    });
+}
+
+export const APPLICANTS: ApplicantSeed[] = Array.from(
+    { length: APPLICANT_COUNT },
+    (_, index) => {
+        const number = index + 1;
+        // The profile must back every rubric claim made on the applicant's
+        // first application, so title and skills come from that position and
+        // its planned status. Applicants without applications keep a generic
+        // profile.
+        const firstApplication = FIRST_APPLICATION_BY_APPLICANT.get(index);
+        const title =
+            firstApplication ?
+                POSITIONS[firstApplication.positionIndex].title
+            :   TITLES[index % TITLES.length];
+        const skills =
+            firstApplication ?
+                skillsForApplication(
+                    firstApplication.positionIndex,
+                    firstApplication.status
+                )
+            :   [...(SKILLS_BY_TITLE[title] ?? GENERIC_SKILLS)];
+        const graduationYear = 2018 + (index % 6);
+        const certification = CERTIFICATIONS[index % CERTIFICATIONS.length];
+        const projectTitle = PROJECT_TITLES[index % PROJECT_TITLES.length];
+        const portfolioUrl = `https://portfolio.skillora.test/applicant-${String(number).padStart(3, '0')}`;
+
+        return {
+            email: `e2e.applicant${String(number).padStart(2, '0')}${TEST_DOMAIN}`,
+            firstName: FIRST_NAMES[index % FIRST_NAMES.length],
+            lastName:
+                LAST_NAMES[
+                    Math.floor(index / FIRST_NAMES.length) % LAST_NAMES.length
+                ],
+            phone: `+213 550 40 ${String(number).padStart(2, '0')} ${String((index % 10) + 1).padStart(2, '0')}`,
+            wilaya: WILAYAS[index % WILAYAS.length],
+            title,
+            summary: SUMMARY_BUILDERS[index % SUMMARY_BUILDERS.length](title),
+            skills: [...skills],
+            education: {
+                degree: DEGREES[index % DEGREES.length],
+                institution: INSTITUTIONS[index % INSTITUTIONS.length],
+                field: FIELDS[index % FIELDS.length],
+                startDate: `${graduationYear - 4}-09`,
+                endDate: `${graduationYear}-06`,
+            },
+            experience: {
+                company:
+                    EXPERIENCE_COMPANIES[
+                        index % EXPERIENCE_COMPANIES.length
+                    ],
+                role: title,
+                location: WILAYAS[index % WILAYAS.length],
+                startDate: `${graduationYear}-09`,
+                endDate: null,
+                highlights: [
+                    `Delivered ${title.toLowerCase()} features used by internal and customer-facing teams.`,
+                    `Worked daily with ${skills[0]} and ${skills[1]} in a production codebase.`,
+                ],
+            },
+            project: {
+                title: projectTitle,
+                projectUrl: `${portfolioUrl}/projects/${projectTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+                description: `A ${title.toLowerCase()} portfolio project focused on ${skills[2].toLowerCase()} and measurable user outcomes.`,
+                date: `${2023 + (index % 3)}`,
+                tags: skills.slice(0, 3),
+                narratives: {
+                    challenge: `The team needed a dependable ${title.toLowerCase()} workflow without adding operational overhead.`,
+                    action: `Designed and built the feature with ${skills[0]}, ${skills[1]}, and ${skills[3]}, then validated it with users.`,
+                    result: 'Shipped a documented release that reduced manual work and improved delivery confidence.',
+                },
+            },
+            certification: {
+                name: certification.name,
+                issuer: certification.issuer,
+                issueDate: `${2022 + (index % 4)}-${String((index % 12) + 1).padStart(2, '0')}`,
+                credentialId: `SKL-${String(number).padStart(4, '0')}-${index % 10}`,
+            },
+            link: {
+                label: 'Portfolio',
+                url: portfolioUrl,
+                type: 'portfolio',
+            },
+        };
+    }
 );
 
 const countStatus = (status: ApplicationStatus) =>

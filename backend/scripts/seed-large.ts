@@ -27,6 +27,7 @@ import {
     buildApplicationPlan,
     deadlineOffsetFor,
     statusForSlot,
+    unmetMandatoryFor,
     type ApplicantSeed,
     type PositionSeed,
 } from './seed-large-data.js';
@@ -49,7 +50,9 @@ const verifyApiRequested = args.includes('--verify');
 const API_BASE = 'http://localhost:4000/api/v1';
 const DAY_MS = 24 * 60 * 60 * 1000;
 const APPLIED_AT_WINDOW_DAYS = 14;
+const INTERVIEW_RANGE_START_DAYS = 1;
 const INTERVIEW_LEAD_DAYS = 2;
+const INTERVIEW_START_HOUR = 10;
 const INTERVIEW_WINDOW_DAYS = 7;
 const MAX_DEADLINE_DAYS = 30;
 
@@ -99,6 +102,32 @@ type CreatedApplication = {
     status: ApplicationStatus;
 };
 
+type SeedResult = {
+    seededAt: Date;
+    positions: CreatedPosition[];
+};
+
+type AuditJson = {
+    category?: string;
+    mandatoryCriteriaAudit?: Array<{
+        criterion?: string;
+        satisfied?: boolean;
+    }>;
+    descriptionAudit?: { gaps?: string[] };
+    experienceAudit?: {
+        targetYears?: number;
+        provenYears?: number;
+        score?: number;
+    };
+    strengths?: string[];
+    unmetRequirements?: string[];
+};
+
+type GapJson = {
+    verifiedStrengths?: string[];
+    descriptionGaps?: string[];
+};
+
 function assert(condition: unknown, message: string): asserts condition {
     if (!condition) throw new Error(message);
 }
@@ -110,37 +139,140 @@ function arraysEqual<T>(actual: readonly T[], expected: readonly T[]): boolean {
     );
 }
 
-function auditFor(position: PositionSeed, status: ApplicationStatus) {
-    const unmet =
-        status === 'REJECTED' ? position.rubric.mandatoryCriteria.slice(-2)
-        : status === 'NEEDS_REVIEW' ? position.rubric.mandatoryCriteria.slice(-1)
-        : [];
+/**
+ * The applicants with a second application keep the profile derived from
+ * their first one. Their first-position skills plus generic padding must still
+ * leave at least two mandatory criteria unmet on the second position so the
+ * second application is legitimately rejected.
+ */
+function assertSecondApplicationsRejected(): void {
+    const plan = buildApplicationPlan();
+    const applicationsPerPosition = new Map<number, number>();
+    const applicationsPerApplicant = new Map<
+        number,
+        Array<{ positionIndex: number; slotIndex: number }>
+    >();
 
-    const mandatoryCriteriaAudit = position.rubric.mandatoryCriteria.map((criterion) => ({
-        criterion,
-        satisfied: !unmet.includes(criterion),
-        evidenceFound: unmet.includes(criterion)
-            ? null
-            : `Verified qualification for ${criterion}`,
-    }));
+    for (const entry of plan) {
+        applicationsPerPosition.set(
+            entry.positionIndex,
+            (applicationsPerPosition.get(entry.positionIndex) ?? 0) + 1
+        );
+        const entries = applicationsPerApplicant.get(entry.applicantIndex) ?? [];
+        entries.push(entry);
+        applicationsPerApplicant.set(entry.applicantIndex, entries);
+    }
 
-    const rubricScore = status === 'INTERVIEW_SCHEDULED' ? 92 : status === 'ON_HOLD' ? 84 : status === 'NEEDS_REVIEW' ? 68 : 48;
-    const descriptionScore = status === 'INTERVIEW_SCHEDULED' ? 88 : status === 'ON_HOLD' ? 80 : status === 'NEEDS_REVIEW' ? 64 : 42;
+    for (const [applicantIndex, entries] of applicationsPerApplicant) {
+        if (entries.length < 2) continue;
+        const second = entries[1];
+        const status = statusForSlot(
+            second.slotIndex,
+            applicationsPerPosition.get(second.positionIndex) ?? 0
+        );
+        const unmet = unmetMandatoryFor(
+            second.positionIndex,
+            APPLICANTS[applicantIndex].skills
+        );
+
+        assert(
+            status === 'REJECTED',
+            `Applicant ${applicantIndex + 1}'s second application to ` +
+                `"${POSITIONS[second.positionIndex].title}" must be rejected, ` +
+                `got ${status}`
+        );
+        assert(
+            unmet.length >= 2,
+            `Applicant ${applicantIndex + 1}'s second application to ` +
+                `"${POSITIONS[second.positionIndex].title}" only leaves ` +
+                `${unmet.length} mandatory criteria unmet; expected at least 2`
+        );
+    }
+}
+
+function provenYearsSince(startDate: string, asOf: Date): number {
+    const match = /^(\d{4})-(\d{2})/.exec(startDate);
+    assert(match, `Invalid experience start date "${startDate}"`);
+    const startYear = Number(match[1]);
+    const startMonth = Number(match[2]) - 1;
+    const months =
+        (asOf.getUTCFullYear() - startYear) * 12 +
+        (asOf.getUTCMonth() - startMonth);
+    return Math.max(0, Math.round((months / 12) * 10) / 10);
+}
+
+function auditFor(
+    position: PositionSeed,
+    skills: readonly string[],
+    experienceStartDate: string,
+    asOf: Date
+) {
+    const { mandatoryCriteria, preferredCriteria } = position.rubric;
+    const satisfied = mandatoryCriteria.filter((criterion) =>
+        skills.includes(criterion)
+    );
+    const unmet = mandatoryCriteria.filter(
+        (criterion) => !skills.includes(criterion)
+    );
+
+    const mandatoryCriteriaAudit = mandatoryCriteria.map((criterion) => {
+        const isSatisfied = skills.includes(criterion);
+        return {
+            criterion,
+            satisfied: isSatisfied,
+            evidenceFound:
+                isSatisfied ?
+                    `Verified qualification for ${criterion}`
+                :   null,
+        };
+    });
+
+    const rubricScore =
+        mandatoryCriteria.length > 0 ?
+            Math.round((satisfied.length / mandatoryCriteria.length) * 100)
+        :   100;
+
+    const preferredMatches = preferredCriteria.filter((criterion) =>
+        skills.includes(criterion)
+    );
+    const descriptionTotal =
+        mandatoryCriteria.length + preferredCriteria.length;
+    const descriptionScore =
+        descriptionTotal > 0 ?
+            Math.round(
+                ((satisfied.length + preferredMatches.length) /
+                    descriptionTotal) *
+                    100
+            )
+        :   100;
+
     const targetYears = position.minimumYearsExperience;
-    const provenYears = Math.max(0, targetYears - 1);
-    const experienceScore = status === 'INTERVIEW_SCHEDULED' ? 90 : status === 'ON_HOLD' ? 85 : status === 'NEEDS_REVIEW' ? 65 : 55;
-    const matchScore = Math.round(0.7 * rubricScore + 0.2 * descriptionScore + 0.1 * experienceScore);
+    const provenYears = provenYearsSince(experienceStartDate, asOf);
+    const experienceRatio =
+        targetYears > 0 ? Math.min(1, provenYears / targetYears) : 1;
+    const experienceScore = Math.round(experienceRatio * 100);
+    const matchScore = Math.round(
+        0.7 * rubricScore + 0.2 * descriptionScore + 0.1 * experienceScore
+    );
 
     return {
         matchScore,
         rubricScore,
-        category: status === 'INTERVIEW_SCHEDULED' ? 'ELIGIBLE' : status === 'REJECTED' ? 'REDIRECTED' : 'NEEDS_REVIEW',
+        category:
+            unmet.length === 0 ? 'ELIGIBLE'
+            : unmet.length === 1 ? 'NEEDS_REVIEW'
+            : 'REDIRECTED',
         mandatoryCriteriaAudit,
         descriptionAudit: {
             score: descriptionScore,
-            strengths: ['Portfolio evidence matches the core role responsibilities.'],
-            gaps: unmet.map((criterion) => `No direct portfolio evidence for ${criterion}.`),
-            rationale: 'Description alignment was scored against the seeded portfolio.',
+            strengths: satisfied.map(
+                (criterion) => `Portfolio evidence demonstrates ${criterion}.`
+            ),
+            gaps: unmet.map(
+                (criterion) => `No direct portfolio evidence for ${criterion}.`
+            ),
+            rationale:
+                'Description alignment was scored against the seeded portfolio.',
         },
         experienceAudit: {
             targetYears,
@@ -148,18 +280,18 @@ function auditFor(position: PositionSeed, status: ApplicationStatus) {
             score: experienceScore,
             rationale: `Proven ${provenYears} years against a preferred ${targetYears}-year target; this is a soft signal.`,
         },
-        strengths: position.rubric.mandatoryCriteria.filter((c) => !unmet.includes(c)),
+        strengths: satisfied,
         unmetRequirements: unmet,
     };
 }
 
-function gapFor(position: PositionSeed) {
-    const unmet = position.rubric.mandatoryCriteria.slice(-2);
-    const verifiedStrengths = position.rubric.mandatoryCriteria.filter(
-        (criterion) => !unmet.includes(criterion)
-    );
+type RubricAudit = ReturnType<typeof auditFor>;
+
+function gapFor(position: PositionSeed, audit: RubricAudit) {
+    const unmet = audit.unmetRequirements;
+    const verifiedStrengths = audit.strengths;
+    const provenYears = audit.experienceAudit.provenYears;
     const focus = unmet[0] ?? 'the missing requirement';
-    const provenYears = Math.max(0, position.minimumYearsExperience - 1);
 
     const letter = `Dear candidate,
 
@@ -177,9 +309,7 @@ Skillora Talent Team`;
         unmetMandatoryReasons: unmet.map(
             (criterion) => `Missing mandatory requirement: ${criterion}`
         ),
-        descriptionGaps: unmet.map(
-            (criterion) => `No direct portfolio evidence for ${criterion}.`
-        ),
+        descriptionGaps: audit.descriptionAudit.gaps,
         experienceNote: `Proven ${provenYears} years against a preferred ${position.minimumYearsExperience}-year target; this is a soft signal.`,
         recommendedBridgePath: {
             title: `Build verifiable proof for ${focus}`,
@@ -200,6 +330,7 @@ function interviewSlotFor(deadline: Date): {
     format: 'video_meet';
 } {
     const start = new Date(deadline.getTime() + INTERVIEW_LEAD_DAYS * DAY_MS);
+    start.setHours(INTERVIEW_START_HOUR, 0, 0, 0);
     const end = new Date(start.getTime() + 60 * 60 * 1000);
 
     return {
@@ -346,11 +477,12 @@ async function createApplicant(
     return { id: user.id, profileId: profile.id };
 }
 
-async function seed(): Promise<Date> {
+async function seed(): Promise<SeedResult> {
     assert(
         RECRUITER_SLOT_TIMES.length === RECRUITER_SLOTS_PER_POSITION,
         `Expected ${RECRUITER_SLOTS_PER_POSITION} recruiter slot templates`
     );
+    assertSecondApplicationsRejected();
 
     console.log('Removing previous test users from', TEST_DOMAIN, '...');
     const removed = await prisma.user.deleteMany({
@@ -510,7 +642,9 @@ async function seed(): Promise<Date> {
                 createdAt: postedAt,
                 deadline,
                 interviewCapacity: seedPosition.interviewCapacity,
-                interviewRangeStart: deadline,
+                interviewRangeStart: new Date(
+                    deadline.getTime() + INTERVIEW_RANGE_START_DAYS * DAY_MS
+                ),
                 interviewRangeEnd: new Date(
                     deadline.getTime() + INTERVIEW_WINDOW_DAYS * DAY_MS
                 ),
@@ -567,7 +701,13 @@ async function seed(): Promise<Date> {
             entry.slotIndex,
             applicationsPerPosition.get(entry.positionIndex) ?? 0
         );
-        const audit = auditFor(position.seed, status);
+        const applicantSeed = APPLICANTS[entry.applicantIndex];
+        const audit = auditFor(
+            position.seed,
+            applicantSeed.skills,
+            applicantSeed.experience.startDate,
+            now
+        );
         const appliedAt = new Date(
             now.getTime() -
                 APPLIED_AT_WINDOW_DAYS * DAY_MS +
@@ -590,7 +730,7 @@ async function seed(): Promise<Date> {
                 rubricAudit: audit,
                 gapAnalysis:
                     status === ApplicationStatus.REJECTED ?
-                        gapFor(position.seed)
+                        gapFor(position.seed, audit)
                     :   undefined,
                 appliedAt,
             },
@@ -638,7 +778,7 @@ async function seed(): Promise<Date> {
     }
     console.log(`Sent ${applications.length} applicant notifications`);
 
-    return now;
+    return { seededAt: now, positions: createdPositions };
 }
 
 async function verifyDatabase(seededAt: Date): Promise<void> {
@@ -794,26 +934,147 @@ async function verifyDatabase(seededAt: Date): Promise<void> {
         `Expected 48 rejected applications, got ${rejectedCount}`
     );
 
-    const rejected = await prisma.application.findMany({
-        where: { status: 'REJECTED', applicant: testUser },
-        select: { gapAnalysis: true },
+    const auditedApplications = await prisma.application.findMany({
+        where: { applicant: testUser },
+        select: {
+            anonymousId: true,
+            status: true,
+            rubricAudit: true,
+            gapAnalysis: true,
+            profile: { select: { skills: true } },
+        },
     });
     assert(
-        rejected.length === rejectedCount,
-        `Expected ${rejectedCount} rejected applications, got ${rejected.length}`
+        auditedApplications.length === applications,
+        `Expected ${applications} audited applications, ` +
+            `got ${auditedApplications.length}`
     );
-    assert(
-        rejected.every((row) => {
-            const gap = row.gapAnalysis as {
-                descriptionGaps?: unknown[];
-            } | null;
-            return (
-                Array.isArray(gap?.descriptionGaps) &&
-                (gap?.descriptionGaps.length ?? 0) > 0
+
+    for (const row of auditedApplications) {
+        const skills = row.profile.skills;
+        const audit = row.rubricAudit as unknown as AuditJson | null;
+        assert(audit, `${row.anonymousId} must have a rubric audit`);
+
+        const criteria = audit.mandatoryCriteriaAudit ?? [];
+        assert(
+            criteria.length > 0,
+            `${row.anonymousId} rubric audit must list mandatory criteria`
+        );
+
+        for (const entry of criteria) {
+            assert(
+                entry.criterion,
+                `${row.anonymousId} rubric audit contains an unnamed criterion`
             );
-        }),
-        'Every rejected application must have gap analysis with description gaps'
-    );
+            if (entry.satisfied) {
+                assert(
+                    skills.includes(entry.criterion),
+                    `${row.anonymousId} marks "${entry.criterion}" satisfied, ` +
+                        `but profile skills are [${skills.join(', ')}]`
+                );
+            }
+        }
+
+        const unmet = audit.unmetRequirements ?? [];
+        const unsatisfied = criteria
+            .filter((entry) => !entry.satisfied)
+            .map((entry) => entry.criterion as string);
+        assert(
+            arraysEqual(unmet, unsatisfied),
+            `${row.anonymousId} unmetRequirements [${unmet.join(', ')}] must ` +
+                `match unsatisfied criteria [${unsatisfied.join(', ')}]`
+        );
+
+        const expectedUnmet =
+            row.status === ApplicationStatus.INTERVIEW_SCHEDULED ||
+            row.status === ApplicationStatus.ON_HOLD ? 0
+            : row.status === ApplicationStatus.NEEDS_REVIEW ? 1
+            : 2;
+        if (row.status === ApplicationStatus.REJECTED) {
+            assert(
+                unmet.length >= expectedUnmet,
+                `${row.anonymousId} is rejected with ${unmet.length} unmet ` +
+                    `criteria [${unmet.join(', ')}]; expected at least ${expectedUnmet}`
+            );
+        } else {
+            assert(
+                unmet.length === expectedUnmet,
+                `${row.anonymousId} is ${row.status} with ${unmet.length} ` +
+                    `unmet criteria [${unmet.join(', ')}]; expected ${expectedUnmet}`
+            );
+        }
+
+        const expectedCategory =
+            unmet.length === 0 ? 'ELIGIBLE'
+            : unmet.length === 1 ? 'NEEDS_REVIEW'
+            : 'REDIRECTED';
+        assert(
+            audit.category === expectedCategory,
+            `${row.anonymousId} category is ${audit.category}; expected ` +
+                `${expectedCategory} for ${unmet.length} unmet criteria`
+        );
+
+        const auditDescriptionGaps = audit.descriptionAudit?.gaps ?? [];
+        assert(
+            arraysEqual(
+                auditDescriptionGaps,
+                unmet.map(
+                    (criterion) =>
+                        `No direct portfolio evidence for ${criterion}.`
+                )
+            ),
+            `${row.anonymousId} description gaps ` +
+                `[${auditDescriptionGaps.join(' | ')}] must match unmet ` +
+                `criteria [${unmet.join(', ')}]`
+        );
+
+        const experienceAudit = audit.experienceAudit;
+        assert(
+            experienceAudit,
+            `${row.anonymousId} rubric audit must include an experience audit`
+        );
+        const provenYears = experienceAudit.provenYears;
+        const targetYears = experienceAudit.targetYears;
+        const experienceScore = experienceAudit.score;
+        assert(
+            provenYears !== undefined &&
+                targetYears !== undefined &&
+                experienceScore !== undefined,
+            `${row.anonymousId} experience audit must include proven years, ` +
+                `target years, and a score`
+        );
+        const experienceRatio =
+            targetYears > 0 ? Math.min(1, provenYears / targetYears) : 1;
+        assert(
+            experienceScore === Math.round(experienceRatio * 100),
+            `${row.anonymousId} experience score ${experienceScore} must ` +
+                `equal proven/target ratio ${provenYears}/${targetYears}`
+        );
+
+        if (row.status !== ApplicationStatus.REJECTED) continue;
+
+        const gap = row.gapAnalysis as unknown as GapJson | null;
+        assert(gap, `${row.anonymousId} is rejected without gap analysis`);
+
+        const verifiedStrengths = gap.verifiedStrengths ?? [];
+        for (const strength of verifiedStrengths) {
+            assert(
+                skills.includes(strength),
+                `${row.anonymousId} gap cites "${strength}" as a verified ` +
+                    `strength, but profile skills are [${skills.join(', ')}]`
+            );
+        }
+        assert(
+            arraysEqual(verifiedStrengths, audit.strengths ?? []),
+            `${row.anonymousId} gap verified strengths ` +
+                `[${verifiedStrengths.join(', ')}] must match audit strengths ` +
+                `[${(audit.strengths ?? []).join(', ')}]`
+        );
+        assert(
+            arraysEqual(gap.descriptionGaps ?? [], auditDescriptionGaps),
+            `${row.anonymousId} gap description gaps must match the rubric audit`
+        );
+    }
 
     const deadlines = await prisma.position.findMany({
         where: { recruiter: testUser },
@@ -880,26 +1141,96 @@ async function verifyDatabase(seededAt: Date): Promise<void> {
         `Expected ${RECRUITER_SLOTS_PER_POSITION} recruiter slots for each of 16 positions`
     );
 
-    const interviewTimings = await prisma.interviewEvent.findMany({
-        where: { applicant: testUser },
+    const interviewPositions = await prisma.position.findMany({
+        where: { recruiter: testUser },
         select: {
-            confirmedStart: true,
-            application: {
-                select: { position: { select: { deadline: true } } },
+            title: true,
+            deadline: true,
+            interviewRangeStart: true,
+            interviewRangeEnd: true,
+            applications: {
+                where: { status: 'INTERVIEW_SCHEDULED' },
+                select: {
+                    interviewEvent: {
+                        select: {
+                            confirmedStart: true,
+                            confirmedEnd: true,
+                        },
+                    },
+                },
             },
         },
     });
     assert(
-        interviewTimings.length === 16 &&
-            interviewTimings.every((row) =>
-                row.confirmedStart ?
-                    row.confirmedStart.getTime() ===
-                    row.application.position.deadline.getTime() +
-                        INTERVIEW_LEAD_DAYS * DAY_MS
-                :   false
-            ),
-        'Every interview must start exactly two days after its position deadline'
+        interviewPositions.length === 16,
+        `Expected 16 seeded positions, got ${interviewPositions.length}`
     );
+
+    for (const position of interviewPositions) {
+        const rangeStart = position.interviewRangeStart;
+        const rangeEnd = position.interviewRangeEnd;
+        assert(
+            rangeStart && rangeEnd,
+            `"${position.title}" interview window must have a start and an end`
+        );
+        assert(
+            rangeStart.getTime() ===
+                position.deadline.getTime() +
+                    INTERVIEW_RANGE_START_DAYS * DAY_MS,
+            `"${position.title}" interviewRangeStart must be deadline + ` +
+                `${INTERVIEW_RANGE_START_DAYS} day, got ` +
+                `${rangeStart.toISOString()} for deadline ` +
+                `${position.deadline.toISOString()}`
+        );
+        assert(
+            rangeEnd.getTime() ===
+                position.deadline.getTime() + INTERVIEW_WINDOW_DAYS * DAY_MS,
+            `"${position.title}" interviewRangeEnd must be deadline + ` +
+                `${INTERVIEW_WINDOW_DAYS} days, got ${rangeEnd.toISOString()} ` +
+                `for deadline ${position.deadline.toISOString()}`
+        );
+
+        const scheduled = position.applications.filter(
+            (application) => application.interviewEvent
+        );
+        assert(
+            scheduled.length === 1,
+            `"${position.title}" must have exactly 1 confirmed interview, ` +
+                `got ${scheduled.length}`
+        );
+
+        const event = scheduled[0].interviewEvent;
+        assert(
+            event,
+            `"${position.title}" scheduled application must have an interview`
+        );
+        const confirmedStart = event.confirmedStart;
+        const confirmedEnd = event.confirmedEnd;
+        assert(
+            confirmedStart && confirmedEnd,
+            `"${position.title}" interview must have confirmed start and end times`
+        );
+        assert(
+            confirmedStart.getHours() === INTERVIEW_START_HOUR,
+            `"${position.title}" interview must start at ` +
+                `${INTERVIEW_START_HOUR}:00 local time, got ` +
+                `${confirmedStart.toISOString()} (local hour ` +
+                `${confirmedStart.getHours()})`
+        );
+        assert(
+            confirmedStart.getTime() > rangeStart.getTime() &&
+                confirmedStart.getTime() < rangeEnd.getTime(),
+            `"${position.title}" interview at ${confirmedStart.toISOString()} ` +
+                `must fall inside ${rangeStart.toISOString()} – ` +
+                `${rangeEnd.toISOString()}`
+        );
+        assert(
+            confirmedEnd.getTime() - confirmedStart.getTime() ===
+                60 * 60 * 1000,
+            `"${position.title}" interview must last one hour, got ` +
+                `${(confirmedEnd.getTime() - confirmedStart.getTime()) / 60_000} minutes`
+        );
+    }
 
     const anonymousIdRows = await prisma.application.findMany({
         where: { applicant: testUser },
@@ -1006,15 +1337,26 @@ async function apiGet<T>(route: string, token?: string): Promise<T> {
     return (await response.json()) as T;
 }
 
-async function verifyApi(): Promise<void> {
+async function verifyApi(seededPositions: CreatedPosition[]): Promise<void> {
     const admin = await apiLogin(ADMIN_EMAILS[0]);
-    const pending = await apiGet<{ companies: unknown[] }>(
+    const seededPendingCompanies = COMPANIES.filter(
+        (company) => company.status === CompanyStatus.PENDING
+    ).map((company) => company.name);
+    const pending = await apiGet<{ companies: Array<{ name?: string }> }>(
         '/admin/companies?status=PENDING',
         admin
     );
+    const observedPendingCompanies = pending.companies.map(
+        (company) => company.name ?? '(unnamed)'
+    );
+    const missingPendingCompanies = seededPendingCompanies.filter(
+        (name) => !observedPendingCompanies.includes(name)
+    );
     assert(
-        pending.companies.length === 2,
-        `admin sees 2 pending companies, got ${pending.companies.length}`
+        missingPendingCompanies.length === 0,
+        `admin must see both seeded pending companies; missing ` +
+            `[${missingPendingCompanies.join(', ') || '(none)'}] from observed ` +
+            `[${observedPendingCompanies.join(', ') || '(none)'}]`
     );
 
     const recruiter = await apiLogin(RECRUITERS[0].email);
@@ -1046,16 +1388,39 @@ async function verifyApi(): Promise<void> {
         `applicant01 has 2 applications, got ${applications.applications.length}`
     );
 
-    const publicJobs = await apiGet<{ positions: unknown[] }>(
-        '/public/positions'
+    const calendar = await apiGet<{
+        events: Array<{ status?: string }>;
+    }>('/applicant/calendar', applicant);
+    const confirmedEvents = calendar.events.filter(
+        (event) => event.status === 'SLOT_CONFIRMED'
     );
     assert(
-        publicJobs.positions.length === 16,
-        `16 public jobs, got ${publicJobs.positions.length}`
+        confirmedEvents.length === 1,
+        `applicant01 has exactly 1 confirmed calendar event, got ` +
+            `${confirmedEvents.length} of ${calendar.events.length} ` +
+            `[${calendar.events.map((event) => event.status ?? 'unknown').join(', ') || '(none)'}]`
+    );
+
+    const publicJobs = await apiGet<{ positions: Array<{ id?: string }> }>(
+        '/public/positions'
+    );
+    const publicPositionIds = new Set(
+        publicJobs.positions.map((position) => position.id ?? '')
+    );
+    const missingPositionIds = seededPositions
+        .map((position) => position.id)
+        .filter((id) => !publicPositionIds.has(id));
+    assert(
+        missingPositionIds.length === 0,
+        `all ${seededPositions.length} seeded positions must be publicly ` +
+            `visible; missing ${missingPositionIds.length} ` +
+            `[${missingPositionIds.join(', ') || '(none)'}] from ` +
+            `${publicJobs.positions.length} public positions`
     );
 
     console.log(
-        'API verification passed: admins, recruiters, applicants, and public jobs all match.'
+        'API verification passed: pending companies, recruiter ownership, ' +
+            'applicant calendar, applications, and public positions all match.'
     );
 }
 
@@ -1067,11 +1432,11 @@ async function main(): Promise<void> {
         return;
     }
 
-    const seededAt = await seed();
+    const { seededAt, positions } = await seed();
     await verifyDatabase(seededAt);
 
     if (verifyApiRequested) {
-        await verifyApi();
+        await verifyApi(positions);
     } else {
         console.log('\nRun with --verify to check the seeded data through the running API.');
     }

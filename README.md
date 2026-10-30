@@ -678,7 +678,7 @@ All generated accounts use the `.test` domain and the password `password123`.
 - **Jobs:** 16, with deadlines from tomorrow to 30 days out
 - **Applications:** 100, with 95 applicants holding at least one, 5 holding none, and 5 holding two
 
-Run `npm run seed:large` to create the dataset, `npm run seed:large -- --dry-run` to preview it without writing, and `npm run seed:large:verify` to reseed and verify the result in the database and through the running API. The backend must be running for `npm run seed:large:verify`. Seeding deletes and recreates every `@skillora.test` account, and `seed:large:verify` assumes the database contains only the large dataset (or at least no other public jobs from `@skillora.test` companies).
+Run `npm run seed:large` to create the dataset, `npm run seed:large -- --dry-run` to preview it without writing, and `npm run seed:large:verify` to reseed and verify the result in the database and through the running API. The backend must be running for `npm run seed:large:verify`. Seeding deletes and recreates every `@skillora.test` account. `seed:large:verify` checks that the seeded positions are publicly visible and that the seeded pending companies are present; unrelated data does not affect those assertions.
 
 If a real application is interrupted mid-evaluation and remains `SUBMITTED` or
 `EVALUATING`, run `npm run applications:reevaluate` to process it through the

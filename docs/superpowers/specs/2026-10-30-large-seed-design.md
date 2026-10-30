@@ -73,6 +73,7 @@ Each applicant receives:
 - A complete applicant profile with title, summary, and skills.
 - One education entry, one experience entry, one project, one certification, and one link.
 - Deterministic data chosen from small name/skill/wilaya pools.
+- A title and skills generated from the applicant's first application position and status, so every rubric audit and rejection letter cites evidence that actually exists in the profile. Applicants without applications keep a generic profile.
 
 ### Applications
 
