@@ -44,8 +44,9 @@ const prisma = new PrismaClient();
 
 const args = process.argv.slice(2);
 const dryRun = args.includes('--dry-run');
-const verifyApi = args.includes('--verify');
+const verifyApiRequested = args.includes('--verify');
 
+const API_BASE = 'http://localhost:4000/api/v1';
 const DAY_MS = 24 * 60 * 60 * 1000;
 const APPLIED_AT_WINDOW_DAYS = 14;
 const INTERVIEW_LEAD_DAYS = 2;
@@ -960,6 +961,92 @@ async function verifyDatabase(seededAt: Date): Promise<void> {
     console.log('Database verification passed.');
 }
 
+async function apiLogin(email: string): Promise<string> {
+    let response: Response;
+    try {
+        response = await fetch(`${API_BASE}/auth/login`, {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ email, password: TEST_PASSWORD }),
+        });
+    } catch (error) {
+        throw new Error(
+            `Could not reach the API at ${API_BASE}. Start the backend or omit --verify. (${String(error)})`
+        );
+    }
+
+    const body = (await response.json().catch(() => null)) as {
+        accessToken?: string;
+    } | null;
+
+    if (!response.ok) {
+        throw new Error(
+            `login ${email}: ${response.status} ${JSON.stringify(body)}`
+        );
+    }
+
+    assert(
+        body?.accessToken,
+        `Login response for ${email} did not include an access token`
+    );
+    return body.accessToken;
+}
+
+async function apiGet<T>(route: string, token?: string): Promise<T> {
+    const response = await fetch(`${API_BASE}${route}`, {
+        headers: token ? { authorization: `Bearer ${token}` } : undefined,
+    });
+
+    if (!response.ok) {
+        throw new Error(
+            `GET ${route} failed (${response.status}): ${await response.text()}`
+        );
+    }
+
+    return (await response.json()) as T;
+}
+
+async function verifyApi(): Promise<void> {
+    const admin = await apiLogin(ADMIN_EMAILS[0]);
+    const pending = await apiGet<{ companies: unknown[] }>(
+        '/admin/companies?status=PENDING',
+        admin
+    );
+    assert(pending.companies.length === 2, 'admin sees 2 pending companies');
+
+    const recruiter = await apiLogin(RECRUITERS[0].email);
+    const positions = await apiGet<{ positions: unknown[] }>(
+        '/recruiter/positions',
+        recruiter
+    );
+    assert(positions.positions.length === 3, 'recruiter1 owns 3 positions');
+
+    const pendingRecruiter = await apiLogin(`e2e.pending${TEST_DOMAIN}`);
+    const blocked = await fetch(`${API_BASE}/recruiter/positions`, {
+        headers: { authorization: `Bearer ${pendingRecruiter}` },
+    });
+    assert(blocked.status === 403, 'pending recruiter is blocked');
+
+    const applicant = await apiLogin(APPLICANTS[0].email);
+    const applications = await apiGet<{ applications: unknown[] }>(
+        '/applicant/applications',
+        applicant
+    );
+    assert(
+        applications.applications.length === 2,
+        'applicant01 has 2 applications'
+    );
+
+    const publicJobs = await apiGet<{ positions: unknown[] }>(
+        '/public/positions'
+    );
+    assert(publicJobs.positions.length === 16, '16 public jobs');
+
+    console.log(
+        'API verification passed: admins, recruiters, applicants, and public jobs all match.'
+    );
+}
+
 async function main(): Promise<void> {
     printPlan();
 
@@ -971,13 +1058,10 @@ async function main(): Promise<void> {
     const seededAt = await seed();
     await verifyDatabase(seededAt);
 
-    if (verifyApi) {
-        console.log(
-            '\n--verify was accepted, but API verification is not implemented yet; ' +
-                'the database verification above is the current source of truth.'
-        );
+    if (verifyApiRequested) {
+        await verifyApi();
     } else {
-        console.log('\nRun with --verify once API verification is available.');
+        console.log('\nRun with --verify to check the seeded data through the running API.');
     }
 }
 

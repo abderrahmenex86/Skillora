@@ -471,7 +471,8 @@ skillora/
 │   │   └── seed.ts                # Demo users, positions, resumes, applications
 │   ├── scripts/
 │   │   ├── backfill-companies.ts  # Create approved companies for legacy recruiters
-│   │   └── e2e-test-data.ts       # E2E companies, admin, recruiters, applicants, jobs
+│   │   ├── seed-large-data.ts     # Large dataset definitions for companies, recruiters, applicants, and jobs
+│   │   └── seed-large.ts          # Seed and verify the large dataset
 │   └── src/
 │       ├── agents/                # Ingestion, matcher, growth, coordinator, orchestrator
 │       │   ├── model.factory.ts   # Groq / Ollama model selection
@@ -576,7 +577,7 @@ After seeding, all demo accounts use the password `password123`.
 
 The seed also creates positions across tech, legal, finance, and operations, along with tailored resumes and applications.
 
-The demo seed does not create an `ADMIN` account. To use the company review console at `/admin/companies`, promote an account to `ADMIN` in the database or use the E2E seed below, which creates `admin@skillora.test` with password `password123`.
+The demo seed does not create an `ADMIN` account. To use the company review console at `/admin/companies`, promote an account to `ADMIN` in the database or use the large seed below, which creates `admin@skillora.test` and `admin2@skillora.test` with password `password123`.
 
 ---
 
@@ -656,32 +657,28 @@ VITE_SHARE_ORIGIN=https://api.example.com
 | `npm run prisma:seed` | Seed demo data |
 | `npx tsx scripts/backfill-companies.ts` | Create approved companies for legacy recruiters and link their positions |
 | `npx tsx scripts/backfill-companies.ts --dry-run` | Preview the company backfill without writing |
-| `npm run e2e:seed` | Create an admin, 3 approved companies with 6 recruiters, pending and rejected companies, 3 jobs, 35 applicants, and 45 applications |
-| `npm run e2e:test` | Seed the E2E dataset and verify it through the running API |
+| `npm run seed:large` | Create the large dataset: 2 admins, 6 companies, 8 recruiters, 16 jobs, 100 applicants, and 100 applications |
+| `npm run seed:large -- --dry-run` | Preview the large dataset without writing |
+| `npm run seed:large:verify` | Seed the large dataset and verify it in the database and through the running API |
 | `npm run db:clean` | Delete all users and dependent data after interactive confirmation |
 | `npm run db:clean:yes` | Delete all users and dependent data without prompting |
 | `npm run db:clean:dry` | Print database counts without deleting anything |
 | `npm run applications:reevaluate` | Re-run evaluation for applications stuck in `SUBMITTED` or `EVALUATING` |
 | `npm run applications:reevaluate:dry` | Preview applications that need re-evaluation |
 
-#### E2E dataset
+#### Large dataset
 
-All generated accounts use the `.test` domain and password `password123`.
+All generated accounts use the `.test` domain and the password `password123`.
 
-- **Admin:** `admin@skillora.test`
-- **Approved companies:** Atlas Cloud (2 recruiters), Numidia Systems (2), Tell Platform (2)
-- **Approved recruiters:** `e2e.recruiter1@skillora.test` through `e2e.recruiter6@skillora.test`
-- **Pending company:** `e2e.pending@skillora.test` (Cedar Mobility, `PENDING`)
-- **Rejected company:** `e2e.rejected@skillora.test` (Atlas Freight, `REJECTED`)
-- **Applicants:** `e2e.applicant01@skillora.test` through `e2e.applicant35@skillora.test`
-- **Jobs:** 15 applications, 10 applications, and 20 applications respectively, each with a description and a soft years target
-- **Job deadline:** 1 minute after creation by default; use `--deadline-minutes=120` for a working session
+- **Admins:** `admin@skillora.test`, `admin2@skillora.test`
+- **Recruiters:** `e2e.recruiter1@skillora.test` through `e2e.recruiter6@skillora.test`, plus `e2e.pending@skillora.test` and `e2e.pending2@skillora.test`
+- **Pending recruiters:** `e2e.pending@skillora.test`, `e2e.pending2@skillora.test`
+- **Applicants:** `e2e.applicant01@skillora.test` through `e2e.applicant100@skillora.test`
+- **Companies:** 6, including Atlas Cloud with 3 recruiters
+- **Jobs:** 16, with deadlines from tomorrow to 30 days out
+- **Applications:** 100, with 95 applicants holding at least one, 5 holding none, and 5 holding two
 
-Because 45 applications are distributed across 35 applicants, applicants 16–25 each
-apply to two positions. Seeded applications use completed evaluation statuses and
-include notification messages, so none remain permanently `SUBMITTED`.
-The backend must be running for `npm run e2e:test`.
-Use `npm run e2e:seed -- --dry-run` to preview the dataset without writing.
+Run `npm run seed:large` to create the dataset, `npm run seed:large -- --dry-run` to preview it without writing, and `npm run seed:large:verify` to reseed and verify the result in the database and through the running API. The backend must be running for `npm run seed:large:verify`.
 
 If a real application is interrupted mid-evaluation and remains `SUBMITTED` or
 `EVALUATING`, run `npm run applications:reevaluate` to process it through the
