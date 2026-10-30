@@ -51,6 +51,7 @@ export async function listPublicPositions() {
         where: {
             status: 'OPEN',
             deadline: { gt: new Date() },
+            company: { status: 'APPROVED' },
         },
         orderBy: { deadline: 'asc' },
         select: PUBLIC_POSITION_SELECT,
@@ -62,8 +63,8 @@ export async function listPublicPositions() {
 }
 
 export async function getPublicPosition(id: string) {
-    const position = await prisma.position.findUnique({
-        where: { id },
+    const position = await prisma.position.findFirst({
+        where: { id, company: { status: 'APPROVED' } },
         select: PUBLIC_POSITION_SELECT,
     });
 

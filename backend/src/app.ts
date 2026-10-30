@@ -7,6 +7,7 @@ import { errorHandler } from './middleware/errorHandler.js';
 import { authRoutes } from './modules/auth/auth.routes.js';
 import { applicantRoutes } from './modules/applicant/applicant.routes.js';
 import { companyRoutes } from './modules/company/company.routes.js';
+import { adminRoutes } from './modules/admin/admin.routes.js';
 import { recruiterRoutes } from './modules/recruiter/recruiter.routes.js';
 import { publicRoutes } from './modules/public/public.routes.js';
 import { shareRoutes } from './modules/public/share.routes.js';
@@ -31,6 +32,7 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/applicant', applicantRoutes);
 app.use('/api/v1/recruiter/company', companyRoutes);
 app.use('/api/v1/recruiter', recruiterRoutes);
+app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/public', publicRoutes);
 app.use('/share', shareRoutes);
 
