@@ -31,7 +31,6 @@ interface ProfilePayload {
     lastName: string;
     phone?: string;
     wilaya?: string;
-    companyName?: string;
 }
 
 interface PasswordPayload {
@@ -68,7 +67,6 @@ export default function EditProfileView() {
     const [lastName, setLastName] = useState(user?.lastName ?? '');
     const [phone, setPhone] = useState(user?.phone ?? '');
     const [wilaya, setWilaya] = useState(user?.wilaya ?? '16 - Alger');
-    const [companyName, setCompanyName] = useState(user?.companyName ?? '');
 
     const [securityOpen, setSecurityOpen] = useState(false);
     const [currentPassword, setCurrentPassword] = useState('');
@@ -95,7 +93,6 @@ export default function EditProfileView() {
                     lastName: payload.lastName,
                     phone: payload.phone ?? null,
                     wilaya: payload.wilaya ?? null,
-                    companyName: payload.companyName ?? null,
                 });
             }
 
@@ -107,7 +104,11 @@ export default function EditProfileView() {
             }
         },
         onSuccess: (updatedUser) => {
-            useAuthStore.getState().setUser(updatedUser);
+            const current = useAuthStore.getState().user;
+            useAuthStore.getState().setUser({
+                ...(current ?? {}),
+                ...updatedUser,
+            });
         },
     });
 
@@ -138,10 +139,6 @@ export default function EditProfileView() {
             lastName: lastName.trim(),
             phone: phone.trim() || undefined,
             wilaya,
-            companyName:
-                user.role === 'RECRUITER' ?
-                    companyName.trim() || undefined
-                :   undefined,
         });
     };
 
@@ -311,22 +308,19 @@ export default function EditProfileView() {
                 </div>
 
                 {user.role === 'RECRUITER' && (
-                    <div>
-                        <label
-                            htmlFor='companyName'
-                            className={labelClass}>
-                            Company or Organization
-                        </label>
-                        <input
-                            id='companyName'
-                            type='text'
-                            autoComplete='organization'
-                            value={companyName}
-                            onChange={(event) =>
-                                setCompanyName(event.target.value)
-                            }
-                            className={inputClass}
-                        />
+                    <div className='rounded-md border border-(--border-line) bg-(--bg-panel) p-4'>
+                        <p className='font-mono text-[10px] uppercase tracking-[0.12em] text-(--text-sub)'>
+                            Company profile
+                        </p>
+                        <p className='mt-1 text-xs leading-relaxed text-(--text-sub)'>
+                            Your company name, size, departments, and branches
+                            are managed from the company workspace.
+                        </p>
+                        <Link
+                            to='/recruiter/onboarding'
+                            className='mt-3 inline-block text-xs font-semibold text-(--text-main) underline'>
+                            Manage company profile
+                        </Link>
                     </div>
                 )}
 

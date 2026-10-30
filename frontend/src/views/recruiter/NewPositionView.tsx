@@ -32,8 +32,16 @@ type Company = {
 };
 
 function errorMessage(error: any) {
+    const data = error?.response?.data;
+    if (Array.isArray(data?.issues) && data.issues.length > 0) {
+        return data.issues
+            .map((issue: { message?: string }) => issue.message)
+            .filter(Boolean)
+            .join(' • ');
+    }
+
     return (
-        error?.response?.data?.error ||
+        data?.error ||
         error?.message ||
         'Something went wrong. Please try again.'
     );
@@ -282,7 +290,12 @@ export default function NewPositionView() {
                         <p className='mt-2 text-xs text-(--text-sub)'>
                             The company is fixed to your approved profile. The
                             department and branch come from your company
-                            settings.
+                            settings.{' '}
+                            <Link
+                                to='/recruiter/onboarding'
+                                className='font-semibold text-(--text-main) underline'>
+                                Manage company settings
+                            </Link>
                         </p>
                         <div className='mt-4 grid gap-4 sm:grid-cols-2'>
                             <label className='block'>

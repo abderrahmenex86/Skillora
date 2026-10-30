@@ -44,7 +44,8 @@ export const loadCompanyStatus = async (
         if (['ARCHIVED', 'DELETED'].includes(user.company.status)) {
             throw new AppError(
                 403,
-                'This company account is archived or unavailable'
+                'This company account is archived or unavailable',
+                'COMPANY_UNAVAILABLE'
             );
         }
 

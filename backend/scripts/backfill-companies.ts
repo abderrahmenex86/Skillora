@@ -3,6 +3,8 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 const dryRun = process.argv.includes('--dry-run');
+const LEGACY_DESCRIPTION_PLACEHOLDER =
+    'Requirements are defined by the mandatory rubric for this role.';
 
 function wilayaForLocation(location: string): string {
     const normalized = location.toLowerCase();
@@ -46,6 +48,19 @@ async function main() {
         },
         orderBy: { createdAt: 'asc' },
     });
+
+    if (!dryRun) {
+        const cleared = await prisma.position.updateMany({
+            where: { description: LEGACY_DESCRIPTION_PLACEHOLDER },
+            data: { description: null },
+        });
+
+        if (cleared.count > 0) {
+            console.log(
+                `Cleared ${cleared.count} legacy placeholder description(s).`
+            );
+        }
+    }
 
     if (recruiters.length === 0) {
         console.log('No recruiters need company backfill.');
@@ -132,9 +147,7 @@ async function main() {
                             null,
                         branchId:
                             branchIds.get(position.location.trim()) ?? null,
-                        description:
-                            position.description ??
-                            'Requirements are defined by the mandatory rubric for this role.',
+                        description: position.description ?? null,
                     },
                 });
             }

@@ -107,6 +107,7 @@ model User {
   refreshTokens       RefreshToken[]
   messages            Message[]
 
+  @@index([companyId])
   @@map("users")
 }
 
@@ -134,6 +135,7 @@ model Company {
   events      CompanyEvent[]
 
   @@index([status])
+  @@index([ownerId])
   @@map("companies")
 }
 
@@ -381,6 +383,9 @@ model Position {
   slots            RecruiterSlot[]
 
   @@index([status, deadline])
+  @@index([companyId])
+  @@index([departmentId])
+  @@index([branchId])
   @@map("positions")
 }
 

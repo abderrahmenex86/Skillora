@@ -320,7 +320,7 @@ erDiagram
         datetime submittedAt
         datetime reviewedAt
         string ownerId FK
-        string reviewedById FK
+        string reviewedById
     }
 
     CompanyDepartment {
@@ -545,6 +545,8 @@ npm run dev
 
 The backfill creates one approved company per legacy recruiter and links their existing positions to company departments and branches. New recruiter signups start with a `DRAFT` company and complete the onboarding flow at `/recruiter/onboarding`.
 
+> Apply the schema change and run the backfill before serving traffic. Until the backfill finishes, legacy positions have no company link and are hidden from public discovery, and legacy recruiters have no company record so recruiter routes return 403.
+
 The API starts on `http://localhost:4000`. Health check: `GET http://localhost:4000/health`.
 
 ### 3. Start the frontend
@@ -654,7 +656,7 @@ VITE_SHARE_ORIGIN=https://api.example.com
 | `npm run prisma:seed` | Seed demo data |
 | `npx tsx scripts/backfill-companies.ts` | Create approved companies for legacy recruiters and link their positions |
 | `npx tsx scripts/backfill-companies.ts --dry-run` | Preview the company backfill without writing |
-| `npm run e2e:seed` | Create an admin, 6 approved companies/recruiters, pending and rejected companies, 3 jobs, 35 applicants, and 45 applications |
+| `npm run e2e:seed` | Create an admin, 3 approved companies with 6 recruiters, pending and rejected companies, 3 jobs, 35 applicants, and 45 applications |
 | `npm run e2e:test` | Seed the E2E dataset and verify it through the running API |
 | `npm run db:clean` | Delete all users and dependent data after interactive confirmation |
 | `npm run db:clean:yes` | Delete all users and dependent data without prompting |

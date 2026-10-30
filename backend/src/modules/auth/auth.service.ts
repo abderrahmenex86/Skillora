@@ -27,6 +27,20 @@ function toAuthUser(user: any) {
     };
 }
 
+function assertCompanyAvailable(user: any) {
+    if (
+        user.role === 'RECRUITER' &&
+        user.company &&
+        ['ARCHIVED', 'DELETED'].includes(user.company.status)
+    ) {
+        throw new AppError(
+            403,
+            'This company account is archived or unavailable',
+            'COMPANY_UNAVAILABLE'
+        );
+    }
+}
+
 export class AuthService {
     async register(input: RegisterInput) {
         const existing = await prisma.user.findUnique({
@@ -37,6 +51,13 @@ export class AuthService {
             throw new AppError(
                 409,
                 'An account with this email already exists'
+            );
+        }
+
+        if ((input.role as string) === 'ADMIN') {
+            throw new AppError(
+                400,
+                'Admin accounts cannot be created through registration'
             );
         }
 
@@ -155,16 +176,7 @@ export class AuthService {
             throw new AppError(401, 'Invalid email or password');
         }
 
-        if (
-            user.role === 'RECRUITER' &&
-            user.company &&
-            ['ARCHIVED', 'DELETED'].includes(user.company.status)
-        ) {
-            throw new AppError(
-                403,
-                'This company account is archived or unavailable'
-            );
-        }
+        assertCompanyAvailable(user);
 
         const tokenPayload: TokenPayload = {
             sub: user.id,
@@ -255,11 +267,9 @@ export class AuthService {
             await prisma.refreshToken.deleteMany({
                 where: { userId: savedToken.user.id },
             });
-            throw new AppError(
-                403,
-                'This company account is archived or unavailable'
-            );
         }
+
+        assertCompanyAvailable(savedToken.user);
 
         await prisma.refreshToken.delete({ where: { id: savedToken.id } });
 
@@ -339,6 +349,7 @@ export class AuthService {
             throw new AppError(404, 'User not found');
         }
 
+        assertCompanyAvailable(user);
         return toAuthUser(user);
     }
 
@@ -349,7 +360,23 @@ export class AuthService {
     }
 
     async updateProfile(userId: string, input: UpdateProfileInput) {
-        return prisma.user.update({
+        const current = await prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                role: true,
+                company: {
+                    select: { id: true, status: true, name: true },
+                },
+            },
+        });
+
+        if (!current) {
+            throw new AppError(404, 'User not found');
+        }
+
+        assertCompanyAvailable(current);
+
+        const updated = await prisma.user.update({
             where: { id: userId },
             data: {
                 firstName: input.firstName.trim(),
@@ -357,7 +384,6 @@ export class AuthService {
                 lastName: input.lastName.trim(),
                 phone: input.phone?.trim() || null,
                 wilaya: input.wilaya || null,
-                companyName: input.companyName?.trim() || null,
             },
             select: {
                 id: true,
@@ -368,11 +394,17 @@ export class AuthService {
                 phone: true,
                 wilaya: true,
                 companyName: true,
+                companyId: true,
                 role: true,
                 subscriptionTier: true,
                 createdAt: true,
+                company: {
+                    select: { id: true, status: true, name: true },
+                },
             },
         });
+
+        return toAuthUser(updated);
     }
 
     async requestPasswordReset(email: string) {
@@ -463,12 +495,21 @@ export class AuthService {
     async updatePassword(userId: string, input: UpdatePasswordInput) {
         const user = await prisma.user.findUnique({
             where: { id: userId },
-            select: { id: true, passwordHash: true },
+            select: {
+                id: true,
+                passwordHash: true,
+                role: true,
+                company: {
+                    select: { status: true },
+                },
+            },
         });
 
         if (!user) {
             throw new AppError(404, 'User not found');
         }
+
+        assertCompanyAvailable(user);
 
         const currentPasswordMatches = await bcrypt.compare(
             input.currentPassword,

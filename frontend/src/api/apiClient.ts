@@ -28,6 +28,21 @@ apiClient.interceptors.response.use(
         ].some((path) => originalRequest.url?.includes(path));
 
         if (
+            error.response?.status === 403 &&
+            error.response?.data?.code === 'COMPANY_UNAVAILABLE'
+        ) {
+            useAuthStore.getState().logout();
+
+            if (!window.location.pathname.startsWith('/auth')) {
+                window.location.assign(
+                    '/auth?mode=login&reason=company-unavailable'
+                );
+            }
+
+            return Promise.reject(error);
+        }
+
+        if (
             error.response?.status === 401 &&
             !originalRequest._retry &&
             !isAuthRequest

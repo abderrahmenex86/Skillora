@@ -53,6 +53,19 @@ export interface MatcherContext {
     minimumYearsExperience?: number | null;
 }
 
+const LEGACY_DESCRIPTION_PLACEHOLDER =
+    'Requirements are defined by the mandatory rubric for this role.';
+
+function usableDescription(
+    description: string | null | undefined
+): string | null {
+    const trimmed = description?.trim() ?? '';
+    if (!trimmed || trimmed === LEGACY_DESCRIPTION_PLACEHOLDER) {
+        return null;
+    }
+    return trimmed;
+}
+
 const MATCHER_SYSTEM_PROMPT = `You are the Skillora Matcher Agent. You evaluate an anonymized candidate dossier against a recruiter's rubric and job description using evidence, not keyword matching.
 
 Evaluation rules:
@@ -97,7 +110,7 @@ ${JSON.stringify(context.rubric, null, 2)}
 
 Job description:
 <job_description>
-${context.description?.trim() || 'No description provided.'}
+${usableDescription(context.description) ?? 'No description provided.'}
 </job_description>
 
 Preferred proven years (soft signal, never a hard gate):
@@ -171,6 +184,12 @@ const DESCRIPTION_STOP_WORDS = new Set([
     'cross',
     'deliver',
     'do',
+    'environment',
+    'excellent',
+    'experience',
+    'experiences',
+    'fast',
+    'field',
     'for',
     'from',
     'have',
@@ -182,10 +201,17 @@ const DESCRIPTION_STOP_WORDS = new Set([
     'is',
     'it',
     'join',
+    'least',
     'looking',
     'more',
     'must',
+    'need',
+    'needed',
+    'needs',
     'of',
+    'operate',
+    'operating',
+    'opportunity',
     'on',
     'or',
     'our',
@@ -194,6 +220,9 @@ const DESCRIPTION_STOP_WORDS = new Set([
     'preferred',
     'product',
     'products',
+    'related',
+    'relevant',
+    'requirements',
     'role',
     'services',
     'should',
@@ -222,6 +251,7 @@ const DESCRIPTION_STOP_WORDS = new Set([
 function descriptionTerms(description: string): string[] {
     const terms = normalize(description)
         .split(' ')
+        .map((term) => term.replace(/^\.+|\.+$/g, ''))
         .filter(
             (term) =>
                 term.length >= 2 && !DESCRIPTION_STOP_WORDS.has(term)
@@ -234,7 +264,7 @@ function scoreDescriptionAlignment(
     telemetry: IngestionOutput,
     description: string | null | undefined
 ): MatcherOutput['descriptionAudit'] {
-    const trimmed = description?.trim() ?? '';
+    const trimmed = usableDescription(description);
     if (!trimmed) {
         return {
             score: 70,
@@ -296,17 +326,9 @@ function deriveProvenYears(telemetry: IngestionOutput): number | null {
         return Math.round(telemetry.yearsOfExperience * 10) / 10;
     }
 
-    const hasDatedExperience = telemetry.verifiableArtifacts.some(
-        (artifact) =>
-            artifact.type === 'experience' ||
-            /(?:19|20)\d{2}/.test(
-                `${artifact.title} ${artifact.summary} ${JSON.stringify(
-                    artifact.metrics
-                )}`
-            )
-    );
-
-    return hasDatedExperience ? 0 : null;
+    // Zero from ingestion means "no years were extracted", not "proven zero".
+    // The spec requires a neutral experience score when years are unverifiable.
+    return null;
 }
 
 function scoreExperience(
@@ -402,7 +424,7 @@ function enforceEvaluation(
         .map((item) => item.criterion);
 
     const rubricScore = clampScore(evaluation.rubricScore);
-    const hasDescription = Boolean(context.description?.trim());
+    const hasDescription = Boolean(usableDescription(context.description));
     const descriptionScore =
         hasDescription ?
             clampScore(evaluation.descriptionAudit.score)
@@ -413,7 +435,13 @@ function enforceEvaluation(
     );
 
     const targetYears = context.minimumYearsExperience ?? null;
-    const provenYears = deriveProvenYears(telemetry);
+    const llmProvenYears = evaluation.experienceAudit.provenYears;
+    const provenYears =
+        typeof llmProvenYears === 'number' &&
+        Number.isFinite(llmProvenYears) &&
+        llmProvenYears >= 0 ?
+            Math.round(llmProvenYears * 10) / 10
+        :   deriveProvenYears(telemetry);
     const experience = scoreExperience(provenYears, targetYears);
     const experienceScore = experience.score;
 

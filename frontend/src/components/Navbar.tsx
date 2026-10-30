@@ -288,7 +288,7 @@ export default function Navbar() {
         user?.subscriptionTier !== 'ENTERPRISE' &&
         user?.role !== 'ADMIN' &&
         (user?.role !== 'RECRUITER' ||
-            ['APPROVED', 'FROZEN'].includes(user.companyStatus ?? ''));
+            user.companyStatus === 'APPROVED');
 
     const mobileDrawer = mobileNavOpen ? (
         <div className='fixed inset-0 top-16 z-[60] md:hidden'>
@@ -559,6 +559,13 @@ export default function Navbar() {
                     </button>
                 </div>
             </div>
+            {user?.role === 'RECRUITER' &&
+                user.companyStatus === 'FROZEN' && (
+                    <div className='border-t border-amber-accent/30 bg-amber-accent/10 px-4 py-1.5 text-center font-mono text-[10px] uppercase tracking-[0.1em] text-amber-accent'>
+                        Company frozen · read-only workspace · contact
+                        Skillora to restore publishing
+                    </div>
+                )}
             {mobileDrawer && createPortal(mobileDrawer, document.body)}
         </header>
     );

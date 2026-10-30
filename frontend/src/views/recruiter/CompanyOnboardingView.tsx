@@ -69,8 +69,16 @@ const emptyBranch: BranchDraft = {
 };
 
 function errorMessage(error: any) {
+    const data = error?.response?.data;
+    if (Array.isArray(data?.issues) && data.issues.length > 0) {
+        return data.issues
+            .map((issue: { message?: string }) => issue.message)
+            .filter(Boolean)
+            .join(' • ');
+    }
+
     return (
-        error?.response?.data?.error ||
+        data?.error ||
         error?.message ||
         'Something went wrong. Please try again.'
     );

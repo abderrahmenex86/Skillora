@@ -1,6 +1,13 @@
 import { z } from 'zod';
 import { Role } from '@prisma/client';
 
+const SelfRegisterRoleSchema = z
+    .nativeEnum(Role)
+    .refine(
+        (role) => role === Role.APPLICANT || role === Role.RECRUITER,
+        'Only applicant and recruiter accounts can be created'
+    );
+
 export const RegisterSchema = z.object({
     email: z.string().email('Valid email address required'),
     password: z.string().min(8, 'Password must be at least 8 characters long'),
@@ -10,7 +17,7 @@ export const RegisterSchema = z.object({
     phone: z.string().min(8, 'Valid phone number required').optional(),
     wilaya: z.string().min(2, 'Wilaya of residence required').optional(),
     companyName: z.string().optional(),
-    role: z.nativeEnum(Role).default(Role.APPLICANT),
+    role: SelfRegisterRoleSchema.default(Role.APPLICANT),
 });
 
 export const LoginSchema = z.object({

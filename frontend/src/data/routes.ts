@@ -15,9 +15,3 @@ export function homeForUser(user: User | null | undefined): string {
             return '/recruiter/positions';
     }
 }
-
-export const roleHome: Record<User['role'], string> = {
-    APPLICANT: '/applicant/dashboard',
-    RECRUITER: '/recruiter/positions',
-    ADMIN: '/admin/companies',
-};

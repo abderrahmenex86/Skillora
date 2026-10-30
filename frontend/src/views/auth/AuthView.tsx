@@ -47,6 +47,12 @@ export default function AuthView() {
         } else {
             setIsLogin(true);
         }
+
+        if (searchParams.get('reason') === 'company-unavailable') {
+            setErrorMsg(
+                'This company account is archived or unavailable. Contact Skillora if you believe this is a mistake.'
+            );
+        }
     }, [searchParams]);
 
     const handleSubmit = async (e: React.FormEvent) => {

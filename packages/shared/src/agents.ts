@@ -33,6 +33,7 @@ export type IngestionOutput = z.infer<typeof IngestionOutputSchema>;
 
 export const MatcherOutputSchema = z.object({
     matchScore: z.number().min(0).max(100),
+    rubricScore: z.number().min(0).max(100),
     category: z.enum(['ELIGIBLE', 'NEEDS_REVIEW', 'REDIRECTED']),
     mandatoryCriteriaAudit: z.array(
         z.object({
@@ -41,6 +42,18 @@ export const MatcherOutputSchema = z.object({
             evidenceFound: z.string().nullable(),
         })
     ),
+    descriptionAudit: z.object({
+        score: z.number().min(0).max(100),
+        strengths: z.array(z.string()),
+        gaps: z.array(z.string()),
+        rationale: z.string(),
+    }),
+    experienceAudit: z.object({
+        targetYears: z.number().nullable(),
+        provenYears: z.number().nullable(),
+        score: z.number().min(0).max(100),
+        rationale: z.string(),
+    }),
     strengths: z.array(z.string()),
     unmetRequirements: z.array(z.string()),
 });
@@ -48,10 +61,11 @@ export const MatcherOutputSchema = z.object({
 export type MatcherOutput = z.infer<typeof MatcherOutputSchema>;
 
 export const GrowthOutputSchema = z.object({
-    badge: z.literal('ACTIONABLE GAP ANALYSIS [ZERO GHOSTING]'),
-    headlineReason: z.string(),
+    letter: z.string(),
     verifiedStrengths: z.array(z.string()),
     unmetMandatoryReasons: z.array(z.string()),
+    descriptionGaps: z.array(z.string()),
+    experienceNote: z.string(),
     recommendedBridgePath: z.object({
         title: z.string(),
         actionableMilestones: z.array(z.string()),

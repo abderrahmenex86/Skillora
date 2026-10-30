@@ -45,6 +45,13 @@ type CompanyDetail = {
         lastName: string;
         phone: string | null;
     };
+    members: Array<{
+        id: string;
+        email: string;
+        firstName: string;
+        lastName: string;
+        createdAt: string;
+    }>;
     departments: Array<{ id: string; name: string; isActive: boolean }>;
     branches: Array<{
         id: string;
@@ -444,6 +451,45 @@ export default function AdminCompanyDetailView() {
                                         {branch.wilaya}
                                         {branch.address ? ` · ${branch.address}` : ''}
                                     </div>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                    <section className='rounded-lg border border-(--border-line) bg-(--bg-canvas) p-5 lg:col-span-3'>
+                        <div className='flex items-center gap-2 border-b border-(--border-line) pb-3'>
+                            <Users
+                                size={16}
+                                className='text-(--text-sub)'
+                            />
+                            <h2 className='font-grotesque text-xl font-bold text-(--text-main)'>
+                                Recruiters
+                            </h2>
+                        </div>
+                        <div className='mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3'>
+                            {(company.members.length > 0 ?
+                                company.members
+                            :   [
+                                    {
+                                        ...company.owner,
+                                        createdAt: company.createdAt,
+                                    },
+                                ]
+                            ).map((member) => (
+                                <div
+                                    key={member.id}
+                                    className='rounded border border-(--border-line) px-3 py-2 text-xs'>
+                                    <div className='flex items-center gap-2 font-semibold text-(--text-main)'>
+                                        {member.firstName} {member.lastName}
+                                        {member.id === company.owner.id && (
+                                            <span className='font-mono text-[9px] uppercase text-forest dark:text-forest-dark'>
+                                                Owner
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p className='mt-0.5 break-all text-[11px] text-(--text-sub)'>
+                                        {member.email}
+                                    </p>
                                 </div>
                             ))}
                         </div>

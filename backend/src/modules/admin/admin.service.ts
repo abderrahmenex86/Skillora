@@ -17,6 +17,16 @@ const COMPANY_DETAIL_INCLUDE = {
             phone: true,
         },
     },
+    members: {
+        orderBy: { createdAt: 'asc' as const },
+        select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            createdAt: true,
+        },
+    },
     departments: { orderBy: { createdAt: 'asc' as const } },
     branches: { orderBy: { createdAt: 'asc' as const } },
     positions: {
@@ -134,7 +144,8 @@ export class AdminService {
                 where: { id: companyId },
                 data: {
                     status: to,
-                    ...(to === 'APPROVED' || to === 'REJECTED' ?
+                    ...(eventType === 'APPROVED' ||
+                    eventType === 'REJECTED' ?
                         { reviewedAt: new Date(), reviewedById: adminId }
                     :   {}),
                     ...(options.rejectionReason !== undefined ?

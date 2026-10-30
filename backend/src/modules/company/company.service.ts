@@ -143,6 +143,21 @@ export class CompanyService {
         }
 
         const nextName = input.name?.trim();
+
+        if (nextName && nextName !== department.name) {
+            const duplicate = await prisma.companyDepartment.findFirst({
+                where: {
+                    companyId: company.id,
+                    name: nextName,
+                    id: { not: department.id },
+                },
+            });
+
+            if (duplicate) {
+                throw new AppError(409, 'This department already exists');
+            }
+        }
+
         const updated = await prisma.$transaction(async (tx) => {
             const result = await tx.companyDepartment.update({
                 where: { id: department.id },
@@ -241,7 +256,58 @@ export class CompanyService {
             throw new AppError(404, 'Branch not found');
         }
 
+        if (input.isActive === false && input.isHeadquarters === true) {
+            throw new AppError(
+                400,
+                'The headquarters branch must stay active'
+            );
+        }
+
+        const nextLabel = input.label?.trim();
+
+        if (nextLabel && nextLabel !== branch.label) {
+            const duplicate = await prisma.companyBranch.findFirst({
+                where: {
+                    companyId: company.id,
+                    label: nextLabel,
+                    id: { not: branch.id },
+                },
+            });
+
+            if (duplicate) {
+                throw new AppError(409, 'This branch already exists');
+            }
+        }
+
         const updated = await prisma.$transaction(async (tx) => {
+            const losesHeadquarters =
+                branch.isHeadquarters &&
+                (input.isHeadquarters === false ||
+                    input.isActive === false);
+
+            if (losesHeadquarters) {
+                const replacement = await tx.companyBranch.findFirst({
+                    where: {
+                        companyId: company.id,
+                        id: { not: branch.id },
+                        isActive: true,
+                    },
+                    orderBy: { createdAt: 'asc' },
+                });
+
+                if (!replacement) {
+                    throw new AppError(
+                        400,
+                        'At least one active branch is required'
+                    );
+                }
+
+                await tx.companyBranch.update({
+                    where: { id: replacement.id },
+                    data: { isHeadquarters: true },
+                });
+            }
+
             if (input.isHeadquarters === true) {
                 await tx.companyBranch.updateMany({
                     where: { companyId: company.id },
@@ -249,7 +315,6 @@ export class CompanyService {
                 });
             }
 
-            const nextLabel = input.label?.trim();
             const nextWilaya = input.wilaya?.trim();
             const result = await tx.companyBranch.update({
                 where: { id: branch.id },
@@ -263,7 +328,9 @@ export class CompanyService {
                     ...(input.address !== undefined ?
                         { address: input.address.trim() || null }
                     :   {}),
-                    ...(input.isHeadquarters !== undefined ?
+                    ...(losesHeadquarters ?
+                        { isHeadquarters: false }
+                    : input.isHeadquarters !== undefined ?
                         { isHeadquarters: input.isHeadquarters }
                     :   {}),
                     ...(input.isActive !== undefined ?
@@ -301,6 +368,13 @@ export class CompanyService {
     async submitCompany(userId: string) {
         const company = await this.requireCompany(userId);
         this.assertEditable(company.status);
+
+        if (company.status !== 'DRAFT' && company.status !== 'REJECTED') {
+            throw new AppError(
+                400,
+                'Only draft or rejected companies can be submitted for review'
+            );
+        }
 
         if (!company.employeeCount || company.employeeCount < 1) {
             throw new AppError(

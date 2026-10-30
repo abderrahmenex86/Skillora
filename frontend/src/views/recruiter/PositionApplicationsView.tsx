@@ -627,7 +627,18 @@ export default function PositionApplicationsView() {
                                                 score={
                                                     selectedApp.rubricAudit
                                                         .experienceAudit
-                                                        ?.score
+                                                        ?.targetYears === null ?
+                                                        undefined
+                                                    :   selectedApp
+                                                          .rubricAudit
+                                                          .experienceAudit
+                                                          ?.score
+                                                }
+                                                emptyLabel={
+                                                    selectedApp.rubricAudit
+                                                        .experienceAudit ?
+                                                        'No target'
+                                                    :   'Not evaluated.'
                                                 }
                                             />
                                         </div>
@@ -1154,9 +1165,11 @@ export default function PositionApplicationsView() {
 function AuditScore({
     label,
     score,
+    emptyLabel = 'Not evaluated.',
 }: {
     label: string;
     score?: number | null;
+    emptyLabel?: string;
 }) {
     const hasScore = typeof score === 'number' && Number.isFinite(score);
 
@@ -1166,7 +1179,7 @@ function AuditScore({
                 {label}
             </p>
             <p className='mt-1 font-grotesque text-xl font-bold text-(--text-main)'>
-                {hasScore ? `${score}/100` : 'Not evaluated.'}
+                {hasScore ? `${score}/100` : emptyLabel}
             </p>
         </div>
     );
