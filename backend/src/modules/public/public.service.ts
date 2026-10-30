@@ -6,6 +6,8 @@ const PUBLIC_POSITION_SELECT = {
     title: true,
     department: true,
     location: true,
+    description: true,
+    minimumYearsExperience: true,
     deadline: true,
     status: true,
     interviewCapacity: true,
@@ -21,6 +23,8 @@ type PublicPositionRow = {
     title: string;
     department: string;
     location: string;
+    description: string | null;
+    minimumYearsExperience: number | null;
     deadline: Date;
     status: string;
     interviewCapacity: number | null;

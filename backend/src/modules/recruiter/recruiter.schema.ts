@@ -2,10 +2,15 @@ import { z } from 'zod';
 
 export const CreatePositionSchema = z
     .object({
-        companyName: z.string().min(2).max(150),
         title: z.string().min(2).max(150),
-        department: z.string().min(2).max(100),
-        location: z.string().min(2).max(100),
+        departmentId: z.string().uuid('Invalid department'),
+        branchId: z.string().uuid('Invalid branch'),
+        description: z
+            .string()
+            .trim()
+            .min(40, 'Job description must be at least 40 characters')
+            .max(5000),
+        minimumYearsExperience: z.number().int().min(0).max(50).optional(),
         deadline: z.string().datetime('Deadline must be an ISO 8601 date string'),
         interviewCapacity: z
             .number()

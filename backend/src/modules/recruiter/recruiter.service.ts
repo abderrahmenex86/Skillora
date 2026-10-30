@@ -40,6 +40,53 @@ function orderById<T extends { id: string }>(items: T[], ids: string[]): T[] {
 
 export class RecruiterService {
     async createPosition(recruiterId: string, input: CreatePositionInput) {
+        const recruiter = await prisma.user.findUnique({
+            where: { id: recruiterId },
+            select: {
+                companyId: true,
+                company: {
+                    select: {
+                        id: true,
+                        name: true,
+                        status: true,
+                    },
+                },
+            },
+        });
+
+        if (!recruiter?.company || !recruiter.companyId) {
+            throw new AppError(403, 'Complete your company profile first');
+        }
+
+        if (recruiter.company.status !== 'APPROVED') {
+            throw new AppError(
+                403,
+                'Your company must be approved before you can publish jobs'
+            );
+        }
+
+        const department = await prisma.companyDepartment.findFirst({
+            where: {
+                id: input.departmentId,
+                companyId: recruiter.companyId,
+                isActive: true,
+            },
+        });
+        const branch = await prisma.companyBranch.findFirst({
+            where: {
+                id: input.branchId,
+                companyId: recruiter.companyId,
+                isActive: true,
+            },
+        });
+
+        if (!department || !branch) {
+            throw new AppError(
+                400,
+                'Choose an active department and branch from your company'
+            );
+        }
+
         const deadlineDate = new Date(input.deadline);
         const interviewRangeStart = new Date(input.interviewRangeStart);
         const interviewRangeEnd = new Date(input.interviewRangeEnd);
@@ -65,10 +112,16 @@ export class RecruiterService {
         return prisma.position.create({
             data: {
                 recruiterId,
-                companyName: input.companyName,
+                companyId: recruiter.companyId,
+                departmentId: department.id,
+                branchId: branch.id,
+                companyName: recruiter.company.name,
                 title: input.title,
-                department: input.department,
-                location: input.location,
+                department: department.name,
+                location: `${branch.label} · ${branch.wilaya}`,
+                description: input.description,
+                minimumYearsExperience:
+                    input.minimumYearsExperience ?? null,
                 deadline: deadlineDate,
                 interviewCapacity: input.interviewCapacity,
                 interviewRangeStart,

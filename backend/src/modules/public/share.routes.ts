@@ -63,10 +63,15 @@ router.get('/jobs/:id', async (req, res, next) => {
         const shareUrl = `${shareOrigin}/share/jobs/${position.id}`;
         const imageUrl = `${env.CLIENT_URL}/og/skillora-og.png`;
         const title = `${position.title} at ${position.companyName} — Skillora`;
-        const description =
+        const baseDescription =
             closed ?
                 `Applications are closed for ${position.title} at ${position.companyName}. Browse open roles on Skillora.`
-            :   `${position.department} · ${position.location}. Apply on Skillora and get a verified outcome.`;
+            :   position.description?.trim() ||
+                `${position.department} · ${position.location}. Apply on Skillora and get a verified outcome.`;
+        const description =
+            baseDescription.length > 220 ?
+                `${baseDescription.slice(0, 217).trimEnd()}…`
+            :   baseDescription;
 
         res.set('Cache-Control', 'public, max-age=300')
             .type('html')

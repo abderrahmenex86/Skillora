@@ -221,10 +221,22 @@ export class ApplicantService {
     async submitApplication(userId: string, input: SubmitApplicationInput) {
         const position = await prisma.position.findUnique({
             where: { id: input.positionId },
+            include: {
+                company: {
+                    select: { status: true },
+                },
+            },
         });
 
         if (!position) {
             throw new AppError(404, 'Position not found');
+        }
+
+        if (!position.company || position.company.status !== 'APPROVED') {
+            throw new AppError(
+                400,
+                'This position is not accepting applications'
+            );
         }
 
         if (position.status !== 'OPEN') {
