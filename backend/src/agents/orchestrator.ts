@@ -42,7 +42,12 @@ export class AgentOrchestrator {
         const evaluation = await matcherAgent.run(
             applicationId,
             telemetry,
-            rubric,
+            {
+                rubric,
+                description: application.position.description,
+                minimumYearsExperience:
+                    application.position.minimumYearsExperience,
+            },
             dossier
         );
 

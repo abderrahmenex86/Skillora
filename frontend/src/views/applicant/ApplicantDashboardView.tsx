@@ -505,6 +505,10 @@ export default function ApplicantDashboardView() {
                                             ''
                                         )
                                     );
+                                    const descriptionGaps =
+                                        gapAnalysis?.descriptionGaps ?? [];
+                                    const experienceNote =
+                                        gapAnalysis?.experienceNote;
 
                                     return (
                                         <div
@@ -596,6 +600,52 @@ export default function ApplicantDashboardView() {
                                                                             </span>
                                                                             {
                                                                                 qualification
+                                                                            }
+                                                                        </li>
+                                                                    )
+                                                                )}
+                                                            </ul>
+                                                        </div>
+                                                    )}
+
+                                                    {experienceNote && (
+                                                        <div className='mt-4 border-t border-(--border-line) pt-3'>
+                                                            <p className='font-mono text-[9px] uppercase tracking-[0.16em] text-(--text-sub)'>
+                                                                Experience
+                                                                signal
+                                                            </p>
+                                                            <p className='mt-2 text-xs leading-relaxed text-(--text-sub)'>
+                                                                {
+                                                                    experienceNote
+                                                                }
+                                                            </p>
+                                                        </div>
+                                                    )}
+
+                                                    {descriptionGaps.length >
+                                                        0 && (
+                                                        <div className='mt-4 border-t border-(--border-line) pt-3'>
+                                                            <p className='font-mono text-[9px] uppercase tracking-[0.16em] text-(--text-sub)'>
+                                                                Description
+                                                                alignment
+                                                            </p>
+                                                            <ul className='mt-2 space-y-1 text-xs text-(--text-sub)'>
+                                                                {descriptionGaps.map(
+                                                                    (
+                                                                        gap: string
+                                                                    ) => (
+                                                                        <li
+                                                                            key={
+                                                                                gap
+                                                                            }
+                                                                            className='flex gap-2'>
+                                                                            <span
+                                                                                aria-hidden='true'
+                                                                                className='text-amber-accent'>
+                                                                                –
+                                                                            </span>
+                                                                            {
+                                                                                gap
                                                                             }
                                                                         </li>
                                                                     )

@@ -605,28 +605,167 @@ export default function PositionApplicationsView() {
                                     selectedApp.rubricAudit
                                         ?.mandatoryCriteriaAudit
                                 ) ?
-                                    <div className='space-y-2'>
-                                        {selectedApp.rubricAudit.mandatoryCriteriaAudit.map(
-                                            (audit: any, i: number) => (
-                                                <div
-                                                    key={i}
-                                                    className='p-3 border border-(--border-line) rounded text-xs flex justify-between items-center'>
-                                                    <span className='text-(--text-main)'>
-                                                        {audit.criterion}
+                                    <div className='space-y-3'>
+                                        <div className='grid gap-2 sm:grid-cols-3'>
+                                            <AuditScore
+                                                label='Rubric'
+                                                score={
+                                                    selectedApp.rubricAudit
+                                                        .rubricScore
+                                                }
+                                            />
+                                            <AuditScore
+                                                label='Description alignment'
+                                                score={
+                                                    selectedApp.rubricAudit
+                                                        .descriptionAudit
+                                                        ?.score
+                                                }
+                                            />
+                                            <AuditScore
+                                                label='Experience signal'
+                                                score={
+                                                    selectedApp.rubricAudit
+                                                        .experienceAudit
+                                                        ?.score
+                                                }
+                                            />
+                                        </div>
+
+                                        <div className='space-y-2'>
+                                            {selectedApp.rubricAudit.mandatoryCriteriaAudit.map(
+                                                (audit: any, i: number) => (
+                                                    <div
+                                                        key={i}
+                                                        className='p-3 border border-(--border-line) rounded text-xs flex justify-between items-center'>
+                                                        <span className='text-(--text-main)'>
+                                                            {audit.criterion}
+                                                        </span>
+                                                        <span
+                                                            className={`font-mono text-[10px] uppercase font-semibold ${
+                                                                audit.satisfied ?
+                                                                    'text-forest dark:text-forest-dark'
+                                                                :   'text-amber-accent'
+                                                            }`}>
+                                                            {audit.satisfied ?
+                                                                'Satisfied'
+                                                            :   'Missing'}
+                                                        </span>
+                                                    </div>
+                                                )
+                                            )}
+                                        </div>
+
+                                        <div className='rounded-md border border-(--border-line) bg-(--bg-panel) p-3'>
+                                            <div className='flex items-center justify-between gap-2'>
+                                                <span className='font-mono text-[9px] uppercase tracking-[0.12em] text-(--text-sub)'>
+                                                    Description alignment
+                                                </span>
+                                                {selectedApp.rubricAudit
+                                                    .descriptionAudit ?
+                                                    <span className='font-mono text-[10px] font-semibold text-(--text-main)'>
+                                                        {
+                                                            selectedApp
+                                                                .rubricAudit
+                                                                .descriptionAudit
+                                                                .score
+                                                        }
+                                                        /100
                                                     </span>
-                                                    <span
-                                                        className={`font-mono text-[10px] uppercase font-semibold ${
-                                                            audit.satisfied ?
-                                                                'text-forest dark:text-forest-dark'
-                                                            :   'text-amber-accent'
-                                                        }`}>
-                                                        {audit.satisfied ?
-                                                            'Satisfied'
-                                                        :   'Missing'}
+                                                :   <span className='font-mono text-[10px] text-(--text-sub)'>
+                                                        Not evaluated.
                                                     </span>
-                                                </div>
-                                            )
-                                        )}
+                                                }
+                                            </div>
+                                            {selectedApp.rubricAudit
+                                                .descriptionAudit && (
+                                                <>
+                                                    <p className='mt-1 text-xs leading-relaxed text-(--text-sub)'>
+                                                        {
+                                                            selectedApp
+                                                                .rubricAudit
+                                                                .descriptionAudit
+                                                                .rationale
+                                                        }
+                                                    </p>
+                                                    {selectedApp.rubricAudit
+                                                        .descriptionAudit.gaps
+                                                        ?.length > 0 && (
+                                                        <ul className='mt-2 space-y-1 text-[11px] text-(--text-sub)'>
+                                                            {selectedApp.rubricAudit.descriptionAudit.gaps.map(
+                                                                (
+                                                                    gap: string
+                                                                ) => (
+                                                                    <li
+                                                                        key={
+                                                                            gap
+                                                                        }
+                                                                        className='flex gap-1.5'>
+                                                                        <span className='text-amber-accent'>
+                                                                            –
+                                                                        </span>
+                                                                        {
+                                                                            gap
+                                                                        }
+                                                                    </li>
+                                                                )
+                                                            )}
+                                                        </ul>
+                                                    )}
+                                                </>
+                                            )}
+                                        </div>
+
+                                        <div className='rounded-md border border-(--border-line) bg-(--bg-panel) p-3'>
+                                            <div className='flex items-center justify-between gap-2'>
+                                                <span className='font-mono text-[9px] uppercase tracking-[0.12em] text-(--text-sub)'>
+                                                    Experience signal
+                                                </span>
+                                                {selectedApp.rubricAudit
+                                                    .experienceAudit ?
+                                                    <span className='font-mono text-[10px] font-semibold text-(--text-main)'>
+                                                        {
+                                                            selectedApp
+                                                                .rubricAudit
+                                                                .experienceAudit
+                                                                .score
+                                                        }
+                                                        /100
+                                                    </span>
+                                                :   <span className='font-mono text-[10px] text-(--text-sub)'>
+                                                        Not evaluated.
+                                                    </span>
+                                                }
+                                            </div>
+                                            {selectedApp.rubricAudit
+                                                .experienceAudit && (
+                                                <>
+                                                    <p className='mt-1 font-mono text-[10px] text-(--text-sub)'>
+                                                        Preferred{' '}
+                                                        {selectedApp
+                                                            .rubricAudit
+                                                            .experienceAudit
+                                                            .targetYears ??
+                                                            'not set'}{' '}
+                                                        years · proven{' '}
+                                                        {selectedApp
+                                                            .rubricAudit
+                                                            .experienceAudit
+                                                            .provenYears ??
+                                                            'not verifiable'}{' '}
+                                                        years
+                                                    </p>
+                                                    <p className='mt-1 text-xs leading-relaxed text-(--text-sub)'>
+                                                        {
+                                                            selectedApp
+                                                                .rubricAudit
+                                                                .experienceAudit
+                                                                .rationale
+                                                        }
+                                                    </p>
+                                                </>
+                                            )}
+                                        </div>
                                     </div>
                                 :   <p className='text-xs text-(--text-sub)'>
                                         Evaluation in progress...
@@ -1008,6 +1147,27 @@ export default function PositionApplicationsView() {
                     </form>
                 </div>
             )}
+        </div>
+    );
+}
+
+function AuditScore({
+    label,
+    score,
+}: {
+    label: string;
+    score?: number | null;
+}) {
+    const hasScore = typeof score === 'number' && Number.isFinite(score);
+
+    return (
+        <div className='rounded-md border border-(--border-line) bg-(--bg-canvas) p-3'>
+            <p className='font-mono text-[9px] uppercase tracking-[0.12em] text-(--text-sub)'>
+                {label}
+            </p>
+            <p className='mt-1 font-grotesque text-xl font-bold text-(--text-main)'>
+                {hasScore ? `${score}/100` : 'Not evaluated.'}
+            </p>
         </div>
     );
 }
