@@ -17,7 +17,21 @@ apiClient.interceptors.request.use((config) => {
 });
 
 apiClient.interceptors.response.use(
-    (response) => response,
+    (response) => {
+        const url = response.config.url ?? '';
+        const establishesSession = [
+            '/auth/login',
+            '/auth/register',
+            '/auth/refresh',
+            '/auth/me',
+        ].some((path) => url.includes(path));
+
+        if (establishesSession) {
+            companyUnavailableHandled = false;
+        }
+
+        return response;
+    },
     async (error) => {
         const originalRequest = error.config;
         const isAuthRequest = [
