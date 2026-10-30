@@ -1,375 +1,485 @@
 datasource db {
-   provider = "postgresql"
-   url      = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 generator client {
-   provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 enum Role {
-   APPLICANT
-   RECRUITER
-   ADMIN
+  APPLICANT
+  RECRUITER
+  ADMIN
 }
 
 enum SubscriptionTier {
-   FREE
-   PRO
-   ENTERPRISE
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum CompanyStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  REJECTED
+  FROZEN
+  ARCHIVED
+  DELETED
+}
+
+enum CompanyEventType {
+  SUBMITTED
+  APPROVED
+  REJECTED
+  FROZEN
+  UNFROZEN
+  ARCHIVED
+  RESTORED
+  DELETED
+  PROFILE_UPDATED
+  DEPARTMENTS_UPDATED
+  BRANCHES_UPDATED
 }
 
 enum PositionStatus {
-   DRAFT
-   OPEN
-   CLOSED
+  DRAFT
+  OPEN
+  CLOSED
 }
 
 enum ApplicationStatus {
-   SUBMITTED
-   EVALUATING
-   ELIGIBLE
-   NEEDS_REVIEW
-   ON_HOLD
-   REDIRECTED
-   INTERVIEW_PENDING
-   INTERVIEW_SCHEDULED
-   REJECTED
-   DECLINED
-   CLOSED
+  SUBMITTED
+  EVALUATING
+  ELIGIBLE
+  NEEDS_REVIEW
+  ON_HOLD
+  REDIRECTED
+  INTERVIEW_PENDING
+  INTERVIEW_SCHEDULED
+  REJECTED
+  DECLINED
+  CLOSED
 }
 
 enum InterviewStatus {
-   RANGE_PENDING
-   SLOT_CONFIRMED
-   COMPLETED
-   CANCELED
+  RANGE_PENDING
+  SLOT_CONFIRMED
+  COMPLETED
+  CANCELED
 }
 
 model User {
-   id                    String           @id @default(uuid())
-   email                 String           @unique
-   passwordHash          String
-   firstName             String
-   middleName            String?
-   lastName              String
-   phone                 String?
-   wilaya                String?
-   role                  Role             @default(APPLICANT)
-   subscriptionTier      SubscriptionTier @default(FREE)
-   subscriptionExpiresAt DateTime?
-   companyName           String?
-   createdAt             DateTime         @default(now())
-   updatedAt             DateTime         @updatedAt
+  id                    String           @id @default(uuid())
+  email                 String           @unique
+  passwordHash          String
+  firstName             String
+  middleName            String?
+  lastName              String
+  phone                 String?
+  wilaya                String?
+  role                  Role             @default(APPLICANT)
+  subscriptionTier      SubscriptionTier @default(FREE)
+  subscriptionExpiresAt DateTime?
+  companyName           String?
+  companyId             String?
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  company               Company?         @relation("CompanyMembers", fields: [companyId], references: [id], onDelete: SetNull)
+  ownedCompanies        Company[]        @relation("CompanyOwner")
+  companyReviewEvents   CompanyEvent[]   @relation("CompanyReviewEvents")
 
-   vaultEducations     VaultEducation[]
-   vaultExperiences    VaultExperience[]
-   vaultProjects       VaultProject[]
-   vaultCertifications VaultCertification[]
-   vaultVolunteering   VaultVolunteering[]
-   vaultLanguages      VaultLanguage[]
-   vaultLinks          VaultLink[]
-   vaultEntries        VaultEntry[]
+  vaultEducations     VaultEducation[]
+  vaultExperiences    VaultExperience[]
+  vaultProjects       VaultProject[]
+  vaultCertifications VaultCertification[]
+  vaultVolunteering   VaultVolunteering[]
+  vaultLanguages      VaultLanguage[]
+  vaultLinks          VaultLink[]
+  vaultEntries        VaultEntry[]
 
-   profiles            ApplicantProfile[]
-   applications        Application[]      @relation("CandidateApplications")
-   positions           Position[]         @relation("RecruiterPositions")
-   interviewEvents     InterviewEvent[]   @relation("CandidateInterviews")
-   recruiterInterviews InterviewEvent[]   @relation("RecruiterInterviews")
-   refreshTokens       RefreshToken[]
-   messages            Message[]
+  profiles            ApplicantProfile[]
+  applications        Application[]      @relation("CandidateApplications")
+  positions           Position[]         @relation("RecruiterPositions")
+  interviewEvents     InterviewEvent[]   @relation("CandidateInterviews")
+  recruiterInterviews InterviewEvent[]   @relation("RecruiterInterviews")
+  refreshTokens       RefreshToken[]
+  messages            Message[]
 
-   @@map("users")
+  @@map("users")
+}
+
+model Company {
+  id              String        @id @default(uuid())
+  name            String
+  employeeCount   Int?
+  industry        String?
+  website         String?
+  description     String?
+  status          CompanyStatus @default(DRAFT)
+  rejectionReason String?
+  submittedAt     DateTime?
+  reviewedAt      DateTime?
+  reviewedById    String?
+  ownerId         String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  owner       User                @relation("CompanyOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members     User[]              @relation("CompanyMembers")
+  departments CompanyDepartment[]
+  branches    CompanyBranch[]
+  positions   Position[]
+  events      CompanyEvent[]
+
+  @@index([status])
+  @@map("companies")
+}
+
+model CompanyDepartment {
+  id        String   @id @default(uuid())
+  companyId String
+  name      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  company   Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  positions Position[]
+
+  @@unique([companyId, name])
+  @@index([companyId])
+  @@map("company_departments")
+}
+
+model CompanyBranch {
+  id             String   @id @default(uuid())
+  companyId      String
+  label          String
+  wilaya         String
+  address        String?
+  isHeadquarters Boolean  @default(false)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  company   Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  positions Position[]
+
+  @@unique([companyId, label])
+  @@index([companyId])
+  @@map("company_branches")
+}
+
+model CompanyEvent {
+  id        String           @id @default(uuid())
+  companyId String
+  adminId   String?
+  type      CompanyEventType
+  note      String?
+  createdAt DateTime         @default(now())
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  admin   User?   @relation("CompanyReviewEvents", fields: [adminId], references: [id], onDelete: SetNull)
+
+  @@index([companyId])
+  @@map("company_events")
 }
 
 model VaultEducation {
-   id          String   @id @default(uuid())
-   userId      String
-   degree      String
-   institution String
-   field       String
-   startDate   String?
-   endDate     String?
-   createdAt   DateTime @default(now())
+  id          String   @id @default(uuid())
+  userId      String
+  degree      String
+  institution String
+  field       String
+  startDate   String?
+  endDate     String?
+  createdAt   DateTime @default(now())
 
-   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-   @@index([userId])
-   @@map("vault_educations")
+  @@index([userId])
+  @@map("vault_educations")
 }
 
 model VaultExperience {
-   id         String   @id @default(uuid())
-   userId     String
-   company    String
-   role       String
-   location   String?
-   startDate  String
-   endDate    String?
-   highlights String[]
-   createdAt  DateTime @default(now())
+  id         String   @id @default(uuid())
+  userId     String
+  company    String
+  role       String
+  location   String?
+  startDate  String
+  endDate    String?
+  highlights String[]
+  createdAt  DateTime @default(now())
 
-   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-   @@index([userId])
-   @@map("vault_experiences")
+  @@index([userId])
+  @@map("vault_experiences")
 }
 
 model VaultProject {
-   id          String   @id @default(uuid())
-   userId      String
-   title       String
-   projectUrl  String?
-   description String?
-   date        String?
-   narratives  Json
-   tags        String[]
-   createdAt   DateTime @default(now())
+  id          String   @id @default(uuid())
+  userId      String
+  title       String
+  projectUrl  String?
+  description String?
+  date        String?
+  narratives  Json
+  tags        String[]
+  createdAt   DateTime @default(now())
 
-   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-   @@index([userId])
-   @@map("vault_projects")
+  @@index([userId])
+  @@map("vault_projects")
 }
 
 model VaultCertification {
-   id           String   @id @default(uuid())
-   userId       String
-   name         String
-   issuer       String
-   issueDate    String?
-   credentialId String?
-   createdAt    DateTime @default(now())
+  id           String   @id @default(uuid())
+  userId       String
+  name         String
+  issuer       String
+  issueDate    String?
+  credentialId String?
+  createdAt    DateTime @default(now())
 
-   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-   @@index([userId])
-   @@map("vault_certifications")
+  @@index([userId])
+  @@map("vault_certifications")
 }
 
 model ApplicantProfile {
-   id        String   @id @default(uuid())
-   userId    String
-   title     String
-   resumeUrl String?
-   summary   String?
-   skills    String[]
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  resumeUrl String?
+  summary   String?
+  skills    String[]
 
-   selectedEducationIds     String[]
-   selectedExperienceIds    String[]
-   selectedProjectIds       String[] @default([])
-   selectedProjectAngles    Json?
-   selectedCertificationIds String[]
-   selectedLinkIds          String[] @default([])
-   selectedVolunteeringIds  String[] @default([])
-   selectedLanguageIds      String[] @default([])
+  selectedEducationIds     String[]
+  selectedExperienceIds    String[]
+  selectedProjectIds       String[] @default([])
+  selectedProjectAngles    Json?
+  selectedCertificationIds String[]
+  selectedLinkIds          String[] @default([])
+  selectedVolunteeringIds  String[] @default([])
+  selectedLanguageIds      String[] @default([])
 
-   createdAt DateTime @default(now())
-   updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-   applications Application[]
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applications Application[]
 
-   @@index([userId])
-   @@map("applicant_profiles")
+  @@index([userId])
+  @@map("applicant_profiles")
 }
 
 model VaultVolunteering {
-   id           String   @id @default(uuid())
-   userId       String
-   organization String
-   role         String
-   description  String?
-   startDate    String?
-   endDate      String?
-   createdAt    DateTime @default(now())
+  id           String   @id @default(uuid())
+  userId       String
+  organization String
+  role         String
+  description  String?
+  startDate    String?
+  endDate      String?
+  createdAt    DateTime @default(now())
 
-   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-   @@index([userId])
-   @@map("vault_volunteering")
+  @@index([userId])
+  @@map("vault_volunteering")
 }
 
 model VaultLanguage {
-   id          String   @id @default(uuid())
-   userId      String
-   name        String
-   proficiency String
-   createdAt   DateTime @default(now())
+  id          String   @id @default(uuid())
+  userId      String
+  name        String
+  proficiency String
+  createdAt   DateTime @default(now())
 
-   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-   @@index([userId])
-   @@map("vault_languages")
+  @@index([userId])
+  @@map("vault_languages")
 }
 
 model VaultLink {
-   id        String   @id @default(uuid())
-   userId    String
-   label     String
-   url       String
-   type      String   @default("other")
-   createdAt DateTime @default(now())
+  id        String   @id @default(uuid())
+  userId    String
+  label     String
+  url       String
+  type      String   @default("other")
+  createdAt DateTime @default(now())
 
-   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-   @@index([userId])
-   @@map("vault_links")
+  @@index([userId])
+  @@map("vault_links")
 }
 
 model VaultEntry {
-   id          String   @id @default(uuid())
-   userId      String
-   section     String
-   title       String
-   subtitle    String?
-   description String?
-   date        String?
-   endDate     String?
-   url         String?
-   tags        String[]
-   createdAt   DateTime @default(now())
+  id          String   @id @default(uuid())
+  userId      String
+  section     String
+  title       String
+  subtitle    String?
+  description String?
+  date        String?
+  endDate     String?
+  url         String?
+  tags        String[]
+  createdAt   DateTime @default(now())
 
-   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-   @@index([userId, section])
-   @@map("vault_entries")
+  @@index([userId, section])
+  @@map("vault_entries")
 }
 
 model RefreshToken {
-   id        String   @id @default(uuid())
-   token     String   @unique
-   userId    String
-   expiresAt DateTime
-   createdAt DateTime @default(now())
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 
-   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-   @@index([userId])
-   @@map("refresh_tokens")
+  @@index([userId])
+  @@map("refresh_tokens")
 }
 
 model Position {
-   id          String         @id @default(uuid())
-   recruiterId String
-   companyName String
-   title       String
-   department  String
-   location    String
-   deadline    DateTime
-   interviewCapacity    Int?
-   interviewRangeStart  DateTime?
-   interviewRangeEnd    DateTime?
-   status      PositionStatus @default(OPEN)
-   rubric      Json
-   createdAt   DateTime       @default(now())
-   updatedAt   DateTime       @updatedAt
+  id                     String         @id @default(uuid())
+  recruiterId            String
+  companyId              String?
+  departmentId           String?
+  branchId               String?
+  companyName            String
+  title                  String
+  department             String
+  location               String
+  description            String?
+  minimumYearsExperience Int?
+  deadline               DateTime
+  interviewCapacity      Int?
+  interviewRangeStart    DateTime?
+  interviewRangeEnd      DateTime?
+  status                 PositionStatus @default(OPEN)
+  rubric                 Json
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
 
-   recruiter    User            @relation("RecruiterPositions", fields: [recruiterId], references: [id], onDelete: Cascade)
-   applications Application[]
-   slots        RecruiterSlot[]
+  recruiter        User               @relation("RecruiterPositions", fields: [recruiterId], references: [id], onDelete: Cascade)
+  company          Company?           @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  departmentEntity CompanyDepartment? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  branch           CompanyBranch?     @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  applications     Application[]
+  slots            RecruiterSlot[]
 
-   @@index([status, deadline])
-   @@map("positions")
+  @@index([status, deadline])
+  @@map("positions")
 }
 
 model RecruiterSlot {
-   id         String @id @default(uuid())
-   positionId String
-   dayOfWeek  Int
-   startTime  String
-   endTime    String
+  id         String @id @default(uuid())
+  positionId String
+  dayOfWeek  Int
+  startTime  String
+  endTime    String
 
-   position Position @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  position Position @relation(fields: [positionId], references: [id], onDelete: Cascade)
 
-   @@index([positionId])
-   @@map("recruiter_slots")
+  @@index([positionId])
+  @@map("recruiter_slots")
 }
 
 model Application {
-   id                String            @id @default(uuid())
-   positionId        String
-   applicantId       String
-   profileId         String
-   anonymousId       String
-   status            ApplicationStatus @default(SUBMITTED)
-   matchScore        Int?
-   rubricAudit       Json?
-   gapAnalysis       Json?
-   recruiterOverride Boolean           @default(false)
-   overrideNotes     String?
-   appliedAt         DateTime          @default(now())
-   updatedAt         DateTime          @updatedAt
+  id                String            @id @default(uuid())
+  positionId        String
+  applicantId       String
+  profileId         String
+  anonymousId       String
+  status            ApplicationStatus @default(SUBMITTED)
+  matchScore        Int?
+  rubricAudit       Json?
+  gapAnalysis       Json?
+  recruiterOverride Boolean           @default(false)
+  overrideNotes     String?
+  appliedAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
 
-   position       Position            @relation(fields: [positionId], references: [id], onDelete: Cascade)
-   applicant      User                @relation("CandidateApplications", fields: [applicantId], references: [id], onDelete: Cascade)
-   profile        ApplicantProfile    @relation(fields: [profileId], references: [id], onDelete: Cascade)
-   interviewEvent InterviewEvent?
-   agentLogs      AgentExecutionLog[]
-   messages       Message[]
+  position       Position            @relation(fields: [positionId], references: [id], onDelete: Cascade)
+  applicant      User                @relation("CandidateApplications", fields: [applicantId], references: [id], onDelete: Cascade)
+  profile        ApplicantProfile    @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  interviewEvent InterviewEvent?
+  agentLogs      AgentExecutionLog[]
+  messages       Message[]
 
-   @@unique([positionId, applicantId])
-   @@index([positionId, status])
-   @@index([applicantId])
-   @@map("applications")
+  @@unique([positionId, applicantId])
+  @@index([positionId, status])
+  @@index([applicantId])
+  @@map("applications")
 }
 
 model InterviewEvent {
-   id             String          @id @default(uuid())
-   applicationId  String          @unique
-   applicantId    String
-   recruiterId    String
-   status         InterviewStatus @default(RANGE_PENDING)
-   proposedRanges Json?
-   confirmedStart DateTime?
-   confirmedEnd   DateTime?
-   meetingLink    String?
-   meetingPayload Json?
-   unmaskedAt     DateTime?
-   createdAt      DateTime        @default(now())
-   updatedAt      DateTime        @updatedAt
+  id             String          @id @default(uuid())
+  applicationId  String          @unique
+  applicantId    String
+  recruiterId    String
+  status         InterviewStatus @default(RANGE_PENDING)
+  proposedRanges Json?
+  confirmedStart DateTime?
+  confirmedEnd   DateTime?
+  meetingLink    String?
+  meetingPayload Json?
+  unmaskedAt     DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 
-   application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-   applicant   User        @relation("CandidateInterviews", fields: [applicantId], references: [id], onDelete: Cascade)
-   recruiter   User        @relation("RecruiterInterviews", fields: [recruiterId], references: [id], onDelete: Cascade)
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  applicant   User        @relation("CandidateInterviews", fields: [applicantId], references: [id], onDelete: Cascade)
+  recruiter   User        @relation("RecruiterInterviews", fields: [recruiterId], references: [id], onDelete: Cascade)
 
-   @@index([applicantId])
-   @@index([recruiterId])
-   @@map("interview_events")
+  @@index([applicantId])
+  @@index([recruiterId])
+  @@map("interview_events")
 }
 
 model AgentExecutionLog {
-   id               String   @id @default(uuid())
-   applicationId    String
-   agentType        String
-   modelUsed        String
-   promptTokens     Int
-   outputTokens     Int
-   rawInput         Json
-   structuredOutput Json
-   createdAt        DateTime @default(now())
+  id               String   @id @default(uuid())
+  applicationId    String
+  agentType        String
+  modelUsed        String
+  promptTokens     Int
+  outputTokens     Int
+  rawInput         Json
+  structuredOutput Json
+  createdAt        DateTime @default(now())
 
-   application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
-   @@index([applicationId, agentType])
-   @@map("agent_execution_logs")
+  @@index([applicationId, agentType])
+  @@map("agent_execution_logs")
 }
 
-
 model Message {
-   id            String   @id @default(uuid())
-   userId        String
-   applicationId String?
-   kind          String
-   title         String
-   body          String
-   readAt        DateTime?
-   createdAt     DateTime @default(now())
+  id            String    @id @default(uuid())
+  userId        String
+  applicationId String?
+  kind          String
+  title         String
+  body          String
+  readAt        DateTime?
+  createdAt     DateTime  @default(now())
 
-   user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-   application Application? @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  application Application? @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
-   @@index([userId, readAt, createdAt])
-   @@index([applicationId])
-   @@map("messages")
+  @@index([userId, readAt, createdAt])
+  @@index([applicationId])
+  @@map("messages")
 }
