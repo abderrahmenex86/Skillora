@@ -1,6 +1,6 @@
 # Skillora
 
-**Hiring shouldn't end in silence. Match talent on real evidence.**
+**Hiring shouldn't mean waiting in silence. Match talent on real evidence.**
 
 Skillora is a full-stack recruitment platform built for the Algerian talent market. Instead of keyword filtering, it evaluates candidates against recruiter-defined rubrics and guarantees a deterministic outcome for every application: an interview invitation or an actionable learning roadmap.
 
@@ -15,7 +15,7 @@ Candidates build a reusable information library and tailored resumes, apply to o
 
 <img src="docs/assets/homepage.png" alt="Skillora homepage" width="100%" />
 
-> The public homepage: evidence routing, an employer shortlist, and an applicant growth card.
+> The current public homepage: the rotating problem statement and primary entry points for candidates and recruiters.
 
 ---
 
@@ -61,28 +61,28 @@ Skillora is built around three principles:
 - **Master information library** with 18 sections, including education, work experience, skills, languages, certifications, projects, publications, volunteering, and custom entries.
 - **Tailored resumes** assembled from saved items, with per-role titles, summaries, and skill sets. The seven core categories are attachable to resumes; the extended sections live in the library.
 - **Public job explorer** with open positions, job descriptions, preferred experience, rubrics, and deadlines. Job pages are shareable, deep-linkable, and previewable on LinkedIn.
-- **Application dashboard** showing anonymous candidate IDs, statuses, match scores, and gap analyses.
+- **Application dashboard** showing anonymous candidate IDs, statuses, interview logistics, and gap analyses.
 - **Notification inbox** for application updates, interview assignments, reschedules, and declines.
 - **Interview logistics**: receive an automatically assigned interview, then reschedule or decline it from the dashboard calendar.
 - **Pro insights**: recurrent unmet criteria, department benchmarks, and targeted recommendations across application rounds.
-- **Profile and security settings**: edit personal details, change password, and switch between light and dark themes.
+- **Profile and security settings**: edit personal details and change the account password, with light/dark theme switching in the navbar.
 
 ### For recruiters
 
 - **Company onboarding** with company size, industry, website, description, departments, and branches. A company profile is reviewed by a Skillora admin before the recruiter can publish jobs.
 - **Dedicated job creation page** with company, department, and branch context fixed to the approved company profile; mandatory job description; optional preferred years of experience; evidence rubric; and three custom date calendars with disabled dates visibly struck through.
-- **Position management** with mandatory criteria, preferred criteria, a minimum score threshold, an application deadline, final-round interview capacity, and an interview window. Company, department, and location snapshots stay in sync with the company profile.
-- **Anonymized candidate pipeline** ranked by match score, with full resume previews built from selected candidate sections.
+- **Position management** with mandatory criteria, preferred criteria, an application deadline, final-round interview capacity, and an interview window. Company, department, and location snapshots stay in sync with the company profile.
+- **Anonymized candidate pipeline** ranked by match score, with full resume previews built from selected candidate sections and section-level rubric, description, and experience audits.
 - **Manual review decisions**: promote using an existing seat, promote while adding a seat, keep on hold, or reject, with required reviewer notes.
 - **Deadline extension** while a position is still accepting applications.
-- **Interview slot configuration** by weekday and time range.
+- **Interview availability slots** stored per position and consumed by the coordinator; the API exposes slot configuration and the large seed pre-populates three weekly windows per job.
 - **Automated calendar dispatch** through the coordinator agent.
 - **Company plans** billed monthly or annually.
 
 ### Platform
 
 - **Company lifecycle admin console** with approval, rejection, freeze/unfreeze, archive/restore, and soft delete. Every action is written to a company audit trail and archived or deleted companies have their sessions revoked.
-- **Company-status access control:** draft, pending, and rejected companies can complete onboarding; approved companies can publish and manage jobs; frozen companies keep read-only access; archived and deleted companies cannot sign in.
+- **Company-status access control:** draft and rejected companies can complete onboarding; pending companies can view their review status while the profile is locked; approved companies can publish and manage jobs; frozen companies keep read-only access; archived and deleted companies cannot sign in.
 - JWT access and refresh tokens, bcrypt password hashing, and role-based route guards.
 - Refresh token rotation with reuse detection and automatic session revocation.
 - Zod validation at the API boundary and a centralized error handler.
@@ -128,10 +128,12 @@ flowchart LR
     end
 
     subgraph API["Express API"]
-        MW["Middleware<br/>JWT auth · Zod validation · errors"]
+        MW["Middleware<br/>JWT auth · company status · Zod validation · errors"]
         AUTH["Auth module"]
         APP["Applicant module"]
+        COMP["Company module"]
         REC["Recruiter module"]
+        ADM["Admin module"]
         PUB["Public module"]
     end
 
@@ -151,12 +153,16 @@ flowchart LR
     SPA -->|"/api/v1"| MW
     MW --> AUTH
     MW --> APP
+    MW --> COMP
     MW --> REC
+    MW --> ADM
     MW --> PUB
 
     AUTH --> PG
     APP --> PG
+    COMP --> PG
     REC --> PG
+    ADM --> PG
     PUB --> PG
 
     APP -->|"enqueue evaluation"| QUEUE
@@ -274,12 +280,15 @@ erDiagram
     User ||--o{ Application : submits
     User ||--o{ Position : posts
     User ||--o{ RefreshToken : holds
-    User ||--o| Company : owns
+    User ||--o{ Company : owns
     User }o--o| Company : member_of
     Company ||--o{ CompanyDepartment : has
     Company ||--o{ CompanyBranch : has
     Company ||--o{ Position : publishes
     Company ||--o{ CompanyEvent : records
+    User ||--o{ CompanyEvent : reviews
+    CompanyDepartment ||--o{ Position : groups
+    CompanyBranch ||--o{ Position : located_at
     User ||--o{ VaultEducation : stores
     User ||--o{ VaultExperience : stores
     User ||--o{ VaultProject : stores
@@ -703,7 +712,7 @@ All generated accounts use the `@skillora.test` domain and the password `passwor
 - **Jobs:** 16, with deadlines from tomorrow to 30 days out
 - **Applications:** 100, with 95 applicants holding at least one, 5 holding none, and 5 holding two
 
-Run `npm run seed:large` to create the dataset, `npm run seed:large -- --dry-run` to preview it without writing, and `npm run seed:large:verify` to reseed and verify the result in the database and through the running API. The backend must be running for `npm run seed:large:verify`. Seeding deletes and recreates every `@skillora.test` account. `seed:large:verify` checks that the seeded positions are publicly visible and that the seeded pending companies are present; unrelated data does not affect those assertions.
+Run `npm run seed:large` to create the dataset, `npm run seed:large -- --dry-run` to preview it without writing, and `npm run seed:large:verify` to reseed and verify the result in the database and through the running API. The backend must be running for `npm run seed:large:verify`. Seeding deletes and recreates every `@skillora.test` account. `seed:large:verify` checks the seeded positions, pending companies, recruiter ownership, applicant applications, and applicant calendar; unrelated data does not affect those assertions.
 
 If a real application is interrupted mid-evaluation and remains `SUBMITTED` or
 `EVALUATING`, run `npm run applications:reevaluate` to process it through the
@@ -736,6 +745,8 @@ Registration, login, and public position discovery do not require a bearer token
 |--------|----------|-------------|
 | `POST` | `/auth/register` | Create an applicant or recruiter account |
 | `POST` | `/auth/login` | Sign in with email and password |
+| `POST` | `/auth/forgot-password` | Request a password-reset link |
+| `POST` | `/auth/reset-password` | Reset the password with a valid reset token |
 | `POST` | `/auth/refresh` | Rotate the access and refresh tokens using the refresh cookie |
 | `POST` | `/auth/logout` | Revoke the refresh token and clear the cookie |
 | `GET` | `/auth/me` | Get the current user |
@@ -791,7 +802,7 @@ Every company mutation writes a `CompanyEvent`. A profile needs an employee coun
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `POST` | `/recruiter/positions` | Create a position for the approved company with a department, branch, description, rubric, interview capacity, and interview window |
+| `POST` | `/recruiter/positions` | Create a position for the approved company with a department, branch, description, optional preferred years of experience, rubric, interview capacity, and interview window |
 | `GET` | `/recruiter/positions` | List the recruiter's positions |
 | `GET` | `/recruiter/positions/:id` | Get a position and its slots |
 | `PATCH` | `/recruiter/positions/:id/close` | Close a position |
@@ -807,7 +818,7 @@ Every company mutation writes a `CompanyEvent`. A profile needs an employee coun
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `GET` | `/admin/companies?status=&search=` | List companies with owner and counts |
-| `GET` | `/admin/companies/:id` | Company detail with owner, departments, branches, positions, and event history |
+| `GET` | `/admin/companies/:id` | Company detail with owner, recruiter members, departments, branches, positions, and event history |
 | `POST` | `/admin/companies/:id/approve` | Approve a pending company |
 | `POST` | `/admin/companies/:id/reject` | Reject a pending company with a reason |
 | `POST` | `/admin/companies/:id/freeze` | Freeze an approved company (read-only recruiter access) |
@@ -874,18 +885,23 @@ Candidate packs activate `PRO`; company plans activate `ENTERPRISE`. The confirm
 | `/pricing` | Public | Candidate packs and company plans |
 | `/companies` | Public | Employer value proposition |
 | `/about` | Public | About Skillora |
+| `/terms` | Public | Terms of service |
+| `/privacy` | Public | Privacy policy |
 | `/auth` | Guests only | Login and registration |
+| `/auth/reset-password` | Guests only | Password reset form |
 | `/jobs` | Public | Open positions explorer |
 | `/jobs/:jobId` | Public | Shareable job detail; guests register or log in to apply |
 | `/share/jobs/:id` | Public | Backend share bridge (proxied by Vite in development) |
 | `/settings/profile` | Signed in | Profile and password settings |
 | `/applicant/dashboard` | Applicant | Applications and interview logistics |
+| `/applicant/applications` | Applicant | Redirects to `/applicant/dashboard` |
 | `/applicant/profiles` | Applicant | Resume builder and information library |
 | `/applicant/insights` | Applicant (Pro) | Cross-round analytics |
 | `/recruiter/onboarding` | Recruiter | Company profile, departments, branches, and review status |
 | `/recruiter/positions` | Approved or frozen recruiter | Position management |
 | `/recruiter/positions/new` | Approved recruiter | Dedicated job creation page with custom date calendars |
 | `/recruiter/positions/:id/applications` | Approved or frozen recruiter | Applicant pipeline, rubric/description/experience audits, and resume preview |
+| `/admin` | Admin | Redirects to `/admin/companies` |
 | `/admin/companies` | Admin | Company review queue with status tabs and search |
 | `/admin/companies/:id` | Admin | Company detail, lifecycle actions, and audit timeline |
 | `*` | Public | Not found |
@@ -907,10 +923,11 @@ The UI uses a restrained editorial palette with CSS custom properties for instan
 
 - **No payment gateway.** Upgrades are test-mode only: the pricing page asks for confirmation and then the existing endpoints activate tiers and expiry dates directly. No payment is collected.
 - **Company membership is data-only.** A company can have multiple recruiter members, but positions remain owned by the recruiter who created them and there is no invite/join flow yet. New signups create one company per recruiter; legacy data is handled by the backfill script.
+- **No recruiter slot-configuration UI yet.** The API exposes `POST /recruiter/slots` and the large seed pre-populates weekly availability for every job, but a position created through `/recruiter/positions/new` has no slots until they are created through the API. Eligible candidates for such a position fall back to `NEEDS_REVIEW` instead of receiving an automatic interview.
 - **LLM-dependent evaluation quality.** Ingestion, matching, growth, and coordination are LLM-first with deterministic fallbacks. Output quality depends on the configured model; the heuristic path is coarser but keeps the pipeline available when the provider is offline.
 - **No automated test suite.** Validation is currently manual plus TypeScript checks.
 - **Frontend TypeScript config.** The repo has no `frontend/tsconfig.json`, so use `npx vite build` for a production bundle.
-- **No Docker setup.** PostgreSQL and Redis must be provided locally or externally.
+- **No containerized app stack.** The README includes one-off Docker commands for PostgreSQL and Redis, but there is no `docker-compose` file for the API, frontend, and infrastructure together.
 - **No production proxy config.** The host must serve the SPA fallback for `/jobs/*` and route `/share/*` to Express, or `PUBLIC_SHARE_ORIGIN` and `VITE_SHARE_ORIGIN` must point at the backend origin.
 
 ---
