@@ -31,6 +31,7 @@ Candidates build a reusable information library and tailored resumes, apply to o
 - [Tech stack](#tech-stack)
 - [Project structure](#project-structure)
 - [Getting started](#getting-started)
+- [Free deployment (Render + Neon + Vercel)](#free-deployment-render--neon--vercel)
 - [Environment variables](#environment-variables)
 - [Available scripts](#available-scripts)
 - [API reference](#api-reference)
@@ -474,6 +475,7 @@ The seven resume-attachable categories are `education`, `experience`, `project`,
 
 ```text
 skillora/
+├── render.yaml                     # Render free web service blueprint
 ├── backend/
 │   ├── prisma/
 │   │   ├── schema.prisma          # Data model and enums
@@ -502,6 +504,7 @@ skillora/
 │       └── server.ts              # Startup, database connection, worker bootstrap
 ├── frontend/
 │   ├── index.html
+│   ├── vercel.json                # Same-origin API/share rewrites for Vercel
 │   └── src/
 │       ├── api/                   # Axios client and TanStack Query client
 │       ├── components/            # Navbar, DateCalendar, error boundary, sketches
@@ -612,6 +615,103 @@ All large-seed accounts use the password `password123`.
 | Applicant | `e2e.applicant01@skillora.test` |
 
 If you used the small demo seed, examples include `recruiter@techcorp.dz`, `samy.benali@esi.dz`, and `lina.bensalem@design.dz` with the same password. The demo seed does not create an `ADMIN` account; use the large seed for the company review console at `/admin/companies`.
+
+---
+
+## Free deployment (Render + Neon + Vercel)
+
+This repository includes a free-tier deployment path:
+
+| Part | Service |
+|------|---------|
+| Frontend | Vercel Hobby |
+| Backend | Render Free Web Service |
+| Database | Neon Free Postgres |
+| LLM | Groq free tier |
+| Queue | None — evaluations run inline |
+
+The included `render.yaml` and `frontend/vercel.json` are starting points.
+
+### 1. Create the Neon database
+
+Create a Neon project and copy its Postgres connection string. From your machine:
+
+```bash
+cd backend
+DATABASE_URL="<neon-connection-string>" npx prisma db push
+DATABASE_URL="<neon-connection-string>" npm run seed:large
+```
+
+Use the direct/unpooled Neon URL for this one-off setup. Do not use `seed:large -- --verify` for the remote database; `--verify` expects the API on `localhost:4000`.
+
+### 2. Deploy the backend on Render
+
+Push the repository to GitHub, then create a Render Blueprint from `render.yaml`:
+
+- Service: `skillora-api`
+- Plan: Free
+- Root directory: `backend`
+- Build: `npm ci --include=dev && npx prisma generate && npm run build`
+- Start: `npm start`
+- Health check: `/health`
+
+Set these Render environment variables:
+
+```env
+DATABASE_URL=<neon-connection-string>
+GROQ_API_KEY=<your-groq-key>
+CLIENT_URL=https://your-app.vercel.app
+PUBLIC_SHARE_ORIGIN=https://your-app.vercel.app
+```
+
+`render.yaml` generates the JWT secrets and sets `NODE_ENV`, `LLM_PROVIDER`, and `LLM_MODEL`. Do not set `REDIS_*` variables; the backend will log a Redis warning and run evaluations inline.
+
+Until Vercel is deployed, you can enter a temporary value such as `https://example.com` for `CLIENT_URL` and `PUBLIC_SHARE_ORIGIN`. Update both to the real Vercel URL after step 3 and redeploy the backend.
+
+### 3. Deploy the frontend on Vercel
+
+Import the repository into Vercel with:
+
+- Root directory: `frontend`
+- Build command: `npx vite build`
+- Output directory: `dist`
+
+Replace the placeholder in `frontend/vercel.json` with your Render URL:
+
+```json
+"destination": "https://your-service.onrender.com/api/:path*"
+```
+
+and the matching `/share/:path*` destination. The rewrites keep the browser on the Vercel origin, which preserves the refresh cookie and makes the LinkedIn share bridge work.
+
+After Vercel deploys, copy its URL and update Render’s `CLIENT_URL` and `PUBLIC_SHARE_ORIGIN` to that URL, then redeploy the backend.
+
+### 4. Keep Render awake
+
+Render free services sleep after 15 minutes without inbound traffic. Create a free cron job at [cron-job.org](https://cron-job.org):
+
+- URL: `https://your-service.onrender.com/health`
+- Method: `GET`
+- Schedule: every 10 minutes
+
+One always-on Render service uses about 744 hours per month, which fits inside the 750 free instance hours. Without the ping, the first request after idle can take about a minute.
+
+### 5. Verify
+
+```bash
+curl https://your-service.onrender.com/health
+```
+
+Open the Vercel URL and sign in with `admin@skillora.test` / `password123`. If login works but refresh fails, check that the Vercel rewrites are active and that Render’s `CLIENT_URL` matches the Vercel origin exactly.
+
+### Free-tier limits
+
+- Vercel Hobby is intended for personal, non-commercial projects.
+- Render free services have 512 MB RAM, 0.1 CPU, and 750 instance hours per month.
+- Neon free has storage and compute-hour limits; idle databases scale to zero.
+- Groq’s free tier is rate-limited; failed LLM calls fall back to heuristics.
+- No Redis means an API restart can leave an application in `SUBMITTED` or `EVALUATING`; rerun `npm run applications:reevaluate` after a restart if that happens.
+- Delete the Render, Vercel, and Neon resources when the month is over if you do not want them to remain.
 
 ---
 
@@ -928,7 +1028,7 @@ The UI uses a restrained editorial palette with CSS custom properties for instan
 - **No automated test suite.** Validation is currently manual plus TypeScript checks.
 - **Frontend TypeScript config.** The repo has no `frontend/tsconfig.json`, so use `npx vite build` for a production bundle.
 - **No containerized app stack.** The README includes one-off Docker commands for PostgreSQL and Redis, but there is no `docker-compose` file for the API, frontend, and infrastructure together.
-- **No production proxy config.** The host must serve the SPA fallback for `/jobs/*` and route `/share/*` to Express, or `PUBLIC_SHARE_ORIGIN` and `VITE_SHARE_ORIGIN` must point at the backend origin.
+- **Deployment proxy config is Vercel-specific.** `frontend/vercel.json` provides the SPA fallback plus `/api` and `/share` rewrites for Vercel. Other hosts need equivalent routing, or `PUBLIC_SHARE_ORIGIN` and `VITE_SHARE_ORIGIN` must point at the backend origin.
 
 ---
 

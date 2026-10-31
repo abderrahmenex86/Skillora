@@ -20,7 +20,20 @@ export const evaluationWorker = new Worker(
     }
 );
 
+let workerUnavailableLogged = false;
+
+evaluationWorker.on('error', (error) => {
+    if (!workerUnavailableLogged) {
+        workerUnavailableLogged = true;
+        console.warn(
+            `[queue] Evaluation worker unavailable (${error.message}); ` +
+                'applications will run inline until Redis is reachable.'
+        );
+    }
+});
+
 evaluationWorker.on('completed', (job) => {
+    workerUnavailableLogged = false;
     console.log(`Application evaluation completed for job ${job.id}`);
 });
 
