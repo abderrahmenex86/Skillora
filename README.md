@@ -649,6 +649,8 @@ npm run seed:large
 
 Use the pooled URL for application traffic and the direct/unpooled Neon URL for `prisma db push` and other schema changes. Do not use `seed:large -- --verify` for the remote database; `--verify` expects the API on `localhost:4000`.
 
+If you use the Neon CLI from the repository root, `npm install`, `npm run db:push`, and `npm run db:seed` use `neon-env` to supply both URLs from `.env.local` automatically.
+
 ### 2. Deploy the backend on Render
 
 Push the repository to GitHub, then create a Render Blueprint from `render.yaml`:
@@ -663,7 +665,8 @@ Push the repository to GitHub, then create a Render Blueprint from `render.yaml`
 Set these Render environment variables:
 
 ```env
-DATABASE_URL=<neon-connection-string>
+DATABASE_URL=<neon-pooled-connection-string>
+DATABASE_URL_UNPOOLED=<neon-direct-connection-string>
 GROQ_API_KEY=<your-groq-key>
 CLIENT_URL=https://your-app.vercel.app
 PUBLIC_SHARE_ORIGIN=https://your-app.vercel.app
@@ -730,7 +733,8 @@ Backend variables are validated at startup in `backend/src/config/env.ts`.
 | `NODE_ENV` | No | `development` | `development`, `production`, or `test` |
 | `CLIENT_URL` | No | `http://localhost:5173` | Allowed CORS origin, cookie origin, and SPA redirect target |
 | `PUBLIC_SHARE_ORIGIN` | No | `CLIENT_URL` | Public origin that serves `/share/jobs/:id`; set to the backend origin if `/share` is not proxied on the app origin |
-| `DATABASE_URL` | Yes | — | PostgreSQL connection string |
+| `DATABASE_URL` | Yes | — | PostgreSQL connection string (Neon pooled URL for deployed apps) |
+| `DATABASE_URL_UNPOOLED` | If using Neon | — | Direct Neon URL for Prisma schema changes; set it equal to `DATABASE_URL` for a local database |
 | `JWT_ACCESS_SECRET` | Yes | — | Access token secret, minimum 32 characters |
 | `JWT_REFRESH_SECRET` | Yes | — | Refresh token secret, minimum 32 characters |
 | `REDIS_HOST` | No | `127.0.0.1` | Redis host for BullMQ |
@@ -753,6 +757,7 @@ CLIENT_URL=http://localhost:5173
 # PUBLIC_SHARE_ORIGIN=https://api.example.com
 
 DATABASE_URL=postgresql://skillora_user:skillora_pass@localhost:5432/skillora_db?schema=public
+DATABASE_URL_UNPOOLED=postgresql://skillora_user:skillora_pass@localhost:5432/skillora_db?schema=public
 
 JWT_ACCESS_SECRET=replace_with_a_random_access_secret_at_least_32_chars
 JWT_REFRESH_SECRET=replace_with_a_random_refresh_secret_at_least_32_chars

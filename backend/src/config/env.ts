@@ -1,7 +1,19 @@
+import path from 'node:path';
 import dotenv from 'dotenv';
 import { z } from 'zod';
 
-dotenv.config();
+// Neon writes the branch credentials to the repository root (`.env.local` by
+// default). Load that first so `neon deploy` stays the source of truth for
+// DATABASE_URL / DATABASE_URL_UNPOOLED, then fall back to the backend-local
+// file for secrets that are not managed by Neon (JWT keys, LLM keys, ...).
+// dotenv never overrides an existing key, so the first file wins.
+dotenv.config({
+    path: [
+        path.resolve(__dirname, '../../../.env.local'),
+        path.resolve(__dirname, '../../../.env'),
+        path.resolve(__dirname, '../../.env'),
+    ],
+});
 
 const envSchema = z.object({
     PORT: z.string().default('4000').transform(Number),

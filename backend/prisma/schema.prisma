@@ -1,6 +1,9 @@
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  // Pooled connection (PgBouncer) for application traffic.
+  url       = env("DATABASE_URL")
+  // Direct connection for migrations, which cannot run through PgBouncer.
+  directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
 generator client {

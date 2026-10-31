@@ -13,3 +13,4 @@ backend/dist/
 
 # Local UX audit artifacts
 .uxui-audit-runs/
+.neon
