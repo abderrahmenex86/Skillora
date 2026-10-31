@@ -519,6 +519,8 @@ skillora/
 - PostgreSQL 14 or newer
 - Redis 6 or newer (recommended for queued evaluations; without it, evaluations run inline in the API process)
 
+Docker is optional, but it is the quickest way to get Postgres and Redis running locally.
+
 ### 1. Clone the repository
 
 ```bash
@@ -526,7 +528,21 @@ git clone <repository-url> skillora
 cd skillora
 ```
 
-### 2. Start the backend
+### 2. Start Postgres and Redis
+
+Use your local services, or start both with Docker:
+
+```bash
+docker run -d --name skillora-pg \
+  -e POSTGRES_USER=skillora_user \
+  -e POSTGRES_PASSWORD=skillora_pass \
+  -e POSTGRES_DB=skillora_db \
+  -p 5432:5432 postgres:16
+
+docker run -d --name skillora-redis -p 6379:6379 redis:7
+```
+
+### 3. Configure and start the backend
 
 ```bash
 cd backend
@@ -534,23 +550,35 @@ npm install
 cp .env.example .env
 ```
 
-Edit `.env` with your database URL and two JWT secrets of at least 32 characters each. Then:
+Edit `backend/.env` with your database URL, two JWT secrets, and your Groq key:
+
+```dotenv
+DATABASE_URL=postgresql://skillora_user:skillora_pass@localhost:5432/skillora_db?schema=public
+JWT_ACCESS_SECRET=replace_with_a_random_access_secret_at_least_32_chars
+JWT_REFRESH_SECRET=replace_with_a_random_refresh_secret_at_least_32_chars
+LLM_PROVIDER=groq
+GROQ_API_KEY=your_groq_api_key
+LLM_MODEL=openai/gpt-oss-120b
+```
+
+Generate each JWT secret with `openssl rand -hex 32`. If your Groq account does not expose `openai/gpt-oss-120b`, set `LLM_MODEL` to a model your account can use.
+
+Create the schema and seed the large dataset:
 
 ```bash
 npx prisma generate
 npx prisma db push
-npm run prisma:seed
-npx tsx scripts/backfill-companies.ts
+npm run seed:large
 npm run dev
 ```
 
-The backfill creates one approved company per legacy recruiter and links their existing positions to company departments and branches. New recruiter signups start with a `DRAFT` company and complete the onboarding flow at `/recruiter/onboarding`.
-
-> Apply the schema change and run the backfill before serving traffic. Until the backfill finishes, legacy positions have no company link and are hidden from public discovery, and legacy recruiters have no company record so recruiter routes return 403.
-
 The API starts on `http://localhost:4000`. Health check: `GET http://localhost:4000/health`.
 
-### 3. Start the frontend
+> `seed:large` deletes and recreates every `@skillora.test` account. It creates 2 admins, 6 companies, 8 recruiters, 16 jobs, 100 applicants, and 100 applications.
+
+To use the smaller demo dataset instead, run `npm run prisma:seed` and then `npx tsx scripts/backfill-companies.ts`. The backfill creates one approved company per legacy recruiter and links their positions to company departments and branches.
+
+### 4. Start the frontend
 
 In a second terminal:
 
@@ -562,22 +590,19 @@ npm run dev
 
 The app starts on `http://localhost:5173` and proxies `/api` requests to the backend.
 
-### 4. Sign in with a demo account
+### 5. Sign in
 
-After seeding, all demo accounts use the password `password123`.
+All large-seed accounts use the password `password123`.
 
 | Role | Email |
 |------|-------|
-| Recruiter | `recruiter@techcorp.dz` |
-| Recruiter | `rh@banque-algerie.dz` |
-| Applicant | `samy.benali@esi.dz` |
-| Applicant | `amine.khelifi@gmail.com` |
-| Applicant | `yasmine.meziane@avocat.dz` |
-| Applicant | `lina.bensalem@design.dz` |
+| Admin | `admin@skillora.test` |
+| Admin | `admin2@skillora.test` |
+| Recruiter (Atlas Cloud) | `e2e.recruiter1@skillora.test` |
+| Pending recruiter | `e2e.pending@skillora.test` |
+| Applicant | `e2e.applicant01@skillora.test` |
 
-The seed also creates positions across tech, legal, finance, and operations, along with tailored resumes and applications.
-
-The demo seed does not create an `ADMIN` account. To use the company review console at `/admin/companies`, promote an account to `ADMIN` in the database or use the large seed below, which creates `admin@skillora.test` and `admin2@skillora.test` with password `password123`.
+If you used the small demo seed, examples include `recruiter@techcorp.dz`, `samy.benali@esi.dz`, and `lina.bensalem@design.dz` with the same password. The demo seed does not create an `ADMIN` account; use the large seed for the company review console at `/admin/companies`.
 
 ---
 
@@ -668,13 +693,13 @@ VITE_SHARE_ORIGIN=https://api.example.com
 
 #### Large dataset
 
-All generated accounts use the `.test` domain and the password `password123`.
+All generated accounts use the `@skillora.test` domain and the password `password123`.
 
 - **Admins:** `admin@skillora.test`, `admin2@skillora.test`
 - **Recruiters:** `e2e.recruiter1@skillora.test` through `e2e.recruiter6@skillora.test`, plus `e2e.pending@skillora.test` and `e2e.pending2@skillora.test`
 - **Pending recruiters:** `e2e.pending@skillora.test`, `e2e.pending2@skillora.test`
 - **Applicants:** `e2e.applicant01@skillora.test` through `e2e.applicant100@skillora.test`
-- **Companies:** 6, including Atlas Cloud with 3 recruiters
+- **Companies:** 6 (4 approved, 2 pending), including Atlas Cloud with 3 recruiters
 - **Jobs:** 16, with deadlines from tomorrow to 30 days out
 - **Applications:** 100, with 95 applicants holding at least one, 5 holding none, and 5 holding two
 
