@@ -504,6 +504,7 @@ skillora/
 │       └── server.ts              # Startup, database connection, worker bootstrap
 ├── frontend/
 │   ├── index.html
+│   ├── tsconfig.json              # Frontend TypeScript config
 │   ├── vercel.json                # Same-origin API/share rewrites for Vercel
 │   └── src/
 │       ├── api/                   # Axios client and TanStack Query client
@@ -638,11 +639,15 @@ Create a Neon project and copy its Postgres connection string. From your machine
 
 ```bash
 cd backend
-DATABASE_URL="<neon-connection-string>" npx prisma db push
-DATABASE_URL="<neon-connection-string>" npm run seed:large
+DATABASE_URL="<neon-pooled-connection-string>" \
+DATABASE_URL_UNPOOLED="<neon-direct-connection-string>" \
+npx prisma db push
+DATABASE_URL="<neon-pooled-connection-string>" \
+DATABASE_URL_UNPOOLED="<neon-direct-connection-string>" \
+npm run seed:large
 ```
 
-Use the direct/unpooled Neon URL for this one-off setup. Do not use `seed:large -- --verify` for the remote database; `--verify` expects the API on `localhost:4000`.
+Use the pooled URL for application traffic and the direct/unpooled Neon URL for `prisma db push` and other schema changes. Do not use `seed:large -- --verify` for the remote database; `--verify` expects the API on `localhost:4000`.
 
 ### 2. Deploy the backend on Render
 
@@ -673,7 +678,7 @@ Until Vercel is deployed, you can enter a temporary value such as `https://examp
 Import the repository into Vercel with:
 
 - Root directory: `frontend`
-- Build command: `npx vite build`
+- Build command: `npm run build`
 - Output directory: `dist`
 
 Replace the placeholder in `frontend/vercel.json` with your Render URL:
@@ -826,10 +831,8 @@ same agent pipeline and generate its notifications.
 | Command | Description |
 |---------|-------------|
 | `npm run dev` | Start the Vite development server |
+| `npm run build` | Typecheck and create a production bundle in `dist/` |
 | `npm run preview` | Preview a production build |
-| `npx vite build` | Create a production bundle in `dist/` |
-
-> `npm run build` is defined as `tsc -b && vite build`, but no `tsconfig.json` is currently tracked in `frontend/`. Use `npx vite build` until a TypeScript project config is added.
 
 ---
 
@@ -1026,7 +1029,6 @@ The UI uses a restrained editorial palette with CSS custom properties for instan
 - **No recruiter slot-configuration UI yet.** The API exposes `POST /recruiter/slots` and the large seed pre-populates weekly availability for every job, but a position created through `/recruiter/positions/new` has no slots until they are created through the API. Eligible candidates for such a position fall back to `NEEDS_REVIEW` instead of receiving an automatic interview.
 - **LLM-dependent evaluation quality.** Ingestion, matching, growth, and coordination are LLM-first with deterministic fallbacks. Output quality depends on the configured model; the heuristic path is coarser but keeps the pipeline available when the provider is offline.
 - **No automated test suite.** Validation is currently manual plus TypeScript checks.
-- **Frontend TypeScript config.** The repo has no `frontend/tsconfig.json`, so use `npx vite build` for a production bundle.
 - **No containerized app stack.** The README includes one-off Docker commands for PostgreSQL and Redis, but there is no `docker-compose` file for the API, frontend, and infrastructure together.
 - **Deployment proxy config is Vercel-specific.** `frontend/vercel.json` provides the SPA fallback plus `/api` and `/share` rewrites for Vercel. Other hosts need equivalent routing, or `PUBLIC_SHARE_ORIGIN` and `VITE_SHARE_ORIGIN` must point at the backend origin.
 

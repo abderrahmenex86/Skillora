@@ -12,7 +12,6 @@ import {
 } from '../../lib/dateTime';
 import {
     ArrowLeft,
-    Check,
     AlertTriangle,
     ExternalLink,
     FileText,

@@ -8,7 +8,6 @@ import {
     CalendarDays,
     Check,
     Loader2,
-    MapPin,
     Send,
 } from 'lucide-react';
 import { apiClient } from '../../api/apiClient';

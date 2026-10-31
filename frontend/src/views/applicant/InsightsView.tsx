@@ -1,4 +1,3 @@
-import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../../api/apiClient';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -8,7 +7,7 @@ import { Link } from 'react-router-dom';
 export default function InsightsView() {
     const user = useAuthStore((state) => state.user);
 
-    const { data: insightsData, error } = useQuery({
+    const { data: insightsData } = useQuery({
         queryKey: ['pro-insights'],
         queryFn: async () => {
             const { data } = await apiClient.get('/applicant/insights');
